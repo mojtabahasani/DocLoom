@@ -1,0 +1,108 @@
+/* Design tokens. Light is the base; dark overrides apply for [data-theme=dark] and, in "system" mode, via prefers-color-scheme. */
+:root {
+  color-scheme: light;
+  --font: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --bg: #eef2ef;
+  --bg-glow: #dcebe2;
+  --surface: #ffffff;
+  --surface-2: #f6f9f7;
+  --surface-3: #eaf1ed;
+  --line: #dfe7e2;
+  --line-strong: #c7d6cd;
+  --text: #17302f;
+  --text-2: #3e5553;
+  --muted: #6c7f7b;
+  --accent: #1f6f5f;
+  --accent-strong: #165548;
+  --accent-soft: #e4f1ea;
+  --accent-ink: #1b5f51;
+  --on-accent: #ffffff;
+  --ring: #7fc3a9;
+  --danger: #b4443c;
+  --danger-soft: #fbeceb;
+  --stage: #e9eeea;
+  --stage-dot: #b9c8c0;
+  --topbar: rgba(255, 255, 255, 0.82);
+  --toast: #173d39;
+  --toast-text: #ffffff;
+  --backdrop: rgba(14, 30, 26, 0.5);
+
+  --shadow-1: 0 1px 2px rgba(20, 50, 42, 0.06), 0 1px 1px rgba(20, 50, 42, 0.04);
+  --shadow-2: 0 10px 30px rgba(20, 50, 42, 0.1), 0 2px 6px rgba(20, 50, 42, 0.05);
+  --shadow-3: 0 24px 60px rgba(14, 40, 32, 0.28);
+
+  --r-sm: 8px;
+  --r-md: 11px;
+  --r-lg: 16px;
+  --space: 14px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1815;
+  --bg-glow: #14302a;
+  --surface: #152320;
+  --surface-2: #1a2b27;
+  --surface-3: #21352f;
+  --line: #263b35;
+  --line-strong: #35524a;
+  --text: #e3eeea;
+  --text-2: #bdd0ca;
+  --muted: #8ba39b;
+  --accent: #52b896;
+  --accent-strong: #6fd0ae;
+  --accent-soft: #1d3a32;
+  --accent-ink: #7fd8b8;
+  --on-accent: #06241c;
+  --ring: #3f8f77;
+  --danger: #ef8a81;
+  --danger-soft: #3a2220;
+  --stage: #0b1311;
+  --stage-dot: #2a403a;
+  --topbar: rgba(21, 35, 32, 0.82);
+  --toast: #e3eeea;
+  --toast-text: #0e1815;
+  --backdrop: rgba(0, 0, 0, 0.62);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e1815;
+    --bg-glow: #14302a;
+    --surface: #152320;
+    --surface-2: #1a2b27;
+    --surface-3: #21352f;
+    --line: #263b35;
+    --line-strong: #35524a;
+    --text: #e3eeea;
+    --text-2: #bdd0ca;
+    --muted: #8ba39b;
+    --accent: #52b896;
+    --accent-strong: #6fd0ae;
+    --accent-soft: #1d3a32;
+    --accent-ink: #7fd8b8;
+    --on-accent: #06241c;
+    --ring: #3f8f77;
+    --danger: #ef8a81;
+    --danger-soft: #3a2220;
+    --stage: #0b1311;
+    --stage-dot: #2a403a;
+    --topbar: rgba(21, 35, 32, 0.82);
+    --toast: #e3eeea;
+    --toast-text: #0e1815;
+    --backdrop: rgba(0, 0, 0, 0.62);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+}

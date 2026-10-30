@@ -1,0 +1,44 @@
+/* The document surface (preview). Always light "paper"; app dark mode only changes the stage around it. */
+.paper{--accent-doc:#1c5263;--tint:#edf3f2;max-width:760px;min-height:800px;margin:auto;background:#fffefa;border:1px solid #e7e6df;border-radius:4px;box-shadow:0 1px 2px rgba(20,40,32,.08),0 14px 40px rgba(20,40,32,.14);padding:58px 62px 76px;color:#24383b;font-family:var(--font);font-size:15px;line-height:2;direction:rtl;text-align:justify;overflow-wrap:anywhere;position:relative}
+.paper:focus{outline:none}
+.paper[data-empty=true]::before{content:attr(data-placeholder);position:absolute;inset:0;display:grid;place-items:center;padding:60px;text-align:center;color:#8d9b96;font-size:14px;line-height:2;pointer-events:none}
+.paper[data-doc-theme=navy]{--accent-doc:#1c5263;--tint:#edf3f2}
+.paper[data-doc-theme=green]{--accent-doc:#286b57;--tint:#edf5ee}
+.paper[data-doc-theme=warm]{--accent-doc:#925f37;--tint:#f8efdf;background:#fffaf1}
+.paper[data-doc-theme=mono]{--accent-doc:#353b40;--tint:#f0f1f1}
+.paper.web-layout{display:block;width:100%;max-width:100%;min-width:0;min-height:calc(100vh - 240px);margin:0;padding:28px 34px;text-align:initial;background:#fff;border-color:transparent;box-shadow:none;border-radius:0;overflow-x:hidden}
+.paper.web-layout *{box-sizing:border-box;min-width:0!important;max-width:100%!important;overflow-wrap:anywhere}
+.paper.web-layout img,.paper.web-layout video{width:auto;height:auto;max-width:100%!important;object-fit:contain}
+.paper.web-layout table{width:100%!important;max-width:100%!important;table-layout:fixed;border-collapse:collapse}
+.paper.web-layout td,.paper.web-layout th{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.paper.web-layout pre{width:100%;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.paper h1,.paper h2,.paper h3,.paper h4,.paper h5,.paper h6{color:var(--accent-doc);line-height:1.6;break-after:avoid-page;page-break-after:avoid}
+.paper h1{font-size:1.75em;border-bottom:2px solid var(--accent-doc);padding-bottom:12px}
+.paper h2{font-size:1.4em;margin:25px 0 10px}.paper h3{font-size:1.15em}.paper h4{font-size:1em}
+.paper p{margin:10px 0;orphans:3;widows:3}
+.paper blockquote,.paper .cover,.paper .card{margin:16px 0;padding:12px 17px;background:var(--tint);border-right:4px solid var(--accent-doc);border-radius:0 6px 6px 0;break-inside:avoid}
+.paper blockquote>p:first-child{margin-top:0}.paper blockquote>p:last-child{margin-bottom:0}
+.paper ul,.paper ol{padding-right:25px;padding-left:0}
+.paper li{margin:5px 0;break-inside:avoid}.paper li>ul,.paper li>ol{margin:3px 0}
+.paper pre,.paper code{direction:ltr;text-align:left;background:#f1f2f1;font-family:var(--mono);font-size:.88em}
+.paper code{padding:1px 5px;border-radius:4px}
+.paper pre{padding:12px;white-space:pre-wrap;border-radius:8px}.paper pre code{padding:0;background:none}
+.paper table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.82em}
+.paper th,.paper td{border:1px solid #d6ded9;padding:8px;text-align:right}
+.paper th{background:var(--accent-doc);color:#fff}
+.paper tr{break-inside:avoid}
+.paper hr{border:0;border-top:1px solid #dce3de;margin:21px 0}
+.paper a{color:var(--accent-doc)}
+.paper .cover h1{margin:0;border:0;padding:0}
+.paper .subtitle{font-size:.87em;color:#718087}
+.paper .card-label{display:block;color:var(--accent-doc);font-weight:bold}
+.paper .doc-image{display:block;max-width:100%;height:auto;margin:16px auto;break-inside:avoid}
+.paper .link-button{display:inline-block;padding:8px 14px;background:var(--accent-doc);color:#fff!important;text-decoration:none;border-radius:6px}
+.paper .masthead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #dce4de;margin-bottom:22px}
+.paper .masthead img{max-height:58px;max-width:220px;object-fit:contain}
+.paper .page-footer{margin-top:28px;padding-top:8px;border-top:1px solid #dce4de;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#64736d;font-size:.85em}
+.paper .page-footer img{max-width:220px;max-height:55px;object-fit:contain}
+@media (max-width:720px){
+  .paper{padding:30px 20px 48px;min-height:600px;font-size:14px}
+  .paper.web-layout{min-height:0;padding:18px 12px}
+}
