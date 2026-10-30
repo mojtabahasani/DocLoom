@@ -1,0 +1,21 @@
+/* Brand manager, switcher and side-panel helpers for letter / watermark / QR */
+.inline-row{display:flex;gap:8px;align-items:center}.inline-row input[type=text],.inline-row input[type=number]{flex:1;min-width:0}
+.inline-row input[type=color]{width:42px;height:34px;padding:2px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2)}
+.inline-row .btn{white-space:nowrap}
+.brand-form .check{margin:0}
+.brand-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.brand-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2)}
+.brand-info{display:grid;gap:2px;min-width:160px}.brand-info small{color:var(--muted);font-size:var(--fs-xs)}
+.brand-row-actions{display:flex;flex-wrap:wrap;gap:6px}.brand-row-actions .btn{min-height:30px;padding:0 10px;font-size:var(--fs-xs)}
+.btn.danger-soft{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+.btn.danger-soft:hover{background:color-mix(in srgb,var(--danger) 10%,var(--surface))}
+.brand-actions{display:flex;gap:8px;margin-top:12px}
+.brand-imgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.brand-img{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);min-width:0}
+.brand-img-actions{display:grid;gap:6px;font-size:var(--fs-xs);min-width:0}.brand-img-actions .btn{min-height:28px;padding:0 9px;font-size:var(--fs-xs)}
+.brand-thumb-slot{flex:none}
+.brand-thumb{display:grid;place-items:center;width:64px;height:48px;object-fit:contain;border:1px dashed var(--line-strong);border-radius:6px;background:#fff;font-size:10px;color:var(--muted);text-align:center}
+img.brand-thumb{border-style:solid}
+.brand-qr{margin-top:6px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm)}
+#brandBtn .lbl{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:720px){.brand-imgs{grid-template-columns:1fr}}

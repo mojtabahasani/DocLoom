@@ -152,3 +152,19 @@ test('filler: «حتماً! در ادامه …:» intro is removed as a whole',
   assert.equal(run('حتماً! در ادامه راهنما:\n\nمتن', 'filler'), 'متن');
   assert.equal(run('متن\n\nدر ادامه راهنما: ' + 'کلمه '.repeat(40), 'filler').startsWith('متن\n\nدر ادامه'), true);
 });
+
+test('digits: separators between Persian digits become «٬» (thousands) and «٫» (decimal)', () => {
+  assert.equal(run('قیمت ۱,۲۰۰ تومان', 'digits'), 'قیمت ۱٬۲۰۰ تومان');
+  assert.equal(run('مبلغ ۱,۲۳۴,۵۶۷.۵۰ ریال', 'digits'), 'مبلغ ۱٬۲۳۴٬۵۶۷٫۵۰ ریال');
+  assert.equal(run('عدد ۳.۱۴ است', 'digits'), 'عدد ۳٫۱۴ است');
+  assert.equal(count('قیمت ۱,۲۰۰ تومان', 'digits'), 1);
+});
+test('digits: Latin digits with separators convert fully, including thousands plus decimals', () => {
+  assert.equal(run('قیمت 1,200 تومان', 'digits'), 'قیمت ۱٬۲۰۰ تومان');
+  assert.equal(run('جمع 1,200.5 تومان', 'digits'), 'جمع ۱٬۲۰۰٫۵ تومان');
+});
+test('digits: lists, versions and section numbers are not mistaken for separators', () => {
+  assert.equal(run('مراحل ۱,۲,۳ را بروید', 'digits'), 'مراحل ۱,۲,۳ را بروید');
+  assert.equal(run('نسخه ۱.۲.۳ منتشر شد', 'digits'), 'نسخه ۱.۲.۳ منتشر شد');
+  assert.equal(run('Python 3.11 و ۱,۲۰۰', 'digits'), 'Python 3.11 و ۱,۲۰۰'); // mostly Latin sentence: left alone
+});

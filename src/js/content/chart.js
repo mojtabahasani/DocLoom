@@ -179,7 +179,7 @@ function pieChart(data, sel, colors) {
   rows.forEach((lab, i) => {
     const yy = 52 + i * 24;
     g += `<rect x="340" y="${yy - 10}" width="12" height="12" rx="2" fill="${colors[i % colors.length]}"/>`;
-    g += `<text x="360" y="${yy}" font-size="12" fill="${INK}" text-anchor="start">${escapeHTML(clip(lab, 20))}  ·  ${fmtNum((vals[i] / total) * 100, true)}</text>`;
+    g += `<text x="360" y="${yy}" font-size="12" fill="${INK}" text-anchor="start">${escapeHTML(clip(lab, 20))}  ·  \u2066${fmtNum((vals[i] / total) * 100, true)}\u2069</text>`;
   });
   if (data.labels.length > 12) g += `<text x="360" y="${52 + 12 * 24}" font-size="12" fill="${INK}" text-anchor="start">…</text>`;
   return g;

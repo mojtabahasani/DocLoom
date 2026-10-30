@@ -13,6 +13,19 @@ function docImage(src, alt) {
   return el('img', { src, alt, class: 'doc-image' });
 }
 
+/** Read an image file for a brand (same type and size limits as the editor). Resolves to a data URL, or null after telling the user why. */
+export function loadImageData(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(null);
+    if (!IMAGE_TYPES.test(file.type)) return notify('قالب تصویر پشتیبانی نمی‌شود؛ PNG، JPG، WebP یا GIF انتخاب کنید.'), resolve(null);
+    if (file.size > MAX_IMAGE) return notify('حجم تصویر باید کمتر از ۸ مگابایت باشد.'), resolve(null);
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => (notify('خواندن تصویر ممکن نشد.'), resolve(null));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function readImage(file, target = 'inline') {
   if (!file) return;
   if (!IMAGE_TYPES.test(file.type)) {

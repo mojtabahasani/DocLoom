@@ -12,13 +12,14 @@ const DROPPED = new Set(
 const CLASSES = new Set(
   ('card card-label cover subtitle masthead repeat-header page-footer repeat-footer doc-image link-button ' +
     'callout callout-note callout-tip callout-important callout-warning callout-caution callout-title task task-done task-list ' +
-    'toc toc-title chart chart-svg code tok-k tok-s tok-c tok-n tok-f tok-a').split(' '),
+    'toc toc-title chart chart-svg code tok-k tok-s tok-c tok-n tok-f tok-a ' +
+    'letter-head letter-top letter-meta letter-line letter-subject letter-to letter-greeting letter-sign sign-box sign-area sig-img stamp-img signer qr-box qr-inline qr-svg').split(' '),
 );
 const HEADING_ID = /^s-[\p{L}\p{N}-]{1,70}$/u;
 const HASH_LINK = /^#s-[\p{L}\p{N}-]{1,70}$/u;
 const LANG_LABEL = /^[a-z0-9+#.-]{1,12}$/;
 
-// SVG is dropped everywhere EXCEPT our own chart (<svg class="chart-svg">), rebuilt from a strict whitelist:
+// SVG is dropped everywhere EXCEPT our own chart and QR code (<svg class="chart-svg|qr-svg">), rebuilt from a strict whitelist:
 // no scripts, handlers, links, <use>, <image>, <foreignObject>, <style>; only plain geometry/paint attributes.
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SVG_TAGS = new Set('svg g rect path line polyline circle text tspan title'.split(' '));
@@ -27,13 +28,14 @@ const COLOR = /^(none|#[0-9a-f]{3,8})$/i;
 const SVG_ATTRS = {
   viewBox: /^[\d.\s-]{1,40}$/,
   x: NUM, y: NUM, x1: NUM, y1: NUM, x2: NUM, y2: NUM, cx: NUM, cy: NUM, r: NUM, rx: NUM, ry: NUM, dy: NUM, width: NUM, height: NUM,
-  d: /^[MmLlHhVvAaZzCcQqSsTt\d.,\s-]{1,4000}$/,
+  d: /^[MmLlHhVvAaZzCcQqSsTt\d.,\s-]{1,40000}$/, // QR codes are one long path of module runs
   points: /^[\d.,\s-]{1,4000}$/,
   fill: COLOR, stroke: COLOR,
   'stroke-width': NUM, 'font-size': NUM, opacity: NUM, 'fill-opacity': NUM, 'stroke-opacity': NUM,
   'stroke-linecap': /^(butt|round|square)$/, 'stroke-linejoin': /^(miter|round|bevel)$/,
   'font-weight': /^(normal|bold|\d{3})$/, 'text-anchor': /^(start|middle|end)$/,
   transform: /^(rotate|translate)\([\d.,\s-]{1,40}\)$/,
+  'shape-rendering': /^crispEdges$/,
   role: /^img$/, 'aria-label': /^[^<>]{0,200}$/,
 };
 const STYLE_PROPS = new Set(
@@ -43,7 +45,8 @@ const STYLE_PROPS = new Set(
     'white-space list-style-type').split(' '),
 );
 const FONT_SIZES = { 1: '10px', 2: '13px', 3: '16px', 4: '18px', 5: '24px', 6: '32px', 7: '48px' };
-const FURNITURE = new Set(['header', 'title', 'footer']);
+const FURNITURE = new Set(['header', 'title', 'footer', 'letter', 'signature', 'qr']);
+const SVG_ROOT = /(^|\s)(chart-svg|qr-svg)(\s|$)/;
 
 export function cleanStyle(raw) {
   const out = [];
@@ -79,7 +82,7 @@ export function sanitizeChildren(root, env = defaultEnv()) {
       if (v != null && re.test(v.trim())) e.setAttribute(a, v.trim());
     }
     if (root) {
-      e.setAttribute('class', 'chart-svg');
+      e.setAttribute('class', /(^|\s)qr-svg(\s|$)/.test(n.getAttribute('class') || '') ? 'qr-svg' : 'chart-svg');
       const st = cleanStyle(n.getAttribute('style'));
       if (st) e.setAttribute('style', st);
     }
@@ -93,7 +96,7 @@ export function sanitizeChildren(root, env = defaultEnv()) {
     if (n.nodeType === 3) return doc.createTextNode(n.nodeValue || '');
     if (n.nodeType !== 1) return doc.createDocumentFragment();
     const tag = String(n.tagName).toUpperCase();
-    if (tag === 'SVG' && /(^|\s)chart-svg(\s|$)/.test(n.getAttribute('class') || '')) return copySvg(n);
+    if (tag === 'SVG' && SVG_ROOT.test(n.getAttribute('class') || '')) return copySvg(n);
     if (DROPPED.has(tag)) return doc.createDocumentFragment();
     if (!ALLOWED.has(tag)) {
       const f = doc.createDocumentFragment();

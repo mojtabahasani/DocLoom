@@ -1,0 +1,48 @@
+/* Official-letter blocks, QR code and signature area: shared by the preview (.paper) and the plain-HTML export (main.md-export). */
+:where(.paper, main.md-export) .letter-head { margin: 0 0 18px; break-inside: avoid; }
+:where(.paper, main.md-export) .letter-top { display: flex; align-items: flex-start; justify-content: flex-end; gap: 18px; margin-bottom: 14px; }
+:where(.paper, main.md-export) .letter-meta { min-width: 210px; padding: 4px 0; text-align: right; }
+:where(.paper, main.md-export) .letter-line { margin: 3px 0; }
+:where(.paper, main.md-export) .letter-line b { color: var(--accent-doc, var(--accent)); }
+:where(.paper, main.md-export) .letter-meta .letter-line { min-height: 1.9em; border-bottom: 1px dotted #c4cdc8; }
+:where(.paper, main.md-export) .letter-to { text-align: right; }
+:where(.paper, main.md-export) .letter-subject { font-weight: 700; margin-top: 8px; }
+:where(.paper, main.md-export) .letter-greeting { margin: 14px 0 4px; text-align: center; }
+
+:where(.paper, main.md-export) .letter-sign { display: flex; justify-content: flex-end; margin: 30px 0 10px; break-inside: avoid; }
+:where(.paper, main.md-export) .sign-box { width: 230px; text-align: center; }
+:where(.paper, main.md-export) .sign-area { position: relative; width: 230px; height: 130px; }
+:where(.paper, main.md-export) .sign-area img {
+  position: absolute; left: 0; top: 0; margin: 0; max-width: 150px; max-height: 110px; object-fit: contain;
+  -webkit-user-drag: none; user-select: none; touch-action: none;
+}
+.paper .sign-area img { cursor: grab; }
+.paper .sign-area img.dragging { cursor: grabbing; outline: 2px dashed #7fc3a9; outline-offset: 2px; }
+:where(.paper, main.md-export) .sig-img { z-index: 2; }
+:where(.paper, main.md-export) .stamp-img { z-index: 1; max-width: 120px !important; mix-blend-mode: multiply; opacity: .92; }
+:where(.paper, main.md-export) .signer { margin: 2px 0 0; line-height: 1.7; }
+:where(.paper, main.md-export) .signer strong { display: block; }
+:where(.paper, main.md-export) .signer span { display: block; color: #64736d; font-size: .9em; }
+
+:where(.paper, main.md-export) .qr-box { display: flex; justify-content: flex-end; margin: 16px 0 6px; break-inside: avoid; }
+:where(.paper, main.md-export) .qr-box.qr-inline { margin: 0; }
+:where(.paper, main.md-export) .qr-svg { display: block; background: #fff; border: 1px solid #e1e7e3; border-radius: 4px; }
+@media print {
+  :where(.paper, main.md-export) .sign-area img, :where(.paper, main.md-export) .qr-svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Preview-only: the watermark overlay sits over the paper (it is not part of the editable document). */
+.paper-wrap { position: relative; max-width: 760px; margin: 0 auto; }
+.paper-wrap:has(.paper.web-layout) { max-width: none; }
+.wm-layer { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; border-radius: 4px; }
+.wm-layer[hidden] { display: none; }
+.wm-item {
+  position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%) rotate(-32deg);
+  font-size: clamp(56px, 12vw, 118px); font-weight: 700; line-height: 1.2; white-space: nowrap; opacity: .1; user-select: none;
+}
+@media print {
+  .paper-wrap { max-width: none; }
+  .wm-layer { position: fixed; z-index: 50; border-radius: 0; }
+  .wm-item { top: 50% !important; opacity: .12; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wm-item:nth-child(n+2) { display: none; }
+}

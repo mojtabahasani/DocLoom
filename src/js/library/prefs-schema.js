@@ -1,7 +1,7 @@
 // App preferences stored in the IndexedDB `settings` store. Pure validation.
 export const PREF_KEYS = [
   'appTheme', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab',
-  'defaultBrandId', 'lastDocId', 'recentCommands',
+  'defaultBrandId', 'lastDocId', 'recentCommands', 'brandsSeeded',
 ];
 // Keys that mirror a live store key (the rest are library-internal).
 export const STORE_PREF_KEYS = ['appTheme', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab'];
@@ -14,6 +14,7 @@ const rules = {
   embedFontInExport: (v) => typeof v === 'boolean',
   openLinksInNewTab: (v) => typeof v === 'boolean',
   defaultBrandId: (v) => v === null || (typeof v === 'string' && v.length <= 80),
+  brandsSeeded: (v) => v === true,
   lastDocId: (v) => v === null || (typeof v === 'string' && v.length <= 80),
   recentCommands: (v) => Array.isArray(v) && v.length <= 12 && v.every((x) => typeof x === 'string' && x.length <= 80),
 };

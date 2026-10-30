@@ -2,6 +2,7 @@
 import { sanitizePrefs } from './prefs-schema.js';
 import { REASONS } from './version-rules.js';
 import { normalizeTags } from './doc-model.js';
+import { normalizeBrand } from '../brand/brand-model.js';
 
 export const BACKUP_FORMAT = 'md2html-backup';
 export const BACKUP_VERSION = 1;
@@ -48,7 +49,7 @@ function cleanVersion(v) {
 }
 
 function cleanBrand(b) {
-  return plain(b) && isStr(b.id, 80) && b.id && isStr(b.name, 200) ? b : null;
+  return plain(b) && isStr(b.id, 80) && b.id && isStr(b.name, 200) ? { ...normalizeBrand(b), id: b.id } : null; // images, colours and counters are re-validated
 }
 
 /** @returns {{ok:true, data:{documents,versions,brands,settings}, counts} | {ok:false, error:string}} */

@@ -14,5 +14,8 @@
     "fake-indexeddb": "^6.2.7",
     "linkedom": "^0.18.14",
     "vazirmatn": "^33.0.3"
+  },
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
   }
 }

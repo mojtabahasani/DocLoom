@@ -13,7 +13,14 @@ export const DOC_DEFAULTS = {
   repeatHeader: false,
   repeatFooter: false,
   webLayout: false,
-  mode: 'doc', // document mode: 'doc' | 'letter' (letter template arrives in package 3; hook with store.on('mode'))
+  mode: 'doc', // document mode: 'doc' | 'letter' (the letter template is built by brand/letter-ui.js)
+  brandId: null,
+  brandColors: { primary: '', accent: '' }, // used when theme === 'brand'
+  signatureImage: '',
+  stampImage: '',
+  letter: { number: '', date: '', attachments: '', recipient: '', subject: '', greeting: true, signer: { name: '', role: '' }, sig: { x: 30, y: 6 }, stamp: { x: 100, y: 16 } },
+  watermark: { preset: 'none', text: '' },
+  qr: { enabled: false, kind: 'url', value: '', position: 'footer', size: 84 },
 };
 
 export const DEFAULTS = {
@@ -24,7 +31,7 @@ export const DEFAULTS = {
   footerAlign: 'stretch',
   footerWidth: 220,
   footerHeight: 55,
-  theme: 'navy', // document colour theme: navy | green | warm | mono
+  theme: 'navy', // document colour theme: navy | green | warm | mono | brand (custom colours)
   font: 15,
   margin: 18,
   uploadEndpoint: 'https://zi2.ir/api/upload/upload.php',

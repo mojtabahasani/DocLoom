@@ -80,9 +80,13 @@ function zwnj(s, rec) {
   });
 }
 
+// Persian number separators: «٬» thousands (U+066C), «٫» decimal (U+066B).
+const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+const toFa = (t) => t.replace(/\d/g, (d) => FA_DIGITS[d]);
+
 function digits(s, ctx, rec) {
   if (!ctx.persian) return s;
-  return sub(s, /\d+(?:[.,]\d+)*/g, 'digits', rec, (m, off) => {
+  s = sub(s, /\d+(?:[.,]\d+)*/g, 'digits', rec, (m, off) => {
     const before = s.slice(0, off);
     const next = s[off + m.length] || '';
     if (/[A-Za-z_]$/.test(before) || /[A-Za-z_]/.test(next)) return m; // H2O, v2, 3D
@@ -90,9 +94,15 @@ function digits(s, ctx, rec) {
     const tok = before.match(/(\S+)\s+$/);
     if (tok && /[A-Za-z]$/.test(tok[1])) return m; // "Python 3", "iPhone 15"
     let out = m;
-    if (/^\d+(,\d{3})+$/.test(m)) out = m.replace(/,/g, '٬');
+    if (/^\d+(,\d{3})+(\.\d+)?$/.test(m)) out = m.replace(/,/g, '٬').replace('.', '٫');
     else if (/^\d+\.\d+$/.test(m)) out = m.replace('.', '٫');
-    return out.replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    return toFa(out);
+  });
+  // Numbers that are already Persian digits but still use Latin separators: «۱,۲۰۰» «۳.۱۴».
+  return sub(s, /(?<![\d۰-۹.,])[۰-۹]+(?:[.,][۰-۹]+)+(?![\d۰-۹])/g, 'digits', rec, (m) => {
+    if (/^[۰-۹]+(,[۰-۹]{3})+(\.[۰-۹]+)?$/.test(m)) return m.replace(/,/g, '٬').replace('.', '٫');
+    if (/^[۰-۹]+\.[۰-۹]+$/.test(m)) return m.replace('.', '٫');
+    return m; // «۱.۲.۳» (versions) and «۱,۲,۳» (lists) are left alone
   });
 }
 

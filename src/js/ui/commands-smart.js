@@ -4,7 +4,7 @@ import { notify } from '../core/notify.js';
 import { palette } from './palette.js';
 import { defineShortcut } from './shortcuts.js';
 import { applyCleanup, openCleanup } from './cleanup-ui.js';
-import { checkDocument, suggestLetterMode } from './suggest.js';
+import { checkDocument } from './suggest.js';
 import { insertToc, showTab } from './toc-panel.js';
 import { openReading } from './reading.js';
 import { openChartPopover, chartableData } from './chart-ui.js';
@@ -24,7 +24,6 @@ export function registerSmartCommands() {
     { id: 'cleanup', title: 'پاک‌سازی خروجی هوش مصنوعی…', group: 'پاک‌سازی', keywords: 'cleanup ai clean zwnj نیم فاصله ایموجی ی ک اعداد', run: openCleanup },
     { id: 'cleanup-quick', title: 'پاک‌سازی سریع با قاعده‌های پیش‌فرض', group: 'پاک‌سازی', keywords: 'cleanup quick ai فوری', run: () => applyCleanup() },
     { id: 'detect', title: 'بررسی نوع سند (خروجی AI / نامه)', group: 'پاک‌سازی', keywords: 'detect type ai letter تشخیص', run: () => checkDocument() || notify('سندی برای بررسی نیست.') },
-    { id: 'letter-mode', title: 'حالت نامه برای این سند', group: 'سند', keywords: 'letter نامه باسمه', run: suggestLetterMode },
     { id: 'toc-insert', title: 'درج فهرست مطالب در سند', group: 'درج', keywords: 'toc table of contents فهرست مطالب', run: insertToc },
     { id: 'toc-show', title: 'نمایش فهرست مطالب در پنل کناری', group: 'نما', keywords: 'toc outline headings فهرست', run: () => (showTab('toc'), $('#tabBtnToc').focus()) },
     { id: 'reading', title: 'حالت مطالعه', group: 'نما', keywords: 'reading mode focus read مطالعه خواندن', run: openReading },

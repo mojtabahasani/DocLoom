@@ -33,3 +33,4 @@ body.reading { overflow: hidden; }
 .reader .reader-doc li.task::before { cursor: default; }
 @media print { .reader, .blocktools, .suggest, .popover { display: none !important; } }
 .reader .reader-doc pre code, .reader .reader-doc pre.code code { background: none; }
+.reader .reader-doc pre code *, .reader .reader-doc pre.code code * { background: none; }

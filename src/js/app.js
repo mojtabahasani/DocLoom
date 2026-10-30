@@ -22,6 +22,10 @@ import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
 import { initToc } from './ui/toc-panel.js';
 import { initSuggest } from './ui/suggest.js';
+import { initBrands } from './brand/brands.js';
+import { initBrandUI } from './brand/brand-ui.js';
+import { initLetterUI } from './brand/letter-ui.js';
+import { initLayers } from './brand/layers-ui.js';
 import { registerSmartCommands, initSmartButtons } from './ui/commands-smart.js';
 
 async function main() {
@@ -46,6 +50,10 @@ async function main() {
   initToc();
   initSuggest();
   initSmartButtons();
+  await initBrands(); // before the library opens a document: brands seed on first run
+  initBrandUI();
+  initLetterUI();
+  initLayers();
   initLibrary();
   initLibraryUI();
   await library.start(); // reopen the last document

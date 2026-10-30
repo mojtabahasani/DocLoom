@@ -77,3 +77,10 @@ test('renderChart: text is escaped, pie uses a single series, no series throws',
   assert.equal((svg.match(/<circle/g) || []).length, 1); // one slice = full circle
   assert.throws(() => renderChart({ type: 'bar', data: d, series: [9] }));
 });
+
+test('pie legend: the percent sign stays after the number (bidi-isolated), not before the label', () => {
+  const d = extractChartData([['ماه', 'فروش'], ['فروردین', '25.53'], ['اردیبهشت', '74.47']]);
+  const svg = renderChart({ type: 'pie', data: d, series: [0] });
+  assert.match(svg, /فروردین  ·  ⁦[^<]*٪⁩</);
+  assert.doesNotMatch(svg, /٪فروردین/);
+});

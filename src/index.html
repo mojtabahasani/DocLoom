@@ -60,8 +60,12 @@
     <input id="title" type="text" placeholder="عنوان سند را بنویسید…" aria-label="عنوان سند" autocomplete="off" spellcheck="false">
   </div>
   <div class="top-actions">
-    <!-- Slot: brand switcher (package 3) replaces this placeholder. -->
-    <div class="slot" data-slot="brand"><button class="btn ghost" type="button" disabled title="به‌زودی"><svg class="ic"><use href="#i-brand"/></svg><span class="lbl">برند</span></button></div>
+    <div class="slot" data-slot="brand">
+      <div class="menu-wrap" id="brandWrap">
+        <button class="btn ghost" id="brandBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="brandMenu" title="برند سند"><svg class="ic"><use href="#i-brand"/></svg><span class="lbl" id="brandName">برند</span></button>
+        <div class="menu" id="brandMenu" role="menu" hidden></div>
+      </div>
+    </div>
     <button class="btn ghost" id="libraryBtn" type="button" aria-haspopup="dialog" aria-expanded="false" title="کتابخانهٔ سندها"><svg class="ic"><use href="#i-library"/></svg><span class="lbl">کتابخانه</span></button>
     <button class="chip" id="paletteHint" type="button" aria-label="پالت فرمان"><kbd>⌘K</kbd><span class="lbl">فرمان‌ها</span></button>
     <div class="seg" role="group" aria-label="پوستهٔ برنامه">
@@ -154,7 +158,10 @@
       </div>
     </div>
     <div class="stage">
-      <article class="paper" id="preview" contenteditable="true" spellcheck="false" aria-label="پیش‌نمایش و ویرایش سند" data-placeholder="سند شما اینجا شکل می‌گیرد — فایل Markdown انتخاب کنید یا متن را وارد کنید؛ پیش‌نمایش را می‌توانید مستقیم ویرایش کنید."></article>
+      <div class="paper-wrap" id="paperWrap">
+        <article class="paper" id="preview" contenteditable="true" spellcheck="false" aria-label="پیش‌نمایش و ویرایش سند" data-placeholder="سند شما اینجا شکل می‌گیرد — فایل Markdown انتخاب کنید یا متن را وارد کنید؛ پیش‌نمایش را می‌توانید مستقیم ویرایش کنید."></article>
+        <div class="wm-layer" id="wmLayer" aria-hidden="true" hidden></div>
+      </div>
       <div id="sourcePane" hidden>
         <div class="source-actions">
           <button class="btn" id="refreshSource" type="button">به‌روزرسانی سورس از پیش‌نمایش</button>
@@ -244,6 +251,43 @@
         <div class="field"><label for="footerHeight">ارتفاع (px)</label><input id="footerHeight" type="number" min="20" max="240"></div>
       </div>
       <label class="check"><input type="checkbox" id="repeatFooter"> تکرار در صفحه‌های چاپ</label>
+    </details>
+
+    <details class="acc" id="letterAcc">
+      <summary>نامهٔ اداری</summary>
+      <label class="check"><input type="checkbox" id="letterMode"> حالت نامهٔ اداری</label>
+      <div id="letterFields" hidden>
+        <div class="field"><label for="letterDate">تاریخ (شمسی)</label>
+          <div class="inline-row"><input id="letterDate" type="text" dir="ltr" inputmode="numeric" placeholder="۱۴۰۵/۰۸/۰۸" autocomplete="off"><button class="btn" id="letterToday" type="button">امروز</button></div></div>
+        <div class="field"><label for="letterNumber">شماره</label>
+          <div class="inline-row"><input id="letterNumber" type="text" autocomplete="off"><button class="btn soft" id="letterTake" type="button">شماره بگیر</button></div></div>
+        <div class="field"><label for="letterAttach">پیوست</label><input id="letterAttach" type="text" placeholder="مثلاً: یک برگ فاکتور" autocomplete="off"></div>
+        <div class="field"><label for="letterTo">به</label><input id="letterTo" type="text" placeholder="گیرندهٔ نامه" autocomplete="off"></div>
+        <div class="field"><label for="letterSubject">موضوع</label><input id="letterSubject" type="text" autocomplete="off"></div>
+        <label class="check"><input type="checkbox" id="letterGreeting"> «با سلام و احترام»</label>
+        <div class="two">
+          <div class="field"><label for="letterSigner">نام امضاکننده</label><input id="letterSigner" type="text" autocomplete="off"></div>
+          <div class="field"><label for="letterRole">سمت</label><input id="letterRole" type="text" autocomplete="off"></div>
+        </div>
+        <button class="btn block" id="letterResetSign" type="button">بازنشانی جای امضا و مهر</button>
+        <p class="muted">امضا و مهر را در پیش‌نمایش با موس بکشید تا جایشان ذخیره شود. تصویر امضا و مهر از «مدیریت برندها» می‌آید.</p>
+      </div>
+    </details>
+
+    <details class="acc" id="layersAcc">
+      <summary>واترمارک و QR</summary>
+      <div class="field"><label for="wmPreset">واترمارک</label><select id="wmPreset"></select></div>
+      <div class="field" id="wmTextField" hidden><label for="wmText">متن واترمارک</label><input id="wmText" type="text" maxlength="40" autocomplete="off"></div>
+      <p class="muted" id="wmNote"></p>
+      <div class="sep thin"></div>
+      <label class="check"><input type="checkbox" id="qrOn"> نمایش QR کد</label>
+      <div id="qrFields" hidden>
+        <div class="field"><label for="qrKind">محتوای QR</label><select id="qrKind"></select></div>
+        <div class="field"><label for="qrValue" id="qrValueLabel">مقدار</label><input id="qrValue" type="text" dir="ltr" autocomplete="off"></div>
+        <div class="field"><label for="qrPos">جای QR</label><select id="qrPos"></select></div>
+        <div class="field"><label for="qrSize">اندازه</label><input class="range" id="qrSize" type="range" min="56" max="180" step="4"></div>
+        <p class="muted" id="qrNote"></p>
+      </div>
     </details>
 
     <details class="acc">

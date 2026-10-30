@@ -1,6 +1,7 @@
 // Full backup: export / import (JSON) with validation and merge-or-replace choice.
 import { toFaDigits as fa } from '../content/persian.js';
 import { notify } from '../core/notify.js';
+import { store } from '../core/store.js';
 import { el } from '../core/dom.js';
 import { openModal } from '../ui/modal.js';
 import { downloadFile } from '../export/files.js';
@@ -81,6 +82,7 @@ export async function importBackupText(text, mode) {
     return false;
   }
   if (chosen === 'replace') applyPrefs(r.data.settings);
+  store.emit('backup:imported'); // brands reload from the database
   const docs = await library.list();
   await library.openFresh(docs[0]?.id ?? null);
   notify(`پشتیبان وارد شد: ${fa(r.counts.documents)} سند، ${fa(r.counts.versions)} نسخه.`);

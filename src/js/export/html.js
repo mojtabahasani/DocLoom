@@ -4,7 +4,9 @@ import { sanitizeChildren } from '../content/sanitize.js';
 import { escapeHTML } from '../content/markdown.js';
 import { preview } from '../editor/preview.js';
 import { assignHeadingIds } from '../content/toc-dom.js';
+import { watermarkExportHTML, WATERMARK_CSS } from '../brand/watermark.js';
 import BLOCKS_CSS from '../../styles/blocks.css';
+import LETTER_CSS from '../../styles/letter.css';
 
 export const THEME_COLORS = {
   navy: ['#1c5263', '#edf3f2'],
@@ -21,7 +23,7 @@ const BASE_CSS =
   'blockquote,.card,.cover{background:var(--tint);padding:13px 17px;border-right:4px solid var(--accent);margin:16px 0;break-inside:avoid}' +
   'blockquote>p:first-child{margin-top:0}blockquote>p:last-child{margin-bottom:0}' +
   'table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:right}th{background:var(--accent);color:#fff}' +
-  'pre,code{direction:ltr;text-align:left;background:#f1f2f1}pre{padding:12px;white-space:pre-wrap}' +
+  'pre,code{direction:ltr;text-align:left;background:#f1f2f1}pre{padding:12px;white-space:pre-wrap}pre code,pre code *{background:none;padding:0;border-radius:0}' +
   '.doc-image{max-width:100%;height:auto}.link-button{display:inline-block;background:var(--accent);padding:8px 14px;color:white!important;text-decoration:none}' +
   '.masthead{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #ddd;padding-bottom:12px;margin-bottom:20px}' +
   '.masthead img{max-height:55px;max-width:145px;object-fit:contain}' +
@@ -40,7 +42,8 @@ export function buildExportHTML(s = store.snapshot(), root = preview) {
   main.style.fontSize = s.font + 'px';
   main.append(sanitizeChildren(root));
   if (main.querySelector('nav.toc')) assignHeadingIds(main); // in-page TOC links need heading ids
-  const [accent, tint] = THEME_COLORS[s.theme] || THEME_COLORS.navy;
+  const custom = s.theme === 'brand' && s.brandColors?.primary ? [s.brandColors.primary, s.brandColors.accent || s.brandColors.primary] : null;
+  const [accent, tint] = custom || THEME_COLORS[s.theme] || THEME_COLORS.navy;
   const top = s.repeatHeader ? '18mm' : '0';
   const bottom = s.repeatFooter ? '16mm' : '0';
   const off = Math.max(8, s.margin - 5);
@@ -53,7 +56,7 @@ export function buildExportHTML(s = store.snapshot(), root = preview) {
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     `<title>${escapeHTML(s.title || 'سند فارسی')}</title>` +
-    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}${BLOCKS_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
-    `</head><body>${main.outerHTML}</body></html>`
+    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}${BLOCKS_CSS}${LETTER_CSS}${WATERMARK_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
+    `</head><body>${watermarkExportHTML(s.watermark)}${main.outerHTML}</body></html>`
   );
 }

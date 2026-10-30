@@ -5,15 +5,15 @@ import { notify } from '../core/notify.js';
 import { detectKind } from '../content/detect.js';
 import { preview, plainText, previewInSync, isEmpty } from '../editor/preview.js';
 import { openCleanup } from './cleanup-ui.js';
+import { setLetterMode } from '../brand/letter-ui.js';
 
 const dismissed = new Set();
 let bar;
 
-/** Package 3 hooks letter mode through store.on('mode'); for now this only marks the document. */
+/** Switch the document to letter mode and point the user at the letter settings. */
 export function suggestLetterMode() {
-  store.set('mode', 'letter');
-  store.set('dirty', true);
-  notify('قالب نامه به‌زودی اضافه می‌شود؛ سند فعلاً در حالت «نامه» علامت‌گذاری شد.');
+  setLetterMode(true);
+  notify('حالت نامه فعال شد؛ تاریخ، شماره، گیرنده و موضوع را در پنل «طراحی ← نامهٔ اداری» بنویسید.');
 }
 
 const key = (kind) => `${store.get('docId') || 'new'}:${kind}`;

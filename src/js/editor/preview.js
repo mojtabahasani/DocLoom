@@ -51,7 +51,16 @@ export function resetHistory() {
 }
 
 export function applyLook() {
-  preview.dataset.docTheme = store.get('theme');
+  const theme = store.get('theme');
+  preview.dataset.docTheme = theme;
+  const custom = store.get('brandColors') || {};
+  if (theme === 'brand' && custom.primary) {
+    preview.style.setProperty('--accent-doc', custom.primary);
+    preview.style.setProperty('--tint', custom.accent || custom.primary);
+  } else {
+    preview.style.removeProperty('--accent-doc');
+    preview.style.removeProperty('--tint');
+  }
   preview.style.fontSize = store.get('font') + 'px';
   preview.classList.toggle('web-layout', store.get('webLayout'));
 }
@@ -167,7 +176,7 @@ export function initPreview() {
     if (e.target.closest('a')) e.preventDefault();
   });
   preview.addEventListener('drop', (e) => e.preventDefault());
-  for (const k of ['theme', 'font', 'webLayout']) store.on(k, applyLook);
+  for (const k of ['theme', 'font', 'webLayout', 'brandColors']) store.on(k, applyLook);
   applyLook();
   preview.dataset.empty = 'true';
 }
