@@ -31,7 +31,11 @@ async function bundleJS() {
     write: false,
   });
   // A literal "</script" inside inline JS would end the script block early.
-  return out.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
+  // `<script` / `<!--` inside inline JS can also derail the HTML parser (double-escaped state), so escape them as well.
+  return out.outputFiles[0].text
+    .replace(/<\/script/gi, '<\\/script')
+    .replace(/<script/g, '<\\u0073cript')
+    .replace(/<!--/g, '<\\!--');
 }
 
 async function bundleCSS() {

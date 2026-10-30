@@ -5,7 +5,7 @@ import { notify } from '../core/notify.js';
 import { palette } from './palette.js';
 import { defineShortcut, listShortcuts } from './shortcuts.js';
 import { openModal } from './modal.js';
-import { exportHTML, exportMarkdown, exportEmail, exportPDF } from '../export/actions.js';
+import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
 import { exportSettings } from './settings.js';
 import { setFont } from './panels.js';
 import { undo, redo, selectAll, plainText, insertNode, refreshFurniture } from '../editor/preview.js';
@@ -50,7 +50,12 @@ export function registerCommands() {
     { id: 'backup-import', title: 'ورود پشتیبان کامل (JSON)', group: 'پشتیبان', keywords: 'backup import restore بکاپ بازیابی', run: importBackup },
     { id: 'open-file', title: 'انتخاب فایل سند (MD، TXT، HTML)', group: 'ورود', keywords: 'open file import upload فایل', run: () => $('#file').click() },
     // exports
-    { id: 'export-html', title: 'خروجی صفحهٔ HTML', group: 'خروجی', keywords: 'export html download دریافت', run: exportHTML },
+    { id: 'export-html', title: 'خروجی HTML ساده (چاپ‌پذیر)', group: 'خروجی', keywords: 'export html download دریافت', run: exportHTML },
+    { id: 'export-interactive', title: 'خروجی HTML تعاملی (فهرست، حالت تیره، کپی کد)', group: 'خروجی', keywords: 'export interactive html toc dark تعاملی', run: exportInteractive },
+    { id: 'export-docx', title: 'خروجی Word (.docx)', group: 'خروجی', keywords: 'export word docx ورد', run: exportDocx },
+    { id: 'export-png', title: 'خروجی تصویر PNG برای تلگرام', group: 'خروجی', keywords: 'export png image telegram تصویر عکس', run: exportPNG },
+    { id: 'present', title: 'شروع حالت ارائه (اسلاید)', group: 'ارائه', keywords: 'present presentation slides ارائه اسلاید', run: presentDocument },
+    { id: 'export-present', title: 'ذخیرهٔ ارائه به‌صورت فایل HTML', group: 'خروجی', keywords: 'export presentation slides html ارائه', run: exportPresentation },
     { id: 'export-md', title: 'خروجی Markdown', group: 'خروجی', keywords: 'export markdown md', run: exportMarkdown },
     { id: 'export-pdf', title: 'خروجی PDF / چاپ', group: 'خروجی', keywords: 'export pdf print چاپ a4', run: exportPDF },
     { id: 'export-email', title: 'خروجی ایمیل فارسی', group: 'خروجی', keywords: 'export email mail', run: exportEmail },

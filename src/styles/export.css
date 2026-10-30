@@ -1,0 +1,9 @@
+/* Export dialogs (PNG, presentation) */
+.xdlg .xopt { display: flex; align-items: center; gap: 8px; padding: 7px 0; font-size: var(--fs-sm); cursor: pointer; }
+.xdlg .xopt input { accent-color: var(--accent); }
+.xprog { direction: ltr; height: 8px; margin-top: 12px; background: var(--surface-3); border-radius: 6px; overflow: hidden; }
+.xprog i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 0 6px 6px 0; transition: width .15s linear; }
+.modalfoot .btn:disabled { opacity: .5; cursor: default; }
+.present-layer { position: fixed; inset: 0; z-index: 90; background: #000; }
+.present-frame { width: 100%; height: 100%; border: 0; display: block; }
+body.presenting { overflow: hidden; }

@@ -1,10 +1,10 @@
 // Header: document title, export menu, new document, ⌘K chip (brand slot arrives in package 3).
 import { $, $$ } from '../core/dom.js';
 import { palette } from './palette.js';
-import { exportHTML, exportMarkdown, exportEmail, exportPDF } from '../export/actions.js';
+import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
 import { newDocument } from '../editor/document.js';
 
-const ACTIONS = { html: exportHTML, markdown: exportMarkdown, email: exportEmail, pdf: exportPDF };
+const ACTIONS = { html: exportHTML, interactive: exportInteractive, markdown: exportMarkdown, docx: exportDocx, png: exportPNG, present: presentDocument, 'present-file': exportPresentation, email: exportEmail, pdf: exportPDF };
 
 export function initTopbar() {
   const btn = $('#exportMenuBtn');

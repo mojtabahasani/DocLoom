@@ -7,15 +7,9 @@ import { assignHeadingIds } from '../content/toc-dom.js';
 import { watermarkExportHTML, WATERMARK_CSS } from '../brand/watermark.js';
 import BLOCKS_CSS from '../../styles/blocks.css';
 import LETTER_CSS from '../../styles/letter.css';
+import { THEME_COLORS, FONT_STACK, themeColors } from './theme.js';
 
-export const THEME_COLORS = {
-  navy: ['#1c5263', '#edf3f2'],
-  green: ['#286b57', '#edf5ee'],
-  warm: ['#925f37', '#f8efdf'],
-  mono: ['#353b40', '#f0f1f1'],
-};
-
-const FONT_STACK = "Vazirmatn,'Segoe UI',Tahoma,Arial,sans-serif";
+export { THEME_COLORS };
 
 const BASE_CSS =
   `body{margin:0;padding:30px 18px;background:#f5f6f4;color:#24383b;font-family:${FONT_STACK};direction:rtl;line-height:1.9}` +
@@ -36,14 +30,22 @@ export function embeddedFontCSS() {
   return document.getElementById('md2html-font')?.textContent || '';
 }
 
-export function buildExportHTML(s = store.snapshot(), root = preview) {
+/** Shared by the plain and interactive exports: the sanitized <main> plus colours and font CSS. */
+export function exportParts(s = store.snapshot(), root = preview) {
   const main = document.createElement('main');
   main.className = 'md-export';
   main.style.fontSize = s.font + 'px';
   main.append(sanitizeChildren(root));
   if (main.querySelector('nav.toc')) assignHeadingIds(main); // in-page TOC links need heading ids
-  const custom = s.theme === 'brand' && s.brandColors?.primary ? [s.brandColors.primary, s.brandColors.accent || s.brandColors.primary] : null;
-  const [accent, tint] = custom || THEME_COLORS[s.theme] || THEME_COLORS.navy;
+  const [accent, tint] = themeColors(s);
+  const font = s.embedFontInExport ? embeddedFontCSS() : '';
+  return { main, accent, tint, font };
+}
+
+export const EXPORT_STYLES = BASE_CSS + BLOCKS_CSS + LETTER_CSS + WATERMARK_CSS;
+
+export function buildExportHTML(s = store.snapshot(), root = preview) {
+  const { main, accent, tint, font } = exportParts(s, root);
   const top = s.repeatHeader ? '18mm' : '0';
   const bottom = s.repeatFooter ? '16mm' : '0';
   const off = Math.max(8, s.margin - 5);
@@ -51,7 +53,6 @@ export function buildExportHTML(s = store.snapshot(), root = preview) {
     `@media print{main{padding-top:${top}!important;padding-bottom:${bottom}!important}` +
     `.repeat-header{position:fixed;top:-${off}mm;left:0;right:0;background:#fff;z-index:10}` +
     `.repeat-footer{position:fixed;bottom:-${off}mm;left:0;right:0;background:#fff;z-index:10}}`;
-  const font = s.embedFontInExport ? embeddedFontCSS() : '';
   return (
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +

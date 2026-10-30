@@ -7,8 +7,13 @@ export function downloadFile(name, body, type) {
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
+  a.style.display = 'none';
+  document.body.append(a); // Firefox needs the link in the DOM
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1200);
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 1200);
 }
 
 export function safeFilename(title, ext) {
