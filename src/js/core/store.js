@@ -13,6 +13,7 @@ export const DOC_DEFAULTS = {
   repeatHeader: false,
   repeatFooter: false,
   webLayout: false,
+  mode: 'doc', // document mode: 'doc' | 'letter' (letter template arrives in package 3; hook with store.on('mode'))
 };
 
 export const DEFAULTS = {

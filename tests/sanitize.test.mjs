@@ -101,3 +101,34 @@ test('safeURL / isHttps', () => {
   assert.equal(isHttps('https://a.com'), true);
   assert.equal(isHttps('http://a.com'), false);
 });
+
+import { renderChart, extractChartData } from '../src/js/content/chart.js';
+
+test('chart SVG survives intact; foreign SVG is still dropped', () => {
+  const d = extractChartData([['a', 'b'], ['x', '1'], ['y', '2']]);
+  for (const type of ['bar', 'line', 'pie']) {
+    const svg = renderChart({ type, data: d, series: [0] });
+    const out = clean(`<figure class="chart">${svg}</figure>`);
+    assert.ok(out.includes('<svg') && out.includes('chart-svg') && out.includes('viewBox="0 0 640 340"'), type);
+    assert.equal((out.match(/<(rect|path|line|polyline|circle|text)\b/g) || []).length, (svg.match(/<(rect|path|line|polyline|circle|text)\b/g) || []).length, type);
+  }
+  assert.equal(clean('<svg><circle r="1"/></svg>t'), 't');
+});
+test('chart SVG: scripts, handlers, links, foreign elements and bad values are stripped', () => {
+  const evil = '<svg class="chart-svg" viewBox="0 0 10 10" onload="x()" style="direction:ltr;background:url(x)"><script>alert(1)</script>' +
+    '<a href="https://evil.example"><text x="1" y="1" onclick="x()" fill="javascript:1">hi</text></a>' +
+    '<foreignObject><div>x</div></foreignObject><use href="#a"/><image href="https://evil.example/i.png"/><style>*{}</style>' +
+    '<rect x="1" y="1" width="expression(1)" height="3" fill="#fff" stroke="url(#x)" onmouseover="x()"/><animate attributeName="x"/></svg>';
+  const out = clean(evil);
+  assert.ok(out.includes('<svg') && out.includes('<rect'));
+  assert.ok(!/script|onload|onclick|onmouse|href|foreignObject|<use|<image|<style|<animate|evil|javascript|expression|url\(|alert/i.test(out), out);
+});
+test('heading ids, #-links and code language label are kept only in safe form', () => {
+  assert.equal(clean('<h2 id="s-مقدمه">x</h2>'), '<h2 id="s-مقدمه">x</h2>');
+  assert.equal(clean('<h2 id="title">x</h2>'), '<h2>x</h2>');
+  assert.equal(clean('<a href="#s-مقدمه">t</a>'), '<a href="#s-مقدمه">t</a>');
+  assert.equal(clean('<a href="#evil">t</a>'), '<a>t</a>');
+  assert.equal(clean('<pre data-lang="js"><code>x</code></pre>'), '<pre data-lang="js"><code>x</code></pre>');
+  assert.equal(clean('<pre data-lang="x&quot;y"><code>x</code></pre>'), '<pre><code>x</code></pre>');
+  assert.equal(clean('<li class="task task-done evil">x</li>'), '<li class="task task-done">x</li>');
+});

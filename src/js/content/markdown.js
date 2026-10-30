@@ -1,5 +1,6 @@
 // Markdown -> HTML string. Pure (no DOM). All text is escaped; links/images go through safeURL.
 import { safeURL } from './url.js';
+import { highlight, langLabel } from './highlight.js';
 
 export const escapeHTML = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -43,6 +44,13 @@ const LIST_RE = /^(\s*)([-*+]|[\d۰-۹]+[.)])\s+(.*)$/;
 const FENCE_RE = /^\s*(`{3,}|~{3,})/;
 const HR_RE = /^(-{3,}|\*{3,}|_{3,})$/;
 const SEP_CELL = /^:?-+:?$/;
+const TASK_RE = /^\[([ xX])\]\s+(.*)$/;
+const CALLOUT_RE = /^\[!([A-Za-z\u0600-\u06FF]+)\]\s*(.*)$/;
+export const CALLOUTS = {
+  note: 'نکته', tip: 'راهنما', important: 'مهم', warning: 'هشدار', caution: 'خطر',
+};
+const CALLOUT_ALIAS = { 'نکته': 'note', 'راهنما': 'tip', 'مهم': 'important', 'هشدار': 'warning', 'خطر': 'caution' };
+const calloutKind = (w) => (CALLOUTS[w.toLowerCase()] ? w.toLowerCase() : CALLOUT_ALIAS[w] || null);
 
 const splitRow = (line) =>
   line
@@ -78,6 +86,7 @@ function renderList(lines, start) {
   const base = first[1].length;
   const ordered = /^[\d۰-۹]/.test(first[2]);
   const items = [];
+  let hasTask = false;
   let i = start;
   while (i < lines.length) {
     const m = lines[i].match(LIST_RE);
@@ -103,12 +112,15 @@ function renderList(lines, start) {
       }
       break;
     }
+    const task = !ordered && body[0].match(TASK_RE);
+    if (task) body[0] = task[2];
     let html = renderBlocks([...body, ...dedent(rest)]);
     if (!rest.includes('')) html = html.replace(/^<p>([\s\S]*?)<\/p>/, '$1'); // tight list item: no <p> wrapper
-    items.push(`<li>${html}</li>`);
+    if (task) hasTask = true;
+    items.push(task ? `<li class="task${task[1] === ' ' ? '' : ' task-done'}">${html}</li>` : `<li>${html}</li>`);
   }
   const tag = ordered ? 'ol' : 'ul';
-  return [`<${tag}>${items.join('')}</${tag}>`, i];
+  return [`<${tag}${hasTask ? ' class="task-list"' : ''}>${items.join('')}</${tag}>`, i];
 }
 
 export function renderBlocks(lines) {
@@ -134,7 +146,9 @@ export function renderBlocks(lines) {
       i++;
       while (i < lines.length && !lines[i].trim().startsWith(fence[1])) code.push(lines[i++]);
       if (i < lines.length) i++;
-      out.push(`<pre><code>${escapeHTML(code.join('\n'))}</code></pre>`);
+      const lang = langLabel(line.trim().slice(fence[1].length));
+      const body = code.join('\n');
+      out.push(lang ? `<pre class="code" dir="ltr" data-lang="${lang}"><code>${highlight(body, lang)}</code></pre>` : `<pre><code>${escapeHTML(body)}</code></pre>`);
       continue;
     }
     const h = t.match(/^(#{1,6})\s+(.+?)(?:\s+#+)?$/);
@@ -170,7 +184,12 @@ export function renderBlocks(lines) {
       flush();
       const inner = [];
       while (i < lines.length && /^\s*>/.test(lines[i])) inner.push(lines[i++].replace(/^\s*>\s?/, ''));
-      out.push(`<blockquote>${renderBlocks(inner)}</blockquote>`);
+      const cm = inner[0] && inner[0].trim().match(CALLOUT_RE);
+      const kind = cm && calloutKind(cm[1]);
+      if (kind) {
+        const rest = cm[2] ? [cm[2], ...inner.slice(1)] : inner.slice(1);
+        out.push(`<aside class="callout callout-${kind}"><span class="callout-title">${CALLOUTS[kind]}</span>${renderBlocks(rest)}</aside>`);
+      } else out.push(`<blockquote>${renderBlocks(inner)}</blockquote>`);
       continue;
     }
     if (LIST_RE.test(line)) {

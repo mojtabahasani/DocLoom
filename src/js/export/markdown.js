@@ -9,7 +9,8 @@ function listMd(n, ctx) {
     if (String(li.tagName).toUpperCase() !== 'LI') continue;
     idx++;
     const body = walkKids(li, { ...ctx, depth: ctx.depth + 1 }).trim().split('\n');
-    const mark = ordered ? idx + '. ' : '- ';
+    const task = !ordered && li.classList?.contains('task') ? (li.classList.contains('task-done') ? '[x] ' : '[ ] ') : '';
+    const mark = (ordered ? idx + '. ' : '- ') + task;
     lines.push(mark + body[0]);
     for (const extra of body.slice(1)) lines.push(extra ? '  ' + extra : extra);
   }
@@ -26,10 +27,18 @@ function tableMd(n) {
   return [pad(rows[0]), pad(Array(width).fill('---')), ...rows.slice(1).map(pad)].join('\n') + '\n\n';
 }
 
+function calloutMd(n, ctx) {
+  const kind = Array.from(n.classList || []).find((c) => /^callout-(note|tip|important|warning|caution)$/.test(c)).slice(8);
+  const inner = Array.from(n.childNodes).filter((c) => !(c.classList && c.classList.contains('callout-title')));
+  const body = inner.map((c) => node(c, ctx)).join('').trim().split('\n');
+  return ['> [!' + kind.toUpperCase() + ']', ...body.map((x) => '> ' + x)].join('\n') + '\n\n';
+}
+
 function node(n, ctx) {
   if (n.nodeType === 3) return n.nodeValue || '';
   if (n.nodeType !== 1) return '';
   const tag = String(n.tagName).toUpperCase();
+  if (tag === 'ASIDE' && /(^|\s)callout-(note|tip|important|warning|caution)(\s|$)/.test(n.getAttribute('class') || '')) return calloutMd(n, ctx);
   switch (tag) {
     case 'H1': case 'H2': case 'H3': case 'H4': case 'H5': case 'H6':
       return '#'.repeat(Number(tag[1])) + ' ' + walkKids(n, ctx).trim() + '\n\n';
@@ -39,7 +48,7 @@ function node(n, ctx) {
     case 'EM': case 'I': return '*' + walkKids(n, ctx) + '*';
     case 'DEL': case 'S': return '~~' + walkKids(n, ctx) + '~~';
     case 'CODE': return '`' + (n.textContent || '') + '`';
-    case 'PRE': return '```\n' + (n.textContent || '').replace(/\n$/, '') + '\n```\n\n';
+    case 'PRE': return '```' + (n.getAttribute('data-lang') || '') + '\n' + (n.textContent || '').replace(/\n$/, '') + '\n```\n\n';
     case 'A': return '[' + walkKids(n, ctx) + '](' + (n.getAttribute('href') || '') + ')';
     case 'IMG': return '![' + (n.getAttribute('alt') || '') + '](' + (n.getAttribute('src') || '') + ')\n\n';
     case 'HR': return '---\n\n';
@@ -47,6 +56,8 @@ function node(n, ctx) {
       return walkKids(n, ctx).trim().split('\n').map((x) => '> ' + x).join('\n') + '\n\n';
     case 'UL': case 'OL': return (ctx.depth ? '\n' : '') + listMd(n, ctx);
     case 'TABLE': return tableMd(n);
+    case 'NAV': return ''; // generated table of contents
+    case 'FIGURE': return n.classList?.contains('chart') ? '' : walkKids(n, ctx).trim() ? walkKids(n, ctx).trim() + '\n\n' : '';
     default: {
       const kids = walkKids(n, ctx);
       return /^(DIV|HEADER|FOOTER|ASIDE|SECTION|ARTICLE|MAIN|FIGURE)$/.test(tag) && kids.trim() ? kids.trim() + '\n\n' : kids;

@@ -3,6 +3,8 @@ import { store } from '../core/store.js';
 import { sanitizeChildren } from '../content/sanitize.js';
 import { escapeHTML } from '../content/markdown.js';
 import { preview } from '../editor/preview.js';
+import { assignHeadingIds } from '../content/toc-dom.js';
+import BLOCKS_CSS from '../../styles/blocks.css';
 
 export const THEME_COLORS = {
   navy: ['#1c5263', '#edf3f2'],
@@ -34,8 +36,10 @@ export function embeddedFontCSS() {
 
 export function buildExportHTML(s = store.snapshot(), root = preview) {
   const main = document.createElement('main');
+  main.className = 'md-export';
   main.style.fontSize = s.font + 'px';
   main.append(sanitizeChildren(root));
+  if (main.querySelector('nav.toc')) assignHeadingIds(main); // in-page TOC links need heading ids
   const [accent, tint] = THEME_COLORS[s.theme] || THEME_COLORS.navy;
   const top = s.repeatHeader ? '18mm' : '0';
   const bottom = s.repeatFooter ? '16mm' : '0';
@@ -49,7 +53,7 @@ export function buildExportHTML(s = store.snapshot(), root = preview) {
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     `<title>${escapeHTML(s.title || 'سند فارسی')}</title>` +
-    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
+    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}${BLOCKS_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
     `</head><body>${main.outerHTML}</body></html>`
   );
 }

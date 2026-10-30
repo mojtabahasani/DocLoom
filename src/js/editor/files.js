@@ -46,6 +46,7 @@ export async function loadSourceFile(file) {
       if (loadHTMLContent(content)) {
         toggleSourceMode(true);
         setSourceText(beautifyHTML(content, { DOMParser }));
+        store.emit('text:imported');
       }
     } else if (/\.(md|markdown|txt)$/i.test(file.name)) {
       store.emit('before-import');
@@ -53,6 +54,7 @@ export async function loadSourceFile(file) {
       if (!store.get('title')) store.set('title', file.name.replace(/\.(md|markdown|txt)$/i, ''));
       renderFromSource();
       notify('فایل روی همین دستگاه خوانده شد.');
+      store.emit('text:imported');
     } else notify('فقط فایل MD، TXT یا HTML انتخاب کنید.');
   } catch {
     notify('خواندن فایل ممکن نشد.');

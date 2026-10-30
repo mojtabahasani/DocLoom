@@ -67,7 +67,7 @@ test('blockquotes, including nesting and inner blocks', () => {
 });
 
 test('fenced code keeps content literal', () => {
-  assert.equal(md('```js\nlet a = "<b>";\n# not heading\n```'), '<pre><code>let a = &quot;&lt;b&gt;&quot;;\n# not heading</code></pre>');
+  assert.equal(md('```\nlet a = "<b>";\n# not heading\n```'), '<pre><code>let a = &quot;&lt;b&gt;&quot;;\n# not heading</code></pre>');
   assert.equal(md('~~~\nx\n~~~'), '<pre><code>x</code></pre>');
   assert.equal(md('```\nunclosed'), '<pre><code>unclosed</code></pre>');
 });
@@ -90,4 +90,33 @@ test('empty and whitespace input', () => {
   assert.equal(md(''), '');
   assert.equal(md('   \n\n  '), '');
   assert.equal(md(null), '');
+});
+
+test('task lists: marker, done state, plain items stay plain', () => {
+  assert.equal(md('- [ ] الف\n- [x] ب **x**\n- [X] پ\n- عادی'),
+    '<ul class="task-list"><li class="task">الف</li><li class="task task-done">ب <strong>x</strong></li><li class="task task-done">پ</li><li>عادی</li></ul>');
+  assert.equal(md('- [] نه\n- [ ]نه'), '<ul><li>[] نه</li><li>[ ]نه</li></ul>');
+  assert.equal(md('1. [ ] x'), '<ol><li>[ ] x</li></ol>');
+});
+
+test('callouts: English and Persian kinds, titles, content', () => {
+  assert.equal(md('> [!NOTE]\n> متن نکته'), '<aside class="callout callout-note"><span class="callout-title">نکته</span><p>متن نکته</p></aside>');
+  assert.equal(md('> [!tip]\n> a'), '<aside class="callout callout-tip"><span class="callout-title">راهنما</span><p>a</p></aside>');
+  assert.equal(md('> [!IMPORTANT] مهم است\n> ادامه'), '<aside class="callout callout-important"><span class="callout-title">مهم</span><p>مهم است<br>ادامه</p></aside>');
+  const fa = { 'نکته': 'note', 'راهنما': 'tip', 'مهم': 'important', 'هشدار': 'warning', 'خطر': 'caution' };
+  for (const [k, v] of Object.entries(fa)) assert.ok(md(`> [!${k}]\n> x`).startsWith(`<aside class="callout callout-${v}">`), k);
+  for (const v of ['WARNING', 'CAUTION']) assert.ok(md(`> [!${v}]\n> x`).includes('callout-' + v.toLowerCase()));
+});
+test('callouts: unknown kind stays a normal blockquote; markup inside is rendered and escaped', () => {
+  assert.equal(md('> [!FOO]\n> x'), '<blockquote><p>[!FOO]<br>x</p></blockquote>');
+  assert.equal(md('> [!WARNING]\n> **b** <i>'), '<aside class="callout callout-warning"><span class="callout-title">هشدار</span><p><strong>b</strong> &lt;i&gt;</p></aside>');
+});
+
+test('fenced code with a language: highlighted, LTR, labelled; unsafe info strings ignored', () => {
+  const html = md('```python\nx = "<a>"\n```');
+  assert.ok(html.startsWith('<pre class="code" dir="ltr" data-lang="py"><code>'));
+  assert.ok(html.includes('&lt;a&gt;') && !html.includes('<a>'));
+  assert.equal(md('```js title="x"\n1\n```').includes('data-lang="js"'), true);
+  assert.equal(md('```"><img onerror=1>\nx\n```'), '<pre><code>x</code></pre>');
+  assert.equal(md('```rust\nfn main(){}\n```').includes('data-lang="rust"'), true);
 });

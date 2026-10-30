@@ -44,6 +44,9 @@
     <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
   </defs>
 </svg>
@@ -85,6 +88,15 @@
 <main class="layout">
   <aside class="panel side left" aria-label="محتوا">
     <div class="heading"><h2>محتوا</h2><span class="step">۰۱ · ورود</span></div>
+    <div class="tabs" role="tablist" aria-label="بخش‌های پنل محتوا">
+      <button type="button" role="tab" id="tabBtnInput" aria-selected="true" aria-controls="tabInput">ورود</button>
+      <button type="button" role="tab" id="tabBtnToc" aria-selected="false" aria-controls="tabToc" tabindex="-1">فهرست</button>
+    </div>
+    <div id="tabToc" role="tabpanel" aria-labelledby="tabBtnToc" hidden>
+      <nav id="tocList" aria-label="فهرست مطالب سند"></nav>
+      <button class="btn block" id="tocInsert" type="button"><svg class="ic"><use href="#i-list"/></svg>درج فهرست مطالب در سند</button>
+    </div>
+    <div id="tabInput" role="tabpanel" aria-labelledby="tabBtnInput">
     <div class="upload" id="drop">
       <input type="file" id="file" accept=".md,.markdown,.txt,.html,.htm,text/html" aria-label="انتخاب فایل سند">
       <svg class="ic lg"><use href="#i-upload"/></svg>
@@ -104,6 +116,7 @@
 
 **تأکید**، فهرست، جدول و نقل‌قول هم پشتیبانی می‌شوند."></textarea>
     </div>
+    <button class="btn block" id="cleanupBtn" type="button"><svg class="ic"><use href="#i-sparkle"/></svg>پاک‌سازی خروجی هوش مصنوعی</button>
     <div class="field">
       <label for="subtitle">زیرعنوان (اختیاری)</label>
       <input id="subtitle" type="text" placeholder="توضیح یا نام گیرنده" autocomplete="off">
@@ -118,6 +131,7 @@
     <label class="check"><input id="embedFont" type="checkbox"> جاسازی فونت وزیرمتن در خروجی HTML</label>
     <label class="check"><input id="autosave" type="checkbox"> ذخیرهٔ خودکار در کتابخانه</label>
     <p class="muted">سند در کتابخانهٔ همین مرورگر ذخیره می‌شود؛ متن و تصویر به سرور فرستاده نمی‌شوند. برای انتقال به دستگاه دیگر از پشتیبان کامل استفاده کنید.</p>
+    </div>
   </aside>
 
   <section class="panel center" aria-label="سند">
@@ -125,6 +139,7 @@
       <strong id="centerTitle">پیش‌نمایش سند</strong>
       <span class="live" id="modeLabel">زنده</span>
       <span class="grow"></span>
+      <button class="btn" id="readBtn" type="button" title="حالت مطالعه"><svg class="ic"><use href="#i-book"/></svg><span>مطالعه</span></button>
       <button class="btn" id="sourceToggle" type="button" aria-pressed="false"><svg class="ic"><use href="#i-code"/></svg><span>سورس HTML</span></button>
       <div class="ltr-group" role="group" aria-label="واگرد و انجام دوباره">
         <button class="btn icon" id="undo" type="button" aria-label="واگرد" title="واگرد"><svg class="ic"><use href="#i-undo"/></svg></button>

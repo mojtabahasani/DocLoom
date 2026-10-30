@@ -1,0 +1,63 @@
+/* Rich content blocks: shared by the preview (.paper), the reader and the plain-HTML export (main.md-export).
+   Colours use the document accent (--accent-doc in the app, --accent in the export). */
+:where(.paper, main.md-export) ul.task-list { list-style: none; padding-right: 0; padding-left: 0; }
+:where(.paper, main.md-export) li.task { position: relative; list-style: none; padding-inline-start: 2.05em; min-height: 1.7em; }
+:where(.paper, main.md-export) li.task::before {
+  content: ""; position: absolute; inset-inline-start: .15em; top: .62em; width: 1.05em; height: 1.05em; box-sizing: border-box;
+  border: 2px solid var(--accent-doc, var(--accent)); border-radius: 4px; background-color: #fff; cursor: pointer;
+}
+:where(.paper, main.md-export) li.task-done::before {
+  background: var(--accent-doc, var(--accent)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 78% no-repeat;
+}
+:where(.paper, main.md-export) li.task-done { color: #7a8783; }
+
+:where(.paper, main.md-export) .callout {
+  --cc: var(--accent-doc, var(--accent)); margin: 16px 0; padding: 10px 16px 11px; border-right: 4px solid var(--cc);
+  border-radius: 0 8px 8px 0; background: #f4f6f5; background: color-mix(in srgb, var(--cc) 9%, #fff); break-inside: avoid;
+}
+:where(.paper, main.md-export) .callout-tip { --cc: #2f8f5b; }
+:where(.paper, main.md-export) .callout-important { --cc: #7b57c7; }
+:where(.paper, main.md-export) .callout-warning { --cc: #c27a12; }
+:where(.paper, main.md-export) .callout-caution { --cc: #c0392b; }
+:where(.paper, main.md-export) .callout-title { display: block; font-weight: 700; color: var(--cc); }
+:where(.paper, main.md-export) .callout-title::before {
+  content: "i"; display: inline-flex; align-items: center; justify-content: center; width: 1.3em; height: 1.3em; border-radius: 50%;
+  background: var(--cc); color: #fff; font: 700 .78em/1 sans-serif; margin-inline-end: .5em; vertical-align: .08em;
+}
+:where(.paper, main.md-export) .callout-tip .callout-title::before { content: "★"; }
+:where(.paper, main.md-export) .callout-important .callout-title::before { content: "!"; }
+:where(.paper, main.md-export) .callout-warning .callout-title::before { content: "▲"; font-size: .62em; }
+:where(.paper, main.md-export) .callout-caution .callout-title::before { content: "✕"; font-size: .7em; }
+:where(.paper, main.md-export) .callout > p:first-of-type { margin-top: 3px; }
+:where(.paper, main.md-export) .callout > :last-child { margin-bottom: 0; }
+
+:where(.paper, main.md-export) pre.code {
+  direction: ltr; text-align: left; padding: 10px 14px 12px; background: #f3f5f4; border: 1px solid #e1e7e3; border-radius: 10px;
+  white-space: pre; overflow-x: auto; line-height: 1.7; tab-size: 2;
+}
+:where(.paper, main.md-export) pre[data-lang]::before {
+  content: attr(data-lang); display: block; margin-bottom: 6px; font: 700 10.5px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: .08em; text-transform: uppercase; color: #7a8a84; user-select: none;
+}
+.tok-k { color: #8250df; } .tok-s { color: #0a7a4b; } .tok-c { color: #6b7a74; font-style: italic; }
+.tok-n { color: #b35900; } .tok-f { color: #0b5fa5; } .tok-a { color: #a0361f; }
+
+:where(.paper, main.md-export) figure.chart { margin: 18px auto; text-align: center; break-inside: avoid; }
+:where(.paper, main.md-export) figure.chart svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+:where(.paper, main.md-export) figure.chart.selected { outline: 2px dashed #7fc3a9; outline-offset: 4px; }
+
+:where(.paper, main.md-export) nav.toc {
+  margin: 18px 0; padding: 10px 18px 12px; background: var(--tint); border-right: 4px solid var(--accent-doc, var(--accent));
+  border-radius: 0 8px 8px 0; break-inside: avoid;
+}
+:where(.paper, main.md-export) .toc-title { margin: 0 0 4px; font-weight: 700; color: var(--accent-doc, var(--accent)); }
+:where(.paper, main.md-export) nav.toc ul { list-style: none; margin: 0; padding: 0; }
+:where(.paper, main.md-export) nav.toc ul ul { padding-right: 18px; }
+:where(.paper, main.md-export) nav.toc li { margin: 2px 0; }
+:where(.paper, main.md-export) nav.toc a { text-decoration: none; }
+:where(.paper, main.md-export) nav.toc a:hover { text-decoration: underline; }
+
+@media print {
+  :where(.paper, main.md-export) pre.code { white-space: pre-wrap; }
+  :where(.paper, main.md-export) .callout, :where(.paper, main.md-export) pre.code { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

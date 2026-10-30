@@ -66,6 +66,15 @@ export function renderFromSource() {
   markChanged();
 }
 
+/** True when the preview is exactly what the Markdown source renders to (no direct edits, charts, ...). */
+export function previewInSync() {
+  const s = furnitureState();
+  const box = document.createElement('div');
+  box.append(sanitizeToFragment(headerHTML(s) + markdownToHTML(s.source) + footerHTML(s)));
+  const norm = (h) => h.replace(/ id="s-[^"]*"/g, '');
+  return !!s.source.trim() && norm(box.innerHTML) === norm(preview.innerHTML);
+}
+
 /** Replace only the header/title/footer blocks, keeping edited body content. */
 export function refreshFurniture() {
   const s = furnitureState();

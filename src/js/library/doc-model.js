@@ -4,7 +4,7 @@ export const LAYOUT_KEYS = [
   'repeatHeader', 'repeatFooter', 'theme', 'font', 'margin', 'headerAlign', 'headerWidth', 'headerHeight',
   'footerAlign', 'footerWidth', 'footerHeight',
 ];
-export const TRACKED_KEYS = new Set([...LAYOUT_KEYS, 'title', 'subtitle', 'source', 'webLayout']);
+export const TRACKED_KEYS = new Set([...LAYOUT_KEYS, 'title', 'subtitle', 'source', 'webLayout', 'mode']);
 export const MAX_TEXT = 200000;
 
 export const newId = (prefix = 'd') => prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -19,7 +19,7 @@ export function captureDoc({ id, state, html, text, meta = {}, now = Date.now() 
     sourceType: 'md',
     html,
     text: String(text || '').slice(0, MAX_TEXT),
-    mode: state.webLayout ? 'web' : 'doc',
+    mode: state.mode === 'letter' ? 'letter' : state.webLayout ? 'web' : 'doc',
     brandId: meta.brandId || null,
     tags: meta.tags || [],
     pinned: !!meta.pinned,
@@ -31,7 +31,7 @@ export function captureDoc({ id, state, html, text, meta = {}, now = Date.now() 
 
 /** Store patch that fully restores a document (HTML is applied separately, after sanitizing). */
 export function docToPatch(doc) {
-  const patch = { title: doc.title || '', subtitle: doc.subtitle || '', source: doc.source || '', webLayout: doc.mode === 'web' };
+  const patch = { title: doc.title || '', subtitle: doc.subtitle || '', source: doc.source || '', webLayout: doc.mode === 'web', mode: doc.mode === 'letter' ? 'letter' : 'doc' };
   for (const k of LAYOUT_KEYS) if (doc.layout && doc.layout[k] !== undefined) patch[k] = doc.layout[k];
   return patch;
 }

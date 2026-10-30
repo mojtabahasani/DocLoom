@@ -3,15 +3,39 @@ import { safeURL } from './url.js';
 
 const ALLOWED = new Set(
   ('ARTICLE HEADER FOOTER SECTION MAIN DIV P BR H1 H2 H3 H4 H5 H6 STRONG B EM I U S DEL MARK SUP SUB SMALL A CODE PRE ' +
-    'UL OL LI BLOCKQUOTE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD IMG ASIDE SPAN FONT FIGURE FIGCAPTION').split(' '),
+    'UL OL LI BLOCKQUOTE HR TABLE CAPTION THEAD TBODY TFOOT TR TH TD IMG ASIDE SPAN FONT FIGURE FIGCAPTION NAV').split(' '),
 );
 // Dropped together with their content.
 const DROPPED = new Set(
   'SCRIPT STYLE IFRAME OBJECT EMBED FORM INPUT BUTTON SELECT TEXTAREA SVG MATH NOSCRIPT TEMPLATE LINK META BASE APPLET FRAME FRAMESET AUDIO VIDEO CANVAS'.split(' '),
 );
 const CLASSES = new Set(
-  'card card-label cover subtitle masthead repeat-header page-footer repeat-footer doc-image link-button'.split(' '),
+  ('card card-label cover subtitle masthead repeat-header page-footer repeat-footer doc-image link-button ' +
+    'callout callout-note callout-tip callout-important callout-warning callout-caution callout-title task task-done task-list ' +
+    'toc toc-title chart chart-svg code tok-k tok-s tok-c tok-n tok-f tok-a').split(' '),
 );
+const HEADING_ID = /^s-[\p{L}\p{N}-]{1,70}$/u;
+const HASH_LINK = /^#s-[\p{L}\p{N}-]{1,70}$/u;
+const LANG_LABEL = /^[a-z0-9+#.-]{1,12}$/;
+
+// SVG is dropped everywhere EXCEPT our own chart (<svg class="chart-svg">), rebuilt from a strict whitelist:
+// no scripts, handlers, links, <use>, <image>, <foreignObject>, <style>; only plain geometry/paint attributes.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const SVG_TAGS = new Set('svg g rect path line polyline circle text tspan title'.split(' '));
+const NUM = /^-?\d+(\.\d+)?(px|%|em)?$/;
+const COLOR = /^(none|#[0-9a-f]{3,8})$/i;
+const SVG_ATTRS = {
+  viewBox: /^[\d.\s-]{1,40}$/,
+  x: NUM, y: NUM, x1: NUM, y1: NUM, x2: NUM, y2: NUM, cx: NUM, cy: NUM, r: NUM, rx: NUM, ry: NUM, dy: NUM, width: NUM, height: NUM,
+  d: /^[MmLlHhVvAaZzCcQqSsTt\d.,\s-]{1,4000}$/,
+  points: /^[\d.,\s-]{1,4000}$/,
+  fill: COLOR, stroke: COLOR,
+  'stroke-width': NUM, 'font-size': NUM, opacity: NUM, 'fill-opacity': NUM, 'stroke-opacity': NUM,
+  'stroke-linecap': /^(butt|round|square)$/, 'stroke-linejoin': /^(miter|round|bevel)$/,
+  'font-weight': /^(normal|bold|\d{3})$/, 'text-anchor': /^(start|middle|end)$/,
+  transform: /^(rotate|translate)\([\d.,\s-]{1,40}\)$/,
+  role: /^img$/, 'aria-label': /^[^<>]{0,200}$/,
+};
 const STYLE_PROPS = new Set(
   ('color background-color text-align font-weight font-style text-decoration font-size direction border border-right border-left ' +
     'border-top border-bottom border-collapse padding padding-left padding-right padding-top padding-bottom margin margin-left ' +
@@ -46,10 +70,30 @@ function defaultEnv() {
 /** Returns a DocumentFragment (owned by env.document) with a sanitized copy of root's children. */
 export function sanitizeChildren(root, env = defaultEnv()) {
   const doc = env.document;
+  const copySvg = (n, root = true) => {
+    const name = String(n.localName || n.tagName).toLowerCase();
+    if (!SVG_TAGS.has(name)) return doc.createDocumentFragment();
+    const e = doc.createElementNS(SVG_NS, name);
+    for (const [a, re] of Object.entries(SVG_ATTRS)) {
+      const v = n.getAttribute(a);
+      if (v != null && re.test(v.trim())) e.setAttribute(a, v.trim());
+    }
+    if (root) {
+      e.setAttribute('class', 'chart-svg');
+      const st = cleanStyle(n.getAttribute('style'));
+      if (st) e.setAttribute('style', st);
+    }
+    n.childNodes.forEach((x) => {
+      if (x.nodeType === 3) e.append(doc.createTextNode(x.nodeValue || ''));
+      else if (x.nodeType === 1) e.append(copySvg(x, false));
+    });
+    return e;
+  };
   const copy = (n) => {
     if (n.nodeType === 3) return doc.createTextNode(n.nodeValue || '');
     if (n.nodeType !== 1) return doc.createDocumentFragment();
     const tag = String(n.tagName).toUpperCase();
+    if (tag === 'SVG' && /(^|\s)chart-svg(\s|$)/.test(n.getAttribute('class') || '')) return copySvg(n);
     if (DROPPED.has(tag)) return doc.createDocumentFragment();
     if (!ALLOWED.has(tag)) {
       const f = doc.createDocumentFragment();
@@ -64,6 +108,8 @@ export function sanitizeChildren(root, env = defaultEnv()) {
         if (/^\d{1,3}$/.test(v || '')) e.setAttribute(a, v);
       }
     }
+    if (/^H[1-6]$/.test(tag) && HEADING_ID.test(n.getAttribute('id') || '')) e.setAttribute('id', n.getAttribute('id'));
+    if (tag === 'PRE' && LANG_LABEL.test(n.getAttribute('data-lang') || '')) e.setAttribute('data-lang', n.getAttribute('data-lang'));
     const fur = n.getAttribute('data-md2-furniture');
     if (FURNITURE.has(fur)) e.setAttribute('data-md2-furniture', fur);
     const classes = (n.getAttribute('class') || '').split(/\s+/).filter((c) => CLASSES.has(c));
@@ -82,7 +128,7 @@ export function sanitizeChildren(root, env = defaultEnv()) {
         e.setAttribute('href', u);
         e.setAttribute('rel', 'noopener noreferrer');
         if (n.getAttribute('target') === '_blank') e.setAttribute('target', '_blank');
-      }
+      } else if (HASH_LINK.test(n.getAttribute('href') || '')) e.setAttribute('href', n.getAttribute('href'));
     }
     if (tag === 'IMG') {
       const u = safeURL(n.getAttribute('src') || '', { image: true });

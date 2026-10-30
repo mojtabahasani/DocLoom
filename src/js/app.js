@@ -18,6 +18,11 @@ import { preview } from './editor/preview.js';
 import { initLibrary, library } from './library/library.js';
 import { initLibraryUI } from './library/library-ui.js';
 import { initPwa } from './pwa/register.js';
+import { initTasks } from './editor/tasks.js';
+import { initBlockTools } from './editor/blocktools.js';
+import { initToc } from './ui/toc-panel.js';
+import { initSuggest } from './ui/suggest.js';
+import { registerSmartCommands, initSmartButtons } from './ui/commands-smart.js';
 
 async function main() {
   initGuard();
@@ -35,6 +40,12 @@ async function main() {
   initTopbar();
   initShortcuts({ preview });
   registerCommands();
+  registerSmartCommands();
+  initTasks();
+  initBlockTools();
+  initToc();
+  initSuggest();
+  initSmartButtons();
   initLibrary();
   initLibraryUI();
   await library.start(); // reopen the last document

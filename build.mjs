@@ -27,6 +27,7 @@ async function bundleJS() {
     minify: true,
     target: 'es2022',
     legalComments: 'none',
+    loader: { '.css': 'text' }, // export/html.js embeds styles/blocks.css into exported pages
     write: false,
   });
   // A literal "</script" inside inline JS would end the script block early.

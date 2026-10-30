@@ -1,0 +1,45 @@
+/* Phase 2 UI: cleanup dialog, suggestion bar, panel tabs + TOC, block tools, chart popover. */
+.tabs { display: flex; gap: 2px; padding: 3px; margin: 0 0 12px; background: var(--surface-3); border-radius: 10px; }
+.tabs button { flex: 1; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 600; font-size: var(--fs-sm); }
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--shadow-1); }
+.toc-tree { list-style: none; margin: 0; padding: 0; }
+.toc-tree.sub { padding-inline-start: 14px; border-inline-start: 1px solid var(--line); margin-inline-start: 6px; }
+.toc-item { display: block; width: 100%; text-align: start; padding: 6px 9px; border: 0; border-radius: 8px; background: transparent; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.6; }
+.toc-item.lvl1 { font-weight: 700; color: var(--text); }
+.toc-item:hover { background: var(--surface-2); }
+.toc-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; }
+
+.suggest { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 760px; margin: 0 auto 14px; padding: 8px 10px 8px 14px; background: var(--surface); border: 1px solid var(--line-strong); border-inline-start: 4px solid var(--accent); border-radius: 12px; box-shadow: var(--shadow-2); font-size: var(--fs-sm); color: var(--text); }
+.suggest .ic { color: var(--accent); }
+.suggest-text { line-height: 1.8; }
+
+.cleanup .cl-row { padding: 9px 12px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.cleanup .cl-row.off { opacity: .55; }
+.cl-head { display: flex; align-items: center; gap: 9px; font-weight: 700; color: var(--text); cursor: pointer; }
+.cl-head input { width: 17px; height: 17px; accent-color: var(--accent); }
+.cl-label { flex: 1; }
+.cl-count { font-style: normal; min-width: 28px; text-align: center; padding: 1px 9px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-ink); font-size: var(--fs-xs); }
+.cl-row.empty .cl-count { background: var(--surface-3); color: var(--muted); }
+.cl-hint { margin: 2px 26px 0 0 !important; font-size: var(--fs-xs); color: var(--muted); line-height: 1.7; }
+.cl-samples { margin: 6px 26px 0 0; font-size: var(--fs-sm); }
+.cl-samples summary { cursor: pointer; color: var(--accent-ink); font-size: var(--fs-xs); }
+.cl-sample { margin-top: 6px; padding: 6px 9px; border-radius: 8px; background: var(--surface-2); line-height: 1.8; }
+.cl-before { color: var(--danger); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+.cl-after { color: var(--accent-ink); font-weight: 600; }
+.zw { display: inline-block; width: 5px; height: 5px; margin: 0 1px; border-radius: 50%; background: currentColor; vertical-align: middle; opacity: .7; }
+.cl-summary { margin: 10px 0 0 !important; font-weight: 700; color: var(--text); }
+
+.blocktools { position: fixed; z-index: 28; display: flex; gap: 4px; padding: 4px; background: #173d39; border-radius: 10px; box-shadow: 0 8px 24px rgba(10, 30, 26, .35); direction: rtl; }
+.blocktools .bt { height: 28px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #fff; font-size: 12px; font-weight: 700; }
+.blocktools .bt:hover { background: rgba(255, 255, 255, .16); }
+.blocktools .bt.danger:hover { background: #b4443c; }
+
+.popover { position: fixed; z-index: 55; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-lg); box-shadow: var(--shadow-3); color: var(--text); max-height: calc(100vh - 16px); overflow: auto; }
+.cp-types { display: flex; gap: 4px; padding: 3px; background: var(--surface-3); border-radius: 10px; }
+.cp-type { flex: 1; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 600; font-size: var(--fs-sm); }
+.cp-type[aria-pressed="true"] { background: var(--surface); color: var(--accent-ink); box-shadow: var(--shadow-1); }
+.cp-cols { display: flex; flex-direction: column; gap: 2px; max-height: 110px; overflow: auto; }
+.cp-view { border: 1px solid var(--line); border-radius: var(--r-md); background: #fffefa; padding: 6px; }
+.cp-view svg { display: block; width: 100%; height: auto; }
+.cp-actions { display: flex; gap: 8px; justify-content: flex-end; }
