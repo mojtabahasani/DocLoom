@@ -41,7 +41,7 @@
 .field input,.field textarea,.field select,.emailview{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font-size:var(--fs-sm);transition:border-color .14s,box-shadow .14s}
 .field input:hover,.field textarea:hover,.field select:hover{border-color:var(--line-strong)}
 .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 35%,transparent)}
-.field textarea{min-height:150px;resize:vertical;font:12px/1.8 var(--mono);direction:auto;text-align:start}
+.field textarea{min-height:150px;resize:vertical;font:12.5px/1.9 var(--mono-fa);letter-spacing:0;word-spacing:0;font-variant-ligatures:normal;direction:auto;text-align:start}
 .field input[type=number],.field input[dir=ltr]{direction:ltr;text-align:left}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .check{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer}

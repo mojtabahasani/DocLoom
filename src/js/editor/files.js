@@ -24,6 +24,7 @@ export function loadHTMLContent(html) {
     return false;
   }
   const root = doc.body.querySelector('main') || doc.body;
+  store.emit('before-import'); // version snapshot of the current document
   store.set('webLayout', false);
   setContent(sanitizeChildren(root), { reset: true });
   if (doc.title) store.set('title', doc.title);
@@ -47,6 +48,7 @@ export async function loadSourceFile(file) {
         setSourceText(beautifyHTML(content, { DOMParser }));
       }
     } else if (/\.(md|markdown|txt)$/i.test(file.name)) {
+      store.emit('before-import');
       store.set('source', content);
       if (!store.get('title')) store.set('title', file.name.replace(/\.(md|markdown|txt)$/i, ''));
       renderFromSource();

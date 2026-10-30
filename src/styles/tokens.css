@@ -3,6 +3,8 @@
   color-scheme: light;
   --font: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Latin in a monospace face, Persian/Arabic letters from Vazirmatn so they stay joined (see @font-face "MD2 Mono"). */
+  --mono-fa: "MD2 Mono", Vazirmatn, ui-monospace, Menlo, Consolas, monospace;
 
   --bg: #eef2ef;
   --bg-glow: #dcebe2;
@@ -105,4 +107,11 @@
     --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
     --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.6);
   }
+}
+
+/* Latin-only monospace face: Persian letters fall through to Vazirmatn, which keeps them connected. */
+@font-face {
+  font-family: "MD2 Mono";
+  src: local("SF Mono"), local("SFMono-Regular"), local("Menlo"), local("Consolas"), local("DejaVu Sans Mono"), local("Liberation Mono"), local("Courier New");
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201D, U+2022, U+2026;
 }

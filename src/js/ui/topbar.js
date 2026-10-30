@@ -1,6 +1,6 @@
-// Header: document title, export menu, new document, ⌘K hint, brand/library slots (filled in 1B / 3).
+// Header: document title, export menu, new document, ⌘K chip (brand slot arrives in package 3).
 import { $, $$ } from '../core/dom.js';
-import { notify } from '../core/notify.js';
+import { palette } from './palette.js';
 import { exportHTML, exportMarkdown, exportEmail, exportPDF } from '../export/actions.js';
 import { newDocument } from '../editor/document.js';
 
@@ -40,5 +40,5 @@ export function initTopbar() {
   );
   $('#quickHtml').addEventListener('click', exportHTML);
   $('#clear').addEventListener('click', newDocument);
-  $('#paletteHint').addEventListener('click', () => notify('پالت فرمان (⌘K) در نسخهٔ بعدی فعال می‌شود.'));
+  $('#paletteHint').addEventListener('click', () => palette.open());
 }

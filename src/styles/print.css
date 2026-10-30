@@ -1,7 +1,7 @@
 @page{size:A4 portrait;margin:18mm}
 @media print{
   html,body{height:auto!important;overflow:visible!important;background:#fff!important}
-  .top,.left,.right,.centerhead,.foot,.status,#modal,.floating-tools,.source-actions{display:none!important}
+  .top,.left,.right,.centerhead,.foot,.status,#modal,.floating-tools,.source-actions,.lib-back,.palette-back{display:none!important}
   .layout{display:block;margin:0;padding:0;height:auto!important}
   .center,.panel{display:block;border:0;border-radius:0;box-shadow:none;min-height:0;overflow:visible}
   .stage{padding:0;background:#fff;overflow:visible}

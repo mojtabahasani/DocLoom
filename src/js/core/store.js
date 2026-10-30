@@ -31,6 +31,8 @@ export const DEFAULTS = {
   openLinksInNewTab: true,
   embedFontInExport: true,
   appTheme: 'system', // light | dark | system
+  autosave: true,
+  docId: null, // id of the library document being edited
   dirty: false,
   sourceMode: false,
   pendingUpload: null,

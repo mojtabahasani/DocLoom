@@ -6,7 +6,7 @@ import { preview, rememberRange, restoreSelection, insertNode, markChanged, sele
 import { pickImage } from './images.js';
 import { promptDialog } from '../ui/modal.js';
 
-function makeBlock(kind) {
+export function makeBlock(kind) {
   if (kind === 'heading') return el('h2', { text: 'تیتر جدید را بنویسید' });
   if (kind === 'card')
     return el('aside', { class: 'card' }, el('span', { class: 'card-label', text: 'نکتهٔ برجسته' }), el('p', { text: 'متن کارت را اینجا بنویسید.' }));

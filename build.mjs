@@ -1,8 +1,9 @@
 // MD2Html build: bundles src/ into one self-contained HTML file.
 //   dist/MD2Html.html  -> copied to ./MD2Html.html
-// dist/pwa/ is added by package 1B: register another entry in `targets` below.
+//   dist/pwa/          -> installable build: index.html (same app + manifest link), sw.js, manifest, icons
 import { build, transform } from 'esbuild';
-import { readFile, writeFile, mkdir, copyFile, readdir, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFile, writeFile, mkdir, copyFile, readdir, stat, cp } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,7 @@ const p = (...a) => path.join(root, ...a);
 const MAX_BYTES = 900 * 1024;
 
 // CSS concat order matters (tokens first).
-const CSS_ORDER = ['tokens', 'layout', 'components', 'document', 'print'];
+const CSS_ORDER = ['tokens', 'layout', 'components', 'library', 'palette', 'document', 'print'];
 const FONTS = [
   { file: 'Vazirmatn-Regular.subset.woff2', weight: 400 },
   { file: 'Vazirmatn-Bold.subset.woff2', weight: 700 },
@@ -78,8 +79,26 @@ async function buildSingle() {
   if (size > MAX_BYTES) throw new Error(`Build exceeds ${MAX_BYTES} bytes`);
 }
 
-// Add { name: 'pwa', run: buildPwa } here in package 1B.
-const targets = [{ name: 'single', run: buildSingle }];
+const MANIFEST_TAGS =
+  '<link rel="manifest" href="manifest.webmanifest">\n<link rel="apple-touch-icon" href="icons/icon-192.png">\n<meta name="theme-color" content="#1f6f5f">\n';
+
+async function buildPwa() {
+  const single = await readFile(p('dist/MD2Html.html'), 'utf8');
+  const html = inject(single, '</head>', MANIFEST_TAGS + '</head>');
+  const version = createHash('sha256').update(html).digest('hex').slice(0, 10);
+  const out = p('dist/pwa');
+  await mkdir(out, { recursive: true });
+  await writeFile(path.join(out, 'index.html'), html);
+  await writeFile(path.join(out, 'sw.js'), (await readFile(p('pwa/sw.js'), 'utf8')).replaceAll('__VERSION__', version));
+  await copyFile(p('pwa/manifest.webmanifest'), path.join(out, 'manifest.webmanifest'));
+  await cp(p('pwa/icons'), path.join(out, 'icons'), { recursive: true });
+  console.log(`dist/pwa/ ready (sw version ${version})`);
+}
+
+const targets = [
+  { name: 'single', run: buildSingle },
+  { name: 'pwa', run: buildPwa },
+];
 
 async function runAll() {
   for (const t of targets) await t.run();

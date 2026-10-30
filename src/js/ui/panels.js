@@ -26,6 +26,7 @@ const FIELDS = [
   { id: 'uploadEndpoint', key: 'uploadEndpoint', trim: true },
   { id: 'newTab', key: 'openLinksInNewTab' },
   { id: 'embedFont', key: 'embedFontInExport' },
+  { id: 'autosave', key: 'autosave' },
   { id: 'margin', key: 'margin', num: [12, 28], event: 'input' },
 ];
 
@@ -51,7 +52,7 @@ function bind(f) {
   });
 }
 
-function setFont(px) {
+export function setFont(px) {
   store.set('font', Math.max(11, Math.min(23, px)));
   store.set('dirty', true);
 }
