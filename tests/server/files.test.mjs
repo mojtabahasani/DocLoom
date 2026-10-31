@@ -174,6 +174,7 @@ test('search index: Persian-aware, type filter, ignored dirs skipped, updates on
   assert.ok(r.results.length >= 1 && r.results.every((x) => x.ext === '.html'));
   assert.ok((await svc.search('b.md')).results.some((x) => x.root === rootB));
 
+  await wait(300); // FSEvents needs a moment after the watcher starts before it reports changes
   const nf = path.join(rootA, 'پوشه', 'تازه-ساخته.md');
   fs.writeFileSync(nf, 'new');
   assert.ok(await until(async () => (await svc.search('تازه-ساخته')).results.length === 1), 'created file is indexed');

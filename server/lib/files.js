@@ -33,12 +33,13 @@ export function validLeaf(name) {
 }
 
 export class FileService extends EventEmitter {
-  constructor({ roots = rootsFromEnv(), dataDir, log = { info() {}, warn() {}, error() {} }, debounceMs = 150, watchIndex = true } = {}) {
+  constructor({ roots = rootsFromEnv(), dataDir, log = { info() {}, warn() {}, error() {} }, debounceMs = 150, watchIndex = true, reindexMs = 10 * 60 * 1000 } = {}) {
     super();
     this.rootsRaw = roots;
     this.dataDir = dataDir;
     this.log = log;
     this.debounceMs = debounceMs;
+    this.reindexMs = reindexMs;
     this.watchIndex = watchIndex;
     this.backupDir = path.join(dataDir, 'backups', 'files');
     this.metaFile = path.join(dataDir, 'files-meta.json');
@@ -184,8 +185,10 @@ export class FileService extends EventEmitter {
   backup(real) {
     const dir = path.join(this.backupDir, pathKey(real));
     fs.mkdirSync(dir, { recursive: true });
-    let name = stamp(Date.now()) + path.extname(real);
-    for (let i = 1; fs.existsSync(path.join(dir, name)); i++) name = stamp(Date.now()) + '-' + i + path.extname(real);
+    // Zero-padded sequence so names always sort chronologically, even for several writes within one millisecond.
+    const base = stamp(Date.now()), ext = path.extname(real);
+    let name;
+    for (let i = 0; fs.existsSync(path.join(dir, (name = `${base}-${String(i).padStart(3, '0')}${ext}`))); i++);
     fs.copyFileSync(real, path.join(dir, name));
     fs.writeFileSync(path.join(dir, '.path'), real);
     const all = fs.readdirSync(dir).filter((n) => !n.startsWith('.')).sort();
@@ -269,8 +272,8 @@ export class FileService extends EventEmitter {
     if (!this.index) return;
     for (const k of this.index.keys()) if (k === prefix || k.startsWith(prefix + path.sep)) this.index.delete(k);
   }
-  async walk(dir, root, depth = 0) {
-    if (depth > MAX_DEPTH || (this.index && this.index.size >= MAX_INDEX)) return;
+  async walk(dir, root, depth = 0, into = this.index) {
+    if (depth > MAX_DEPTH || (into && into.size >= MAX_INDEX)) return;
     let items;
     try {
       items = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -279,10 +282,10 @@ export class FileService extends EventEmitter {
     }
     for (const d of items) {
       if (d.isDirectory()) {
-        if (!isIgnoredName(d.name)) await this.walk(path.join(dir, d.name), root, depth + 1);
+        if (!isIgnoredName(d.name)) await this.walk(path.join(dir, d.name), root, depth + 1, into);
       } else if (d.isFile() && !d.name.startsWith('.') && READ_EXT.has(path.extname(d.name).toLowerCase())) {
-        if (this.index.size >= MAX_INDEX) return;
-        this.index.set(path.join(dir, d.name), this.entry(path.join(dir, d.name), root));
+        if (into.size >= MAX_INDEX) return;
+        into.set(path.join(dir, d.name), this.entry(path.join(dir, d.name), root));
       }
     }
     if (depth < 3) await new Promise((r) => setImmediate(r)); // keep the event loop breathing on big trees
@@ -293,9 +296,11 @@ export class FileService extends EventEmitter {
     if (this.building) return this.building;
     this.index = new Map();
     this.building = (async () => {
-      for (const r of this.roots) await this.walk(r.path, r.path);
+      // Watch first, so files created while (or right after) walking are not missed; refresh() is idempotent.
       this.startWatching();
+      for (const r of this.roots) await this.walk(r.path, r.path);
       this.building = null;
+      this.scheduleReindex();
     })();
     return this.building;
   }
@@ -417,7 +422,20 @@ export class FileService extends EventEmitter {
     }, this.debounceMs);
     w.timer.unref?.();
   }
+  /** FSEvents can drop events (e.g. right after a watcher starts): rebuild the index in the background periodically. */
+  scheduleReindex() {
+    if (!this.watchIndex || !this.reindexMs) return;
+    clearTimeout(this.reindexTimer);
+    this.reindexTimer = setTimeout(async () => {
+      const fresh = new Map();
+      for (const r of this.roots) await this.walk(r.path, r.path, 0, fresh);
+      if (this.index) this.index = fresh;
+      this.scheduleReindex();
+    }, this.reindexMs);
+    this.reindexTimer.unref?.();
+  }
   close() {
+    clearTimeout(this.reindexTimer);
     for (const w of this.watchers) w.close();
     for (const [, w] of this.fileWatchers) {
       clearTimeout(w.timer);
