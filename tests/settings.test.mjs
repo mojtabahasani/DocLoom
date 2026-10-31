@@ -15,7 +15,7 @@ test('example file is a valid v2 fixture', () => {
   assert.equal(r.version, 2);
   assert.equal(r.patch.theme, 'navy');
   assert.equal(r.patch.font, 15);
-  assert.equal(r.patch.uploadEndpoint, 'https://zi2.ir/api/upload/upload.php');
+  assert.equal(r.patch.uploadEndpoint, 'https://zi2.ir/api/v1/upload.php');
 });
 
 test('v1 is accepted and only carries v1 fields', () => {

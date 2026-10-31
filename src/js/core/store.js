@@ -35,7 +35,7 @@ export const DEFAULTS = {
   theme: 'navy', // document colour theme: navy | green | warm | mono | brand (custom colours)
   font: 15,
   margin: 18,
-  uploadEndpoint: 'https://zi2.ir/api/upload/upload.php',
+  uploadEndpoint: 'https://zi2.ir/api/v1/upload.php',
   uploadField: 'file',
   openLinksInNewTab: true,
   embedFontInExport: true,

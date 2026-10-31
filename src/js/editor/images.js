@@ -5,6 +5,8 @@ import { notify } from '../core/notify.js';
 import { safeURL, isHttps } from '../content/url.js';
 import { insertNode, refreshFurniture } from './preview.js';
 import { confirmDialog } from '../ui/modal.js';
+import { syncActive } from '../server/sync.js';
+import { migrateEndpoint, fieldFor, imageUrlFrom } from './upload-profile.js';
 
 const MAX_IMAGE = 8 * 1024 * 1024;
 const IMAGE_TYPES = /^image\/(png|jpeg|webp|gif)$/;
@@ -88,7 +90,9 @@ export async function pasteClipboardImage(target) {
 }
 
 export async function uploadPendingImage() {
-  const endpoint = store.get('uploadEndpoint').trim();
+  const saved = store.get('uploadEndpoint').trim();
+  const endpoint = migrateEndpoint(saved);
+  if (endpoint !== saved) store.set('uploadEndpoint', endpoint);
   if (!endpoint) {
     notify('نشانی API آپلود را در تنظیمات وارد کنید.');
     return;
@@ -109,27 +113,30 @@ export async function uploadPendingImage() {
   });
   if (!ok) return;
   const data = new FormData();
-  data.append(store.get('uploadField') || 'file', file, file.name || 'image.png');
+  data.append(fieldFor(endpoint, store.get('uploadField')), file, file.name || 'image.png');
   try {
-    const response = await fetch(endpoint, { method: 'POST', body: data });
-    const result = await response.json();
-    if (!response.ok || result.success !== true) throw Error(result.message || 'سرور آپلود را نپذیرفت');
-    const item = result.data?.upload || result.data || {};
-    let url = safeURL(item.fileUrl || item.url || '');
-    if (url) {
-      const parsed = new URL(url);
-      if (/\/api\/upload\/upload\.php\/storage\/uploads\//.test(parsed.pathname)) {
-        parsed.pathname = '/storage/uploads/' + parsed.pathname.split('/storage/uploads/').pop();
-        url = parsed.href;
-      }
+    // zi2.ir sends no CORS headers, so a browser cannot post to it directly; the MD2Html server relays the upload.
+    const viaServer = syncActive();
+    const response = viaServer
+      ? await fetch('/api/upload', { method: 'POST', headers: { 'X-MD2Html': '1', 'X-Upload-Target': endpoint }, body: data })
+      : await fetch(endpoint, { method: 'POST', body: data });
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw Error(response.status === 404 ? 'نشانی API آپلود پیدا نشد (404)' : 'پاسخ سرور آپلود قابل‌خواندن نبود');
     }
+    if (result.error === 'upload-host-not-allowed') throw Error('سرور MD2Html فقط به zi2.ir آپلود می‌کند');
+    if (!response.ok || result.success !== true) throw Error(result.error || result.message || 'سرور آپلود را نپذیرفت');
+    const url = safeURL(imageUrlFrom(result, endpoint));
     if (!url) throw Error('سرور لینک مستقیم تصویر را برنگرداند');
     if (!isHttps(url)) throw Error('لینک تصویر برگشتی باید HTTPS باشد');
     insertNode(docImage(url, file.name || 'تصویر آپلودشده'));
     store.set('pendingUpload', null);
     notify('تصویر آپلود شد و لینک در سند قرار گرفت.');
   } catch (err) {
-    notify('آپلود انجام نشد: ' + (err.message || 'اتصال، CORS یا مسیر API را بررسی کنید.'));
+    const blocked = err instanceof TypeError && !syncActive();
+    notify('آپلود انجام نشد: ' + (blocked ? 'zi2.ir آپلود مستقیم از مرورگر را نمی‌پذیرد؛ برنامه را از سرور MD2Html (http://localhost:4123) باز کنید.' : err.message || 'اتصال یا مسیر API را بررسی کنید.'));
   }
 }
 

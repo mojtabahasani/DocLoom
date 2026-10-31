@@ -2,7 +2,8 @@
 import fs from 'node:fs';
 import { normalizeIp, isPrivateIp, isLoopback, hostAllowed, lanAddresses, localHostname } from './net.js';
 import { csrfOk, securityHeaders, LoginLimiter } from './security.js';
-import { HttpError, readJson, sendJson, parseCookies, deviceLabel } from './http.js';
+import { HttpError, readBody, readJson, sendJson, parseCookies, deviceLabel } from './http.js';
+import { UPLOAD_LIMIT, uploadTarget, relayUpload } from './upload-proxy.js';
 import { COOKIE, SESSION_MS } from './auth.js';
 import { createStatic } from './static.js';
 import { loginPage } from './loginpage.js';
@@ -79,6 +80,13 @@ export function createApp({ auth, store, backups, log, files, render, batch, sha
       if (await handleFiles({ req, res, url, files, H, log })) return;
     }
 
+    if (p === '/api/upload' && method === 'POST') {
+      const target = uploadTarget(req.headers['x-upload-target']);
+      const out = await relayUpload(target, req.headers['content-type'], await readBody(req, UPLOAD_LIMIT));
+      log.info(`upload relay → ${target.host} ${out.status}`);
+      res.writeHead(out.status, { ...H, 'Content-Type': out.type, 'Cache-Control': 'no-store' });
+      return res.end(out.body);
+    }
     if (p === '/api/pdf/status' && method === 'GET') return sendJson(res, 200, { available: !!render?.available() }, H);
     if (p === '/api/pdf' && method === 'POST') {
       if (!render?.available()) throw new HttpError(503, 'chrome-unavailable');

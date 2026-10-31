@@ -17,6 +17,6 @@
   "footerAlign": "stretch",
   "footerWidth": 220,
   "footerHeight": 55,
-  "uploadEndpoint": "https://zi2.ir/api/upload/upload.php",
+  "uploadEndpoint": "https://zi2.ir/api/v1/upload.php",
   "uploadField": "file"
 }
