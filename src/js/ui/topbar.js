@@ -1,10 +1,13 @@
 // Header: document title, export menu, new document, ⌘K chip (brand slot arrives in package 3).
 import { $, $$ } from '../core/dom.js';
 import { palette } from './palette.js';
-import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
+import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportPDFServer, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
+import { openBatch } from '../server/batch-ui.js';
+import { openShare } from '../server/share-ui.js';
+import { setPageNumbers, getPageNumbers } from '../server/pdf-client.js';
 import { newDocument } from '../editor/document.js';
 
-const ACTIONS = { html: exportHTML, interactive: exportInteractive, markdown: exportMarkdown, docx: exportDocx, png: exportPNG, present: presentDocument, 'present-file': exportPresentation, email: exportEmail, pdf: exportPDF };
+const ACTIONS = { html: exportHTML, interactive: exportInteractive, markdown: exportMarkdown, docx: exportDocx, png: exportPNG, present: presentDocument, 'present-file': exportPresentation, email: exportEmail, pdf: exportPDF, 'pdf-direct': exportPDFServer, batch: () => openBatch(), share: () => openShare() };
 
 export function initTopbar() {
   const btn = $('#exportMenuBtn');
@@ -38,6 +41,16 @@ export function initTopbar() {
       ACTIONS[b.dataset.export]();
     }),
   );
+  const num = $('#pdfNumbers');
+  if (num) {
+    const paint = () => num.setAttribute('aria-checked', String(getPageNumbers()));
+    num.addEventListener('click', () => {
+      setPageNumbers(!getPageNumbers());
+      paint();
+    });
+    btn.addEventListener('click', paint);
+    paint();
+  }
   $('#quickHtml').addEventListener('click', exportHTML);
   $('#clear').addEventListener('click', newDocument);
   $('#paletteHint').addEventListener('click', () => palette.open());

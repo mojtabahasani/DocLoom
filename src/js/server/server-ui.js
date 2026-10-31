@@ -7,6 +7,7 @@ import { qrSVG } from '../brand/qr.js';
 import { openModal, confirmDialog } from '../ui/modal.js';
 import { fmtDate } from '../library/format.js';
 import { palette } from '../ui/palette.js';
+import { expiryText, shareLinkView } from './share-ui.js';
 import { syncStatus, syncActive, syncNow } from './sync.js';
 
 const LABELS = {
@@ -45,7 +46,7 @@ export function updateIndicator() {
 }
 
 async function render(body) {
-  const [info, dev, bk] = await Promise.all([api('GET', '/api/server/info'), api('GET', '/api/devices'), api('GET', '/api/backups')]);
+  const [info, dev, bk, sh] = await Promise.all([api('GET', '/api/server/info'), api('GET', '/api/devices'), api('GET', '/api/backups'), api('GET', '/api/shares')]);
   const st = syncStatus();
   const phone = [`http://${info.hostname}:${info.port}`, ...info.urls];
   const first = info.urls[0] || phone[0];
@@ -87,6 +88,18 @@ async function render(body) {
           el('button', { type: 'button', class: 'btn', text: 'خارج کردن', onclick: async () => { await api('DELETE', '/api/devices/' + d.id); if (d.current) location.reload(); else render(body); } }))))
       : el('p', { class: 'modal-note', text: 'دستگاهی وارد نشده است. (دسترسی از خود مک بدون رمز است.)' }));
 
+  const shareBox = el('div', { class: 'srv-share' });
+  const shareSec = section('لینک‌های اشتراک',
+    sh.shares.length
+      ? el('ul', { class: 'srv-list' }, ...sh.shares.map((x) => el('li', {},
+          el('span', {}, el('b', { text: x.title || 'سند' }), el('small', { text: ` ${expiryText(x)} · ${fa(x.views)} بازدید` })),
+          el('span', { class: 'srv-btns' },
+            el('button', { type: 'button', class: 'btn', text: 'لینک و QR', onclick: async () => shareBox.replaceChildren(await shareLinkView('/s/' + x.id)) }),
+            el('button', { type: 'button', class: 'btn', text: 'لغو', onclick: async () => { await api('DELETE', '/api/shares/' + x.id); render(body); } }))))
+        )
+      : el('p', { class: 'modal-note', text: 'لینک فعالی نیست. از منوی «خروجی ← اشتراک در شبکهٔ مغازه» بسازید.' }),
+    shareBox);
+
   const last = bk.backups[0];
   const bkSec = section('داده‌ها و پشتیبان',
     el('p', {}, 'پوشهٔ داده: ', mono(info.dataDir)),
@@ -98,7 +111,7 @@ async function render(body) {
           el('button', { type: 'button', class: 'btn', text: 'بازگردانی', onclick: () => restore(b) }))))
       : null);
 
-  body.replaceChildren(status, phoneSec, pinSec, devSec, bkSec);
+  body.replaceChildren(status, phoneSec, shareSec, pinSec, devSec, bkSec);
   return pinBox;
 }
 

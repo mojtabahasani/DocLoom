@@ -23,6 +23,9 @@ import { initLinked, openFromUrl, activateLinked } from './server/linked.js';
 import { initFilesUI, openFiles } from './server/files-ui.js';
 import { initExportDest } from './server/files-export.js';
 import { initPwa } from './pwa/register.js';
+import { isRenderMode, runRender } from './server/render-mode.js';
+import { initBatchUI } from './server/batch-ui.js';
+import { initShareUI } from './server/share-ui.js';
 import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
 import { initToc } from './ui/toc-panel.js';
@@ -56,6 +59,7 @@ async function main() {
   initSuggest();
   initSmartButtons();
   await initBrands(); // before the library opens a document: brands seed on first run
+  if (isRenderMode()) return runRender(); // headless Chrome (server PDF): build the page from the server and stop
   initBrandUI();
   initLetterUI();
   initLayers();
@@ -67,6 +71,8 @@ async function main() {
   initLinked({ openFiles });
   initFilesUI();
   initExportDest();
+  initBatchUI();
+  initShareUI();
   if (await initSync()) {
     activateLinked();
     await openFromUrl();

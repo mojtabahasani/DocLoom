@@ -6,6 +6,7 @@ import { buildExportHTML } from './html.js';
 import { htmlToMarkdown } from './markdown.js';
 import { buildEmail, emailDialog } from './email.js';
 import { printDocument } from './print.js';
+import { exportPDFDirect } from '../server/pdf-client.js';
 import { saveAs, safeFilename } from './files.js';
 import { buildInteractiveHTML } from './interactive.js';
 import { buildDocxFromPreview } from './docx-export.js';
@@ -30,6 +31,7 @@ export const exportMarkdown = guard(() =>
 );
 export const exportEmail = guard(() => emailDialog(buildEmail()));
 export const exportPDF = guard(printDocument);
+export const exportPDFServer = guard(() => exportPDFDirect());
 export const exportInteractive = guard(() =>
   saveAs(safeFilename((store.get('title') || 'md2html-document') + '-تعاملی', 'html'), buildInteractiveHTML(), 'text/html;charset=utf-8', 'سند HTML تعاملی'),
 );

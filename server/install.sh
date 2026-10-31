@@ -10,6 +10,8 @@ DATA="${MD2HTML_DATA:-$HOME/Documents/MD2Html}"
 PORT="${MD2HTML_PORT:-4123}"
 BIN_DIR="$HOME/.local/bin"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+SERVICES_DIR="$HOME/Library/Services"
+WORKFLOWS=("MD2Html Open.workflow" "MD2Html PDF.workflow")
 DRY=0
 
 if [ "${1:-}" = "--dry-run" ]; then
@@ -66,6 +68,7 @@ if [ "$DRY" = 1 ]; then
   echo "[dry-run] would run:   launchctl bootout gui/$(id -u)/$LABEL (ignore errors)"
   echo "[dry-run] would run:   launchctl bootstrap gui/$(id -u) $PLIST"
   echo "[dry-run] would run:   ln -sf $HERE/cli/md2html $BIN_DIR/md2html"
+  for w in "${WORKFLOWS[@]}"; do echo "[dry-run] would copy:  $HERE/finder/$w -> $SERVICES_DIR/$w"; done
   echo "[dry-run] would print: first-run PIN from $DATA/logs/server.log"
   exit 0
 fi
@@ -80,10 +83,19 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST"
 launchctl kickstart -k "gui/$(id -u)/$LABEL" 2>/dev/null || true
 ln -sf "$HERE/cli/md2html" "$BIN_DIR/md2html"
 
+# Finder Quick Actions (right-click > Quick Actions)
+mkdir -p "$SERVICES_DIR"
+for w in "${WORKFLOWS[@]}"; do
+  rm -rf "$SERVICES_DIR/$w"
+  cp -R "$HERE/finder/$w" "$SERVICES_DIR/$w"
+  [ "$PORT" = "4123" ] || sed -i '' "s/^PORT=4123\$/PORT=$PORT/" "$SERVICES_DIR/$w/Contents/document.wflow"
+done
+
 echo "MD2Html server installed and started on port $PORT."
 echo "  App:       http://localhost:$PORT"
 echo "  Data:      $DATA"
-echo "  Command:   $BIN_DIR/md2html  (status | open | pin | logs | restart | start | stop)"
+echo "  Command:   $BIN_DIR/md2html  (status | open | pdf | html | pin | logs | restart | start | stop)"
+echo "  Finder:    Quick Actions \"MD2Html: باز کن\" and \"MD2Html: PDF بساز\" (right-click a file > Quick Actions)"
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  Note: add $BIN_DIR to your PATH to use the md2html command." ;; esac
 
 for _ in $(seq 1 20); do

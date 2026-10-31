@@ -16,6 +16,53 @@ urlencode() {
   printf '%s' "$out"
 }
 
+json_str() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  printf '"%s"' "$s"
+}
+
+abspath() {
+  case "$1" in /*) printf '%s' "$1" ;; *) printf '%s/%s' "$(pwd)" "${1#./}" ;; esac
+}
+
+# convert FORMATS_JSON args...   (md2html pdf|html <file|dir>... [--brand X] [--out DIR])
+convert() {
+  local formats="$1"; shift
+  local brand="" out="" paths="" n=0 a
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --brand) [ $# -ge 2 ] || { echo "--brand needs a value" >&2; return 2; }; brand="$2"; shift 2 ;;
+      --out) [ $# -ge 2 ] || { echo "--out needs a folder" >&2; return 2; }; out="$2"; shift 2 ;;
+      --pages) pages=true; shift ;;
+      --cleanup) cleanup=true; shift ;;
+      --*) echo "unknown option: $1" >&2; return 2 ;;
+      *) a="$(abspath "$1")"; paths="$paths${paths:+,}$(json_str "$a")"; n=$((n + 1)); shift ;;
+    esac
+  done
+  [ "$n" -gt 0 ] || { echo "usage: md2html pdf|html <file|dir>... [--brand X] [--out DIR]" >&2; return 2; }
+  local body="{\"paths\":[$paths],\"formats\":$formats"
+  [ -n "$brand" ] && body="$body,\"brand\":$(json_str "$brand")"
+  [ "${pages:-}" = true ] && body="$body,\"pageNumbers\":true"
+  [ "${cleanup:-}" = true ] && body="$body,\"cleanup\":true"
+  if [ -n "$out" ]; then body="$body,\"dest\":{\"mode\":\"folder\",\"dir\":$(json_str "$(abspath "$out")")}"; else body="$body,\"dest\":{\"mode\":\"beside\"}"; fi
+  body="$body}"
+  if [ -n "${MD2HTML_DRY:-}" ]; then printf '%s\n' "$body"; return 0; fi
+  local resp id txt head
+  resp="$(curl -sS -m 15 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "$body" "$BASE/api/batch")" || { echo "Could not reach the server on port $PORT." >&2; return 1; }
+  id="$(printf '%s' "$resp" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
+  [ -n "$id" ] || { echo "Server refused: $resp" >&2; return 1; }
+  while :; do
+    txt="$(curl -fsS -m 15 "$BASE/api/batch/$id?text=1")" || { echo "Lost the server." >&2; return 1; }
+    head="$(printf '%s\n' "$txt" | head -n 1)"
+    case "$head" in "STATUS running"*) printf '\r%s' "$head" >&2; sleep 1 ;; *) break ;; esac
+  done
+  printf '\n' >&2
+  printf '%s\n' "$txt"
+  case "$head" in *"failed=0") return 0 ;; *) return 1 ;; esac
+}
+
 usage() {
   cat <<USAGE
 md2html — MD2Html local server
@@ -23,6 +70,8 @@ md2html — MD2Html local server
   md2html status         is the server up? (port $PORT, data dir, LaunchAgent state)
   md2html open [file]    open the app in the browser (a file path is passed as ?open=<path>)
   md2html pin            RESET the LAN PIN and print the new one (only a hash is stored, so the old PIN cannot be shown)
+  md2html pdf <file|dir>...   convert to PDF beside each file   [--brand NAME|ID] [--out DIR] [--pages] [--cleanup]
+  md2html html <file|dir>...  convert to standalone HTML      [--brand NAME|ID] [--out DIR] [--cleanup]
   md2html logs           follow the server log
   md2html restart        restart the LaunchAgent
   md2html start | stop   load / unload the LaunchAgent
@@ -49,6 +98,8 @@ case "${1:-}" in
     pin="$(printf '%s' "$out" | sed -n 's/.*"pin":"\([0-9]*\)".*/\1/p')"
     echo "New PIN: $pin   (all signed-in devices were signed out)"
     ;;
+  pdf) shift; convert '["pdf"]' "$@"; exit $? ;;
+  html) shift; convert '["html"]' "$@"; exit $? ;;
   logs) exec tail -n 50 -f "$DATA/logs/server.log" ;;
   restart) launchctl kickstart -k "gui/$UIDN/$LABEL" && echo restarted ;;
   start)

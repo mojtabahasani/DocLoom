@@ -16,3 +16,7 @@
 ## Server (S2)
 - Files: `server/lib/files.js` (+ `file-routes.js`): realpath-confined API `/api/files/*`, SSE `/api/watch?path=`, backups in `data/backups/files/`. Test roots via `MD2HTML_ROOTS` (colon-separated; default `~/MyApp ~/Documents ~/Desktop ~/Downloads`): **never write into the real roots when testing.**
 - Client: `src/js/server/linked.js` (linked docs, live reload, ⌘S), `files-ui.js` (drawer), `files-picker.js`, `files-export.js`. The `link` field ({path,etag,mtime,size,dirty}) lives on the document; seed brand id is `brand_computer123`.
+
+## Server (S3)
+- PDF/batch: `server/lib/pdf.js` (Chrome via `--remote-debugging-pipe` CDP, single-worker queue, 60s timeout; `MD2HTML_CHROME` override), `batch.js`, route `/render` (loopback or job token only; app boots in render mode, `src/js/server/render-mode.js`). Current-doc PDF posts the export HTML to `/api/pdf`.
+- Shares: `server/lib/shares.js` (`data/shares/<22-char id>/`, public `/s/<id>`, CSP `connect-src 'none'`). Finder bundles are generated: edit `server/finder/build-workflows.mjs`, run it, never edit `.workflow` by hand; never install them (install.sh does, user-run). Service workers cache the shell: unregister when smoke-testing a rebuilt app.

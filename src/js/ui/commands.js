@@ -5,7 +5,7 @@ import { notify } from '../core/notify.js';
 import { palette } from './palette.js';
 import { defineShortcut, listShortcuts } from './shortcuts.js';
 import { openModal } from './modal.js';
-import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
+import { exportHTML, exportMarkdown, exportEmail, exportPDF, exportPDFServer, exportInteractive, exportDocx, exportPNG, presentDocument, exportPresentation } from '../export/actions.js';
 import { exportSettings } from './settings.js';
 import { setFont } from './panels.js';
 import { undo, redo, selectAll, plainText, insertNode, refreshFurniture } from '../editor/preview.js';
@@ -58,6 +58,7 @@ export function registerCommands() {
     { id: 'present', title: 'شروع حالت ارائه (اسلاید)', group: 'ارائه', keywords: 'present presentation slides ارائه اسلاید', run: presentDocument },
     { id: 'export-present', title: 'ذخیرهٔ ارائه به‌صورت فایل HTML', group: 'خروجی', keywords: 'export presentation slides html ارائه', run: exportPresentation },
     { id: 'export-md', title: 'خروجی Markdown', group: 'خروجی', keywords: 'export markdown md', run: exportMarkdown },
+    { id: 'export-pdf-direct', title: 'PDF مستقیم (Chrome سرور، بدون پنجرهٔ چاپ)', group: 'خروجی', keywords: 'export pdf direct chrome server پی‌دی‌اف مستقیم', run: exportPDFServer },
     { id: 'export-pdf', title: 'خروجی PDF / چاپ', group: 'خروجی', keywords: 'export pdf print چاپ a4', run: exportPDF },
     { id: 'export-email', title: 'خروجی ایمیل فارسی', group: 'خروجی', keywords: 'export email mail', run: exportEmail },
     { id: 'copy-text', title: 'کپی متن سند', group: 'خروجی', keywords: 'copy text clipboard', run: () => copyPlain(plainText()) },
