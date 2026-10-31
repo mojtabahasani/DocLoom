@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ZI2_ENDPOINT, migrateEndpoint, fieldFor, imageUrlFrom } from '../src/js/editor/upload-profile.js';
+import { ZI2_ENDPOINT, migrateEndpoint, fieldFor, imageUrlFrom, uploadName, replyError } from '../src/js/editor/upload-profile.js';
 import { uploadTarget, relayUpload } from '../server/lib/upload-proxy.js';
 
 test('retired zi2 endpoint migrates; others are kept', () => {
@@ -43,4 +43,13 @@ test('relay forwards the multipart body unchanged and returns the upstream reply
   assert.equal(JSON.parse(out.body).file.path, 'u/z.png');
   await assert.rejects(relayUpload(uploadTarget(ZI2_ENDPOINT), 'application/json', body, { fetchImpl }), (e) => e.status === 400);
   await assert.rejects(relayUpload(uploadTarget(ZI2_ENDPOINT), 'multipart/form-data; boundary=b', body, { fetchImpl: async () => { throw new TypeError('down'); } }), (e) => e.status === 502);
+});
+
+test('upload name matches the MIME type; failed-reply messages', () => {
+  assert.equal(uploadName('image/png', 'عکس من.webp'), 'عکس-من.png');
+  assert.equal(uploadName('image/jpeg', 'a.b.JPG'), 'a-b.jpg');
+  assert.equal(uploadName('image/gif', ''), 'image.gif');
+  assert.equal(uploadName('image/png', 'x.php'), 'x.png');
+  assert.equal(replyError({ success: false, errors: ['فرمت فایل نامعتبر است', 'حجم'] }), 'فرمت فایل نامعتبر است، حجم');
+  assert.equal(replyError({ success: false, error: 'No file uploaded' }), 'No file uploaded');
 });

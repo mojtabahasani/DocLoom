@@ -40,3 +40,13 @@ export function imageUrlFrom(result, endpoint) {
   }
   return url;
 }
+
+/** zi2 accepts only these MIME types and takes the saved extension from the file name. */
+export const ZI2_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif' };
+export const uploadName = (type, name = '') => {
+  const ext = ZI2_TYPES[type] || 'png';
+  const stem = String(name).replace(/\.[^.]*$/, '').replace(/[^\w\u0600-\u06FF-]+/g, '-').slice(0, 60) || 'image';
+  return `${stem}.${ext}`;
+};
+/** Persian message from a failed reply: v1 sends `error` or a list in `errors`. */
+export const replyError = (r) => (Array.isArray(r?.errors) && r.errors.length ? r.errors.join('، ') : r?.error || r?.message || '');

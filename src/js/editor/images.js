@@ -6,7 +6,7 @@ import { safeURL, isHttps } from '../content/url.js';
 import { insertNode, refreshFurniture } from './preview.js';
 import { confirmDialog } from '../ui/modal.js';
 import { syncActive } from '../server/sync.js';
-import { migrateEndpoint, fieldFor, imageUrlFrom } from './upload-profile.js';
+import { migrateEndpoint, fieldFor, imageUrlFrom, ZI2_TYPES, uploadName, replyError } from './upload-profile.js';
 
 const MAX_IMAGE = 8 * 1024 * 1024;
 const IMAGE_TYPES = /^image\/(png|jpeg|webp|gif)$/;
@@ -89,6 +89,18 @@ export async function pasteClipboardImage(target) {
   }
 }
 
+async function toPNG(file) {
+  const bmp = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = bmp.width;
+  canvas.height = bmp.height;
+  canvas.getContext('2d').drawImage(bmp, 0, 0);
+  bmp.close?.();
+  const out = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  if (!out) throw Error('encode failed');
+  return out;
+}
+
 export async function uploadPendingImage() {
   const saved = store.get('uploadEndpoint').trim();
   const endpoint = migrateEndpoint(saved);
@@ -112,8 +124,17 @@ export async function uploadPendingImage() {
     confirmLabel: 'آپلود کن',
   });
   if (!ok) return;
+  let blob = file;
+  if (!ZI2_TYPES[file.type]) {
+    try {
+      blob = await toPNG(file); // WebP and others: zi2 rejects them
+    } catch {
+      notify('این قالب تصویر قابل تبدیل به PNG نبود؛ JPG، PNG یا GIF انتخاب کنید.');
+      return;
+    }
+  }
   const data = new FormData();
-  data.append(fieldFor(endpoint, store.get('uploadField')), file, file.name || 'image.png');
+  data.append(fieldFor(endpoint, store.get('uploadField')), blob, uploadName(blob.type, file.name));
   try {
     // zi2.ir sends no CORS headers, so a browser cannot post to it directly; the MD2Html server relays the upload.
     const viaServer = syncActive();
@@ -127,7 +148,7 @@ export async function uploadPendingImage() {
       throw Error(response.status === 404 ? 'نشانی API آپلود پیدا نشد (404)' : 'پاسخ سرور آپلود قابل‌خواندن نبود');
     }
     if (result.error === 'upload-host-not-allowed') throw Error('سرور MD2Html فقط به zi2.ir آپلود می‌کند');
-    if (!response.ok || result.success !== true) throw Error(result.error || result.message || 'سرور آپلود را نپذیرفت');
+    if (!response.ok || result.success !== true) throw Error(replyError(result) || 'سرور آپلود را نپذیرفت');
     const url = safeURL(imageUrlFrom(result, endpoint));
     if (!url) throw Error('سرور لینک مستقیم تصویر را برنگرداند');
     if (!isHttps(url)) throw Error('لینک تصویر برگشتی باید HTTPS باشد');
