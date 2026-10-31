@@ -10,6 +10,7 @@ import { Auth } from './lib/auth.js';
 import { LibraryStore } from './lib/store.js';
 import { Backups } from './lib/backup.js';
 import { createApp } from './lib/app.js';
+import { FileService, rootsFromEnv } from './lib/files.js';
 
 export const PORT = 4123;
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -17,17 +18,19 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export const defaultDataDir = () => process.env.MD2HTML_DATA || path.join(os.homedir(), 'Documents', 'MD2Html');
 
 /** Build (but do not listen on) a server. Returns {server, auth, store, backups, log, firstPin}. */
-export async function createServer({ dataDir = defaultDataDir(), port = PORT, webRoot = path.join(here, '..', 'dist', 'pwa'), echo } = {}) {
+export async function createServer({ dataDir = defaultDataDir(), port = PORT, roots = rootsFromEnv(), webRoot = path.join(here, '..', 'dist', 'pwa'), echo } = {}) {
   for (const d of ['library', 'backups', 'shares', 'logs']) fs.mkdirSync(path.join(dataDir, d), { recursive: true });
   const log = createLogger(path.join(dataDir, 'logs'), echo === undefined ? {} : { echo });
   const auth = new Auth(dataDir);
   const firstPin = await auth.ensurePin();
   const store = new LibraryStore(path.join(dataDir, 'library'));
   const backups = new Backups(path.join(dataDir, 'backups'), store, log);
-  const handler = createApp({ auth, store, backups, log, webRoot, dataDir, port });
+  const files = new FileService({ roots, dataDir, log });
+  const handler = createApp({ auth, store, backups, log, files, webRoot, dataDir, port });
   const server = http.createServer(handler);
   server.requestTimeout = 0; // SSE streams are long-lived
-  return { server, auth, store, backups, log, firstPin, dataDir };
+  server.on('close', () => files.close());
+  return { server, auth, store, backups, log, firstPin, dataDir, files };
 }
 
 async function main() {

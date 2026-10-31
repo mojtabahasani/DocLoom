@@ -25,8 +25,15 @@ export function safeFilename(title, ext) {
   return (base || 'md2html-document') + '.' + ext;
 }
 
-/** "Save As": native picker when available, otherwise an in-app filename dialog + download. */
+// The server module registers a sink that can store an export beside the linked file or in a chosen folder.
+let sink = null;
+export const setSaveSink = (fn) => {
+  sink = fn;
+};
+
+/** "Save As": the server sink when active, else the native picker when available, otherwise an in-app filename dialog + download. */
 export async function saveAs(name, body, type, description) {
+  if (sink && (await sink(name, body, type))) return;
   if (typeof window.showSaveFilePicker === 'function') {
     try {
       const ext = name.split('.').pop();

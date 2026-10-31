@@ -12,14 +12,14 @@ export function initTopbar() {
   const setOpen = (open) => {
     menu.hidden = !open;
     btn.setAttribute('aria-expanded', String(open));
-    if (open) menu.querySelector('button').focus();
+    if (open) $$('button:not(:disabled)', menu).find((b) => !b.closest('[hidden]'))?.focus();
   };
   btn.addEventListener('click', () => setOpen(menu.hidden));
   document.addEventListener('mousedown', (e) => {
     if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) setOpen(false);
   });
   menu.addEventListener('keydown', (e) => {
-    const items = $$('button', menu);
+    const items = $$('button:not(:disabled)', menu).filter((b) => !b.closest('[hidden]'));
     const i = items.indexOf(document.activeElement);
     if (e.key === 'Escape') {
       setOpen(false);

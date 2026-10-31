@@ -239,12 +239,22 @@ async function applyPulls(pulls) {
   store.emit('library:changed');
 }
 
+let readyResolve;
+/** Resolves (true = server present, false = plain file/offline) once the one-time /api/health probe has finished. */
+export const serverReady = new Promise((r) => (readyResolve = r));
+
 export const syncStatus = () => status;
 export const syncActive = () => active;
 export const syncNow = () => (active ? sync() : Promise.resolve());
 
 /** Probe same-origin /api/health once. Never touches the network on file:// or other non-web origins. */
 export async function initSync() {
+  const ok = await probe();
+  readyResolve(ok);
+  return ok;
+}
+
+async function probe() {
   if (location.protocol !== 'http:' && location.protocol !== 'https:') return false;
   try {
     const r = await fetch('/api/health', { cache: 'no-store' });

@@ -17,20 +17,20 @@ export function pickSourceFile(data) {
 }
 
 /** Load sanitized HTML (full document or fragment) into the preview. */
-export function loadHTMLContent(html) {
+export function loadHTMLContent(html, { quiet = false } = {}) {
   const doc = parseHTMLDocument(html);
   if (doc.querySelector('parsererror')) {
     notify('ساختار فایل HTML قابل خواندن نیست.');
     return false;
   }
   const root = doc.body.querySelector('main') || doc.body;
-  store.emit('before-import'); // version snapshot of the current document
+  if (!quiet) store.emit('before-import'); // version snapshot of the current document
   store.set('webLayout', false);
   setContent(sanitizeChildren(root), { reset: true });
   if (doc.title) store.set('title', doc.title);
   applyLook();
   if (store.get('sourceMode')) refreshSource();
-  notify('محتوای HTML بارگذاری و پاک‌سازی شد.');
+  if (!quiet) notify('محتوای HTML بارگذاری و پاک‌سازی شد.');
   return true;
 }
 

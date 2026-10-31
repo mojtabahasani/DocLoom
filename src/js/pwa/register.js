@@ -1,5 +1,6 @@
 // PWA glue. Everything here is a silent no-op on file:// (and in any context without the APIs).
 import { loadSourceFile } from '../editor/files.js';
+import { openLaunchedFile } from '../server/linked.js';
 
 const isWeb = () => location.protocol === 'http:' || location.protocol === 'https:';
 
@@ -11,7 +12,7 @@ export function initPwa() {
       const handle = params.files && params.files[0];
       if (!handle) return;
       try {
-        await loadSourceFile(await handle.getFile());
+        await openLaunchedFile(await handle.getFile(), loadSourceFile);
       } catch {
         /* unreadable file: loadSourceFile already reports its own errors */
       }

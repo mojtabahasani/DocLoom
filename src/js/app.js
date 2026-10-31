@@ -19,6 +19,9 @@ import { initLibrary, library } from './library/library.js';
 import { initLibraryUI } from './library/library-ui.js';
 import { initSync } from './server/sync.js';
 import { initServerUI } from './server/server-ui.js';
+import { initLinked, openFromUrl, activateLinked } from './server/linked.js';
+import { initFilesUI, openFiles } from './server/files-ui.js';
+import { initExportDest } from './server/files-export.js';
 import { initPwa } from './pwa/register.js';
 import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
@@ -61,7 +64,13 @@ async function main() {
   await library.start(); // reopen the last document
   initServerUI();
   initPwa();
-  initSync(); // no-op (and no network) unless served by the MD2Html server
+  initLinked({ openFiles });
+  initFilesUI();
+  initExportDest();
+  if (await initSync()) {
+    activateLinked();
+    await openFromUrl();
+  } // no-op (and no network) unless served by the MD2Html server
 }
 
 main().catch((e) => console.error('MD2Html failed to start', e));

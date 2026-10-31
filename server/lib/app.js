@@ -7,6 +7,8 @@ import { COOKIE, SESSION_MS } from './auth.js';
 import { createStatic } from './static.js';
 import { loginPage } from './loginpage.js';
 import { StoreError, STORES } from './store.js';
+import { handleFiles } from './file-routes.js';
+import { FileError } from './files.js';
 
 export const VERSION = '1.0.0';
 
@@ -16,7 +18,7 @@ export function clientIp(req, env = process.env) {
   return normalizeIp(req.socket.remoteAddress);
 }
 
-export function createApp({ auth, store, backups, log, webRoot, dataDir, port, lanIps = lanAddresses, limiter = new LoginLimiter() }) {
+export function createApp({ auth, store, backups, log, files, webRoot, dataDir, port, lanIps = lanAddresses, limiter = new LoginLimiter() }) {
   const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../dist/MD2Html.html', import.meta.url).pathname });
   const sse = new Set(); // {res, sid}
   const H = securityHeaders();
@@ -68,6 +70,10 @@ export function createApp({ auth, store, backups, log, webRoot, dataDir, port, l
       sse.add(c);
       req.on('close', () => sse.delete(c));
       return;
+    }
+
+    if (files && (p === '/api/watch' || p.startsWith('/api/files/'))) {
+      if (await handleFiles({ req, res, url, files, H, log })) return;
     }
 
     if (p === '/api/server/info' && method === 'GET') {
@@ -152,7 +158,7 @@ export function createApp({ auth, store, backups, log, webRoot, dataDir, port, l
       if (url.pathname === '/') url.pathname = '/index.html';
       if (!serve(req, res, url.pathname, H)) fail(res, 404, 'Not found');
     } catch (e) {
-      if (e instanceof HttpError || e instanceof StoreError) {
+      if (e instanceof HttpError || e instanceof StoreError || e instanceof FileError) {
         if (!res.headersSent) sendJson(res, e.status, { error: e.message, ...(e.current !== undefined ? { current: e.current } : {}) }, securityHeaders());
         return;
       }

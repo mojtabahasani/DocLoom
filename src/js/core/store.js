@@ -15,6 +15,7 @@ export const DOC_DEFAULTS = {
   webLayout: false,
   mode: 'doc', // document mode: 'doc' | 'letter' (the letter template is built by brand/letter-ui.js)
   brandId: null,
+  link: null, // file on the server this document is linked to: {path, mtime, etag, size, dirty}
   brandColors: { primary: '', accent: '' }, // used when theme === 'brand'
   signatureImage: '',
   stampImage: '',

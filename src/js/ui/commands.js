@@ -18,6 +18,7 @@ import { library } from '../library/library.js';
 import { openLibrary } from '../library/library-ui.js';
 import { openVersions } from '../library/versions-ui.js';
 import { exportBackup, importBackup } from '../library/backup-ui.js';
+import { saveCommand } from '../server/linked.js';
 
 const toggle = (key, label, furniture = false) => () => {
   const on = !store.get(key);
@@ -107,7 +108,7 @@ export function registerCommands() {
 
   // Shortcuts (⌘ on macOS, Ctrl elsewhere; also matched by key position so a Persian keyboard layout works).
   defineShortcut({ id: 'palette', keys: 'Mod+K', title: 'پالت فرمان', run: () => palette.open() });
-  defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیرهٔ نسخه', run: () => library.saveVersion() });
+  defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره (روی فایل متصل، وگرنه نسخه)', run: () => saveCommand() });
   defineShortcut({ id: 'undo', keys: 'Mod+Z', title: 'واگرد (در سند)', scope: 'preview', run: undo });
   defineShortcut({ id: 'redo', keys: 'Mod+Shift+Z', title: 'انجام دوباره (در سند)', scope: 'preview', run: redo });
   defineShortcut({ id: 'redo-y', keys: 'Mod+Y', title: 'انجام دوباره (در سند)', scope: 'preview', run: redo });

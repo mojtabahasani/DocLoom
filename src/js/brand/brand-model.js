@@ -47,9 +47,12 @@ export function validateBrand(b) {
   return null;
 }
 
+/** Deterministic id of the built-in brand: the same on every device, so seeding twice (or on two devices) never duplicates it. */
+export const SEED_ID = 'brand_computer123';
+
 export function seedBrand() {
   return normalizeBrand({
-    id: newBrandId(), name: SEED_NAME, theme: 'navy', mastheadText: SEED_NAME, footerText: 'کرمان، خیابان شهید بهشتی، نبش کوچه ۹ · computer123.ir',
+    id: SEED_ID, name: SEED_NAME, theme: 'navy', mastheadText: SEED_NAME, footerText: 'کرمان، خیابان شهید بهشتی، نبش کوچه ۹ · computer123.ir',
     website: 'https://www.computer123.ir', letterPrefix: '۱۲۳', letterCounter: 1,
     qr: { enabled: false, kind: 'url', value: 'https://www.computer123.ir', position: 'footer' },
   });
@@ -72,4 +75,22 @@ export function tintOf(hex, amount = 0.9) {
 export function brandThemeColors(b) {
   const p = color(b?.colors?.primary);
   return p ? { primary: p, accent: color(b.colors.accent) || tintOf(p) } : null;
+}
+
+const seedShape = (b) => {
+  const { id, letterCounter, ...rest } = normalizeBrand(b);
+  return JSON.stringify(rest);
+};
+
+/**
+ * Duplicates of the seed brand made by the old random-id seeding: same name and still exactly the seed content
+ * (a customised copy - image, signer, other texts - is never touched; only the letter counter may differ).
+ */
+export function planSeedMigration(list) {
+  const pristine = seedShape(seedBrand());
+  const dupes = list.filter((b) => b.id !== SEED_ID && b.name === SEED_NAME && seedShape(b) === pristine);
+  if (!dupes.length) return null;
+  const canonical = list.find((b) => b.id === SEED_ID) || seedBrand();
+  const counter = Math.max(canonical.letterCounter, ...dupes.map((b) => b.letterCounter));
+  return { save: !list.some((b) => b.id === SEED_ID) || counter !== canonical.letterCounter ? { ...canonical, letterCounter: counter } : null, drop: dupes.map((b) => b.id) };
 }

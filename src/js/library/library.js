@@ -100,6 +100,7 @@ function onChange() {
 
 function applyDoc(doc) {
   loading = true;
+  store.emit('doc:loading');
   try {
     store.patch({ ...docToPatch(doc), pendingUpload: null });
     preview.replaceChildren(sanitizeToFragment(doc.html || ''));
@@ -119,6 +120,7 @@ function applyDoc(doc) {
   lastAutoAt = null;
   changedSinceVersion = false;
   setPref('lastDocId', doc.id);
+  store.emit('doc:applied', doc); // the linked-file module re-checks the disk copy
   changed();
 }
 

@@ -10,7 +10,7 @@ const LAYOUT_FALLBACK = {
   qr: { enabled: false, kind: 'url', value: '', position: 'footer', size: 84 },
 };
 const BLANK_LETTER = { number: '', date: '', attachments: '', recipient: '', subject: '', greeting: true, signer: { name: '', role: '' }, sig: { x: 30, y: 6 }, stamp: { x: 100, y: 16 } };
-export const TRACKED_KEYS = new Set([...LAYOUT_KEYS, 'title', 'subtitle', 'source', 'webLayout', 'mode', 'brandId', 'letter', 'watermark']);
+export const TRACKED_KEYS = new Set([...LAYOUT_KEYS, 'link', 'title', 'subtitle', 'source', 'webLayout', 'mode', 'brandId', 'letter', 'watermark']);
 export const MAX_TEXT = 200000;
 
 export const newId = (prefix = 'd') => prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -27,6 +27,7 @@ export function captureDoc({ id, state, html, text, meta = {}, now = Date.now() 
     text: String(text || '').slice(0, MAX_TEXT),
     mode: state.mode === 'letter' ? 'letter' : state.webLayout ? 'web' : 'doc',
     brandId: state.brandId || meta.brandId || null,
+    link: state.link || null,
     watermark: state.watermark || { preset: 'none', text: '' },
     letter: state.letter || null,
     tags: meta.tags || [],
@@ -39,7 +40,7 @@ export function captureDoc({ id, state, html, text, meta = {}, now = Date.now() 
 
 /** Store patch that fully restores a document (HTML is applied separately, after sanitizing). */
 export function docToPatch(doc) {
-  const patch = { title: doc.title || '', subtitle: doc.subtitle || '', source: doc.source || '', webLayout: doc.mode === 'web', mode: doc.mode === 'letter' ? 'letter' : 'doc', brandId: doc.brandId || null };
+  const patch = { title: doc.title || '', subtitle: doc.subtitle || '', source: doc.source || '', webLayout: doc.mode === 'web', mode: doc.mode === 'letter' ? 'letter' : 'doc', brandId: doc.brandId || null, link: doc.link || null };
   patch.watermark = doc.watermark || { preset: 'none', text: '' };
   patch.letter = doc.letter || BLANK_LETTER;
   for (const k of LAYOUT_KEYS) patch[k] = doc.layout && doc.layout[k] !== undefined ? doc.layout[k] : LAYOUT_FALLBACK[k] ?? undefined;

@@ -28,15 +28,20 @@ function restore(snap) {
   store.emit('doc:restored', abandoned); // the library reopens the previous entry and drops the empty one
 }
 
-/** Clears the document immediately; when there was work, offers an 8-second "برگردان". */
-export function newDocument() {
-  const snap = snapshot();
-  const hadWork = store.get('dirty') || !isEmpty();
+/** Clear the editor into a fresh library entry (no undo toast). */
+export function startBlankDocument() {
   store.emit('doc:before-new'); // the library saves the current document before it is cleared
   store.patch({ ...DOC_DEFAULTS, pendingUpload: null });
   clearContent();
   toggleSourceMode(false);
   store.set('dirty', false);
   store.emit('doc:new'); // the library creates the new entry
+}
+
+/** Clears the document immediately; when there was work, offers an 8-second "برگردان". */
+export function newDocument() {
+  const snap = snapshot();
+  const hadWork = store.get('dirty') || !isEmpty();
+  startBlankDocument();
   notify('سند تازه آماده است.', hadWork ? { action: { label: 'برگردان', run: () => restore(snap) } } : {});
 }

@@ -3,7 +3,7 @@ import { store } from '../core/store.js';
 import { db } from '../library/db.js';
 import { getPref, setPref } from '../library/prefs.js';
 import { refreshFurniture } from '../editor/preview.js';
-import { normalizeBrand, seedBrand, duplicateBrand, brandThemeColors } from './brand-model.js';
+import { normalizeBrand, seedBrand, duplicateBrand, brandThemeColors, planSeedMigration, SEED_ID } from './brand-model.js';
 
 let list = [];
 const changed = () => store.emit('brands:changed');
@@ -70,15 +70,32 @@ export function applyBrand(id, { soft = false, refresh = true } = {}) {
   return true;
 }
 
+/**
+ * Fold seed-brand duplicates (old random-id seeding, one per device) into the deterministic one:
+ * documents, the default-brand preference and the open document are re-pointed first, then the copies go.
+ */
+export async function migrateSeedBrands() {
+  const plan = planSeedMigration(list);
+  if (!plan) return false;
+  if (plan.save) await brands.save(plan.save);
+  const drop = new Set(plan.drop);
+  for (const d of await db.all('documents')) if (drop.has(d.brandId)) await db.put('documents', { ...d, brandId: SEED_ID });
+  if (drop.has(getPref('defaultBrandId'))) await setPref('defaultBrandId', SEED_ID);
+  if (drop.has(store.get('brandId'))) store.set('brandId', SEED_ID);
+  for (const id of drop) await brands.remove(id);
+  return true;
+}
+
 export async function initBrands() {
   await db.open();
   await brands.reload();
   if (!getPref('brandsSeeded') && !list.length) {
-    const seed = await brands.save(seedBrand());
+    const seed = await brands.save(seedBrand()); // fixed id: running this twice, or on two devices, is idempotent
     await setPref('defaultBrandId', seed.id);
   }
   await setPref('brandsSeeded', true);
-  store.on('backup:imported', () => void brands.reload());
+  await migrateSeedBrands();
+  store.on('backup:imported', () => void brands.reload().then(migrateSeedBrands));
   // A new document starts with the default brand's colours, header, footer, signature and QR (state only: the page stays empty).
   store.on('doc:new', () => {
     const id = brands.defaultId();
