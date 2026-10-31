@@ -1,7 +1,7 @@
 #!/bin/bash
 # md2html — control the local MD2Html server.
 LABEL="ir.computer123.md2html"
-PORT="${MD2HTML_PORT:-4123}"
+PORT="${MD2HTML_PORT:-7123}"
 DATA="${MD2HTML_DATA:-$HOME/Documents/MD2Html}"
 BASE="http://localhost:$PORT"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"

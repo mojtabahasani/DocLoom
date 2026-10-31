@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export const OPEN_SCRIPT = `PORT=4123
+export const OPEN_SCRIPT = `PORT=7123
 enc() {
   local LC_ALL=C s="$1" i c out=""
   for ((i = 0; i < \${#s}; i++)); do
@@ -21,7 +21,7 @@ for f in "$@"; do
 done
 `;
 
-export const PDF_SCRIPT = `PORT=4123
+export const PDF_SCRIPT = `PORT=7123
 BASE="http://localhost:$PORT"
 json_str() {
   local s="$1"

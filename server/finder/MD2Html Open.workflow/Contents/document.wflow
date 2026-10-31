@@ -59,7 +59,7 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>PORT=4123
+					<string>PORT=7123
 enc() {
   local LC_ALL=C s="$1" i c out=""
   for ((i = 0; i &lt; ${#s}; i++)); do

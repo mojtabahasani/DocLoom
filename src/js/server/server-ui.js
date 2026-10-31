@@ -134,7 +134,7 @@ async function restore(b) {
 }
 
 export async function openServerPanel({ newPin } = {}) {
-  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:4123 باز کنید.');
+  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.');
   const body = el('div', { class: 'srv' }, el('p', { class: 'modal-note', text: 'در حال خواندن وضعیت سرور…' }));
   openModal({ title: 'سرور', body, wide: true });
   try {

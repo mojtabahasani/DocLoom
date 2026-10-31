@@ -29,7 +29,7 @@ async function bapi(method, url, body) {
 }
 
 export function openBatch() {
-  if (!syncActive()) return void notify('تبدیل گروهی به سرور MD2Html نیاز دارد؛ برنامه را از http://localhost:4123 باز کنید.');
+  if (!syncActive()) return void notify('تبدیل گروهی به سرور MD2Html نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
   const st = { sel: new Map(), pdf: true, html: false, brand: '', cleanup: false, pageNumbers: false, dest: 'beside', destDir: '' };
   const body = el('div', { class: 'bt' });
   const modal = openModal({ title: 'تبدیل گروهی', body, wide: true });

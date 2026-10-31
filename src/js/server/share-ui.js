@@ -45,7 +45,7 @@ export async function shareLinkView(path) {
 
 export function openShare() {
   if (isEmpty()) return void notify('ابتدا متن یا فایل خود را وارد کنید.');
-  if (!syncActive()) return void notify('اشتراک لینک به سرور MD2Html نیاز دارد؛ برنامه را از http://localhost:4123 باز کنید.');
+  if (!syncActive()) return void notify('اشتراک لینک به سرور MD2Html نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
   let expires = '7d';
   const body = el('div', { class: 'bt' });
   const err = el('p', { class: 'form-error', role: 'alert', hidden: true });

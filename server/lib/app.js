@@ -1,6 +1,7 @@
 // The request handler: guards (private IP, Host, CSRF, auth) → API routes → static files.
 import fs from 'node:fs';
-import { normalizeIp, isPrivateIp, isLoopback, hostAllowed, lanAddresses, localHostname } from './net.js';
+import os from 'node:os';
+import { normalizeIp, isPrivateIp, onLocalSubnet, isLoopback, hostAllowed, lanAddresses, localHostname } from './net.js';
 import { csrfOk, securityHeaders, LoginLimiter } from './security.js';
 import { HttpError, readBody, readJson, sendJson, parseCookies, deviceLabel } from './http.js';
 import { UPLOAD_LIMIT, uploadTarget, relayUpload } from './upload-proxy.js';
@@ -22,7 +23,7 @@ export function clientIp(req, env = process.env) {
   return normalizeIp(req.socket.remoteAddress);
 }
 
-export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, limiter = new LoginLimiter() }) {
+export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, netIfaces = () => os.networkInterfaces(), limiter = new LoginLimiter() }) {
   const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../dist/MD2Html.html', import.meta.url).pathname });
   const sse = new Set(); // {res, sid}
   const H = securityHeaders();
@@ -212,7 +213,7 @@ export function createApp({ auth, store, backups, log, files, render, batch, sha
   return async function handler(req, res) {
     try {
       const ip = clientIp(req);
-      if (!isPrivateIp(ip)) return fail(res, 403, 'Forbidden');
+      if (!isPrivateIp(ip) && !onLocalSubnet(ip, netIfaces())) return fail(res, 403, 'Forbidden');
       if (!hostAllowed(req.headers.host, lanIps())) return fail(res, 421, 'Misdirected request');
       const url = new URL(req.url, 'http://x');
       if (!csrfOk(req.method, url.pathname, req.headers)) return fail(res, 403, 'CSRF check failed');

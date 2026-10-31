@@ -7,7 +7,7 @@ LABEL="ir.computer123.md2html"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
 DATA="${MD2HTML_DATA:-$HOME/Documents/MD2Html}"
-PORT="${MD2HTML_PORT:-4123}"
+PORT="${MD2HTML_PORT:-7123}"
 BIN_DIR="$HOME/.local/bin"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 SERVICES_DIR="$HOME/Library/Services"
@@ -88,7 +88,7 @@ mkdir -p "$SERVICES_DIR"
 for w in "${WORKFLOWS[@]}"; do
   rm -rf "$SERVICES_DIR/$w"
   cp -R "$HERE/finder/$w" "$SERVICES_DIR/$w"
-  [ "$PORT" = "4123" ] || sed -i '' "s/^PORT=4123\$/PORT=$PORT/" "$SERVICES_DIR/$w/Contents/document.wflow"
+  [ "$PORT" = "7123" ] || sed -i '' "s/^PORT=7123\$/PORT=$PORT/" "$SERVICES_DIR/$w/Contents/document.wflow"
 done
 
 echo "MD2Html server installed and started on port $PORT."

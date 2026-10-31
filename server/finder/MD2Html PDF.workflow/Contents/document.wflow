@@ -59,7 +59,7 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>PORT=4123
+					<string>PORT=7123
 BASE="http://localhost:$PORT"
 json_str() {
   local s="$1"

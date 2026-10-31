@@ -15,7 +15,7 @@ import { RenderService, findChrome } from './lib/pdf.js';
 import { BatchManager } from './lib/batch.js';
 import { Shares } from './lib/shares.js';
 
-export const PORT = 4123;
+export const PORT = 7123;
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 export const defaultDataDir = () => process.env.MD2HTML_DATA || path.join(os.homedir(), 'Documents', 'MD2Html');

@@ -40,6 +40,27 @@ export function isPrivateIp(ip) {
 }
 
 /** IPv4 addresses of this machine's non-internal interfaces. */
+/**
+ * True when `ip` sits on a subnet this Mac is directly connected to (by interface netmask, /16 or narrower).
+ * Some shop networks use public-looking ranges (e.g. 123.123.1.0/24) as their LAN; those clients are local too.
+ */
+export function onLocalSubnet(ip, ifaces = os.networkInterfaces()) {
+  const p = v4(normalizeIp(ip));
+  if (!p) return false;
+  const n = ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) >>> 0;
+  for (const list of Object.values(ifaces)) {
+    for (const i of list || []) {
+      if (i.family !== 'IPv4' || i.internal || !i.netmask) continue;
+      const a = v4(i.address), m = v4(i.netmask);
+      if (!a || !m) continue;
+      const mask = ((m[0] << 24) | (m[1] << 16) | (m[2] << 8) | m[3]) >>> 0;
+      if (Math.clz32(~mask) < 16) continue; // prefix shorter than /16: too broad to trust
+      const addr = ((a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3]) >>> 0;
+      if (((n & mask) >>> 0) === ((addr & mask) >>> 0)) return true;
+    }
+  }
+  return false;
+}
 export function lanAddresses(ifaces = os.networkInterfaces()) {
   const out = [];
   for (const list of Object.values(ifaces)) {

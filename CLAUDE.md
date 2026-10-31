@@ -8,7 +8,7 @@
 - RTL rules: never mirror prev/next controls; progress bars, sliders and chart x-axes fill left→right.
 
 ## Server (S1)
-- `server/` is pure Node (no npm deps), port 4123 (`MD2HTML_PORT`), data in `~/Documents/MD2Html/` (`MD2HTML_DATA`). Foreground: `npm run server`. Serves `dist/pwa/` directly (no restart after `npm run build`).
+- `server/` is pure Node (no npm deps), port 7123 (`MD2HTML_PORT`), data in `~/Documents/MD2Html/` (`MD2HTML_DATA`). Foreground: `npm run server`. Serves `dist/pwa/` directly (no restart after `npm run build`).
 - `server/install.sh` / `uninstall.sh` (LaunchAgent + `md2html` CLI) are written but **must be run by the user**; never run them, `launchctl` or write to `~/Library` from an agent. Test with `install.sh --dry-run <plist>`.
 - Client sync: `src/js/server/` (pure merge in `sync-core.js`); active only when `/api/health` answers same-origin; never fetches on `file://`.
 - Tests: `tests/server/*.test.mjs` (integration uses `MD2HTML_TEST=1` for the remote-address override header; never set it otherwise).

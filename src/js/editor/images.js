@@ -157,7 +157,7 @@ export async function uploadPendingImage() {
     notify('تصویر آپلود شد و لینک در سند قرار گرفت.');
   } catch (err) {
     const blocked = err instanceof TypeError && !syncActive();
-    notify('آپلود انجام نشد: ' + (blocked ? 'zi2.ir آپلود مستقیم از مرورگر را نمی‌پذیرد؛ برنامه را از سرور MD2Html (http://localhost:4123) باز کنید.' : err.message || 'اتصال یا مسیر API را بررسی کنید.'));
+    notify('آپلود انجام نشد: ' + (blocked ? 'zi2.ir آپلود مستقیم از مرورگر را نمی‌پذیرد؛ برنامه را از سرور MD2Html (http://localhost:7123) باز کنید.' : err.message || 'اتصال یا مسیر API را بررسی کنید.'));
   }
 }
 

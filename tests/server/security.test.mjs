@@ -19,14 +19,14 @@ test('private-IP check accepts LAN/loopback/link-local/ULA and refuses public ad
 
 test('Host allowlist: localhost, loopback, LAN IPs and *.local only', () => {
   const lan = ['192.168.1.20'];
-  for (const h of ['localhost:4123', 'localhost', '127.0.0.1:4123', '[::1]:4123', '192.168.1.20:4123', 'MacMiniM4s-Mac-mini-245.local:4123', 'mac.local']) assert.ok(hostAllowed(h, lan), h);
-  for (const h of ['evil.com', 'evil.com:4123', '192.168.1.99:4123', 'localhost.evil.com', 'x.local.evil.com', '', undefined, '10.0.0.1']) assert.ok(!hostAllowed(h, lan), String(h));
+  for (const h of ['localhost:7123', 'localhost', '127.0.0.1:7123', '[::1]:7123', '192.168.1.20:7123', 'MacMiniM4s-Mac-mini-245.local:7123', 'mac.local']) assert.ok(hostAllowed(h, lan), h);
+  for (const h of ['evil.com', 'evil.com:7123', '192.168.1.99:7123', 'localhost.evil.com', 'x.local.evil.com', '', undefined, '10.0.0.1']) assert.ok(!hostAllowed(h, lan), String(h));
 });
 
 test('CSRF: non-GET /api needs X-MD2Html: 1 and the same Origin', () => {
-  const h = { host: 'localhost:4123', origin: 'http://localhost:4123', 'x-md2html': '1' };
+  const h = { host: 'localhost:7123', origin: 'http://localhost:7123', 'x-md2html': '1' };
   assert.ok(csrfOk('POST', '/api/lib/documents/a', h));
-  assert.ok(csrfOk('GET', '/api/health', { host: 'localhost:4123' }));
+  assert.ok(csrfOk('GET', '/api/health', { host: 'localhost:7123' }));
   assert.ok(csrfOk('POST', '/not-api', { host: 'x' }));
   assert.ok(!csrfOk('POST', '/api/x', { ...h, 'x-md2html': undefined }));
   assert.ok(!csrfOk('POST', '/api/x', { ...h, origin: 'http://evil.com' }));
@@ -126,4 +126,16 @@ test('confine: realpath root confinement (traversal, symlink escape, ignored dir
   assert.equal(confine(path.join(root, 'a\0.md'), roots).reason, 'bad-path');
   assert.equal(confine(root + '-sibling', roots).ok, false, 'prefix sibling is not inside');
   assert.ok(extAllowed('a.MD') && extAllowed('b.html') && !extAllowed('c.png') && extAllowed('c.png', true) && !extAllowed('x.sh', true));
+});
+
+test('onLocalSubnet: directly connected public-looking LAN is local; other public IPs are not', async () => {
+  const { onLocalSubnet } = await import('../../server/lib/net.js');
+  const ifaces = { en0: [{ family: 'IPv4', address: '123.123.1.56', netmask: '255.255.255.0', internal: false }], lo0: [{ family: 'IPv4', address: '127.0.0.1', netmask: '255.0.0.0', internal: true }] };
+  assert.ok(onLocalSubnet('123.123.1.20', ifaces));
+  assert.ok(onLocalSubnet('::ffff:123.123.1.200', ifaces));
+  assert.ok(!onLocalSubnet('123.123.2.20', ifaces));
+  assert.ok(!onLocalSubnet('8.8.8.8', ifaces));
+  assert.ok(!onLocalSubnet('fe80::1', ifaces));
+  // a /8 interface is too broad to trust
+  assert.ok(!onLocalSubnet('11.2.3.4', { en1: [{ family: 'IPv4', address: '11.0.0.5', netmask: '255.0.0.0', internal: false }] }));
 });

@@ -220,7 +220,7 @@ function onKey(e) {
 }
 
 export async function openFiles() {
-  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:4123 باز کنید.');
+  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.');
   if (ui?.back.classList.contains('show')) return ui.search.focus();
   if (!ui) build();
   opener = document.activeElement;

@@ -40,7 +40,7 @@ test('actions: the open script percent-encodes Persian paths; the PDF script pos
   const run = (script, args, extra = {}) => execFileSync('bash', ['-c', script, 'x', ...args], { encoding: 'utf8', ...extra });
   const fakeBin = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'md2h-bin-'));
   const sed = OPEN_SCRIPT.replace('/usr/bin/open', 'echo');
-  assert.equal(run(sed, ['/a b/سند.md']).trim(), 'http://localhost:4123/?open=/a%20b/%D8%B3%D9%86%D8%AF.md');
+  assert.equal(run(sed, ['/a b/سند.md']).trim(), 'http://localhost:7123/?open=/a%20b/%D8%B3%D9%86%D8%AF.md');
   assert.match(PDF_SCRIPT, /"formats\\":\[\\"pdf\\"\]|\\"formats\\":\[\\"pdf\\"\]/);
   assert.match(PDF_SCRIPT, /dest\\":\{\\"mode\\":\\"beside/);
   assert.match(PDF_SCRIPT, /osascript/);

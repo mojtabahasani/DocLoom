@@ -396,7 +396,7 @@ export function initLinked({ openFiles }) {
     });
   }
 
-  const need = (fn) => () => (syncActive() ? fn() : notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:4123 باز کنید.'));
+  const need = (fn) => () => (syncActive() ? fn() : notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.'));
   palette.register({ id: 'file-save', title: 'ذخیره روی فایل (فایل متصل)', group: 'فایل', keywords: 'save file disk write ذخیره فایل دیسک', run: need(saveToFile) });
   palette.register({ id: 'file-save-as', title: 'ذخیره به نام در سرور…', group: 'فایل', keywords: 'save as file folder ذخیره به نام پوشه', run: need(saveAsFile) });
   palette.register({ id: 'file-unlink', title: 'قطع پیوند سند با فایل', group: 'فایل', keywords: 'unlink detach file', run: unlink });
