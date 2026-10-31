@@ -85,7 +85,7 @@ async function buildSingle() {
 }
 
 const MANIFEST_TAGS =
-  '<link rel="manifest" href="manifest.webmanifest">\n<link rel="apple-touch-icon" href="icons/icon-192.png">\n<meta name="theme-color" content="#1f6f5f">\n';
+  '<link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">\n<link rel="apple-touch-icon" href="icons/icon-192.png">\n<meta name="theme-color" content="#1f6f5f">\n';
 
 async function buildPwa() {
   const single = await readFile(p('dist/MD2Html.html'), 'utf8');

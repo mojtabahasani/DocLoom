@@ -20,6 +20,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return; // never intercept cross-origin (e.g. image upload)
+  if (url.pathname.startsWith('/api/')) return; // server API (sync, SSE, health) is never cached
   event.respondWith(
     caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(
       (hit) =>

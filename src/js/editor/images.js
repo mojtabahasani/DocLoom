@@ -71,6 +71,7 @@ export function pickImage(target) {
 
 export async function pasteClipboardImage(target) {
   try {
+    if (!navigator.clipboard?.read) throw new Error('clipboard.read unavailable (insecure http origin)');
     const items = await navigator.clipboard.read();
     for (const item of items) {
       const type = item.types.find((t) => /^image\//.test(t));

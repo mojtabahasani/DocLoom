@@ -17,6 +17,8 @@ import { registerCommands } from './ui/commands.js';
 import { preview } from './editor/preview.js';
 import { initLibrary, library } from './library/library.js';
 import { initLibraryUI } from './library/library-ui.js';
+import { initSync } from './server/sync.js';
+import { initServerUI } from './server/server-ui.js';
 import { initPwa } from './pwa/register.js';
 import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
@@ -57,7 +59,9 @@ async function main() {
   initLibrary();
   initLibraryUI();
   await library.start(); // reopen the last document
+  initServerUI();
   initPwa();
+  initSync(); // no-op (and no network) unless served by the MD2Html server
 }
 
 main().catch((e) => console.error('MD2Html failed to start', e));

@@ -45,6 +45,9 @@ function memoryBackend() {
     async all(s) {
       return [...data[s].values()].map(clone);
     },
+    async keys(s) {
+      return [...data[s].keys()];
+    },
     async byDoc(docId) {
       return [...data.versions.values()].filter((v) => v.docId === docId).map(clone);
     },
@@ -68,6 +71,8 @@ function idbBackend(idb) {
 export function createDb(factory = globalThis.indexedDB, name = 'md2html') {
   let backend = null;
   let opening = null;
+  const listeners = new Set();
+  const emit = (e) => listeners.forEach((fn) => { try { fn(e); } catch { /* observers must never break storage */ } });
   const api = {
     persistent: false,
     /** Resolves to true when data is really persisted, false for the in-memory fallback. */
@@ -100,21 +105,32 @@ export function createDb(factory = globalThis.indexedDB, name = 'md2html') {
       await api.open();
       return backend.get(s, k);
     },
+    /** Observe writes: fn({store, puts:[record], dels:[key], cleared}). Used by the server sync. Returns unsubscribe. */
+    onChange(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
     async put(s, v) {
-      await api.open();
-      return backend.putMany(s, [v]);
+      return api.putMany(s, [v]);
     },
     async putMany(s, list) {
       await api.open();
-      return backend.putMany(s, list);
+      const r = await backend.putMany(s, list);
+      emit({ store: s, puts: list });
+      return r;
     },
     async del(s, k) {
-      await api.open();
-      return backend.delMany(s, [k]);
+      return api.delMany(s, [k]);
     },
     async delMany(s, keys) {
       await api.open();
-      return backend.delMany(s, keys);
+      const r = await backend.delMany(s, keys);
+      emit({ store: s, dels: keys });
+      return r;
+    },
+    async keys(s) {
+      await api.open();
+      return backend.keys(s);
     },
     async all(s) {
       await api.open();
@@ -126,7 +142,9 @@ export function createDb(factory = globalThis.indexedDB, name = 'md2html') {
     },
     async clear(s) {
       await api.open();
-      return backend.clear(s);
+      const r = await backend.clear(s);
+      emit({ store: s, cleared: true });
+      return r;
     },
     async clearAll() {
       for (const s of Object.keys(STORES)) await api.clear(s);
@@ -145,6 +163,7 @@ function makeIdb(conn) {
   return {
     get: (s, k) => run(s, 'readonly', (tx) => promisify(tx.objectStore(s).get(k))),
     all: (s) => run(s, 'readonly', (tx) => promisify(tx.objectStore(s).getAll())),
+    keys: (s) => run(s, 'readonly', (tx) => promisify(tx.objectStore(s).getAllKeys())),
     byDoc: (docId) => run('versions', 'readonly', (tx) => promisify(tx.objectStore('versions').index('docId').getAll(docId))),
     putMany: (s, list) =>
       run(s, 'readwrite', (tx) => {

@@ -1,5 +1,5 @@
 // MD2Html service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
-const VERSION = '6aceb64df3';
+const VERSION = '449f45c64b';
 const CACHE = 'md2html-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 
@@ -20,6 +20,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return; // never intercept cross-origin (e.g. image upload)
+  if (url.pathname.startsWith('/api/')) return; // server API (sync, SSE, health) is never cached
   event.respondWith(
     caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(
       (hit) =>

@@ -1,0 +1,61 @@
+#!/bin/bash
+# md2html — control the local MD2Html server.
+LABEL="ir.computer123.md2html"
+PORT="${MD2HTML_PORT:-4123}"
+DATA="${MD2HTML_DATA:-$HOME/Documents/MD2Html}"
+BASE="http://localhost:$PORT"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+UIDN="$(id -u)"
+
+urlencode() {
+  local LC_ALL=C s="$1" i c out=""
+  for ((i = 0; i < ${#s}; i++)); do
+    c="${s:i:1}"
+    case "$c" in [a-zA-Z0-9.~_/-]) out+="$c" ;; *) out+="$(printf '%%%02X' "'$c")" ;; esac
+  done
+  printf '%s' "$out"
+}
+
+usage() {
+  cat <<USAGE
+md2html — MD2Html local server
+
+  md2html status         is the server up? (port $PORT, data dir, LaunchAgent state)
+  md2html open [file]    open the app in the browser (a file path is passed as ?open=<path>)
+  md2html pin            RESET the LAN PIN and print the new one (only a hash is stored, so the old PIN cannot be shown)
+  md2html logs           follow the server log
+  md2html restart        restart the LaunchAgent
+  md2html start | stop   load / unload the LaunchAgent
+USAGE
+}
+
+case "${1:-}" in
+  status)
+    if out="$(curl -fsS -m 3 "$BASE/api/health" 2>/dev/null)"; then echo "running: $out"; else echo "NOT running on port $PORT"; fi
+    echo "data dir: $DATA"
+    launchctl print "gui/$UIDN/$LABEL" 2>/dev/null | grep -E "^\s*(state|pid) =" || echo "LaunchAgent: not loaded"
+    ;;
+  open)
+    url="$BASE/"
+    if [ -n "${2:-}" ]; then
+      f="$2"
+      case "$f" in /*) ;; *) f="$(cd "$(dirname "$f")" && pwd)/$(basename "$f")" ;; esac
+      url="$BASE/?open=$(urlencode "$f")"
+    fi
+    open "$url"
+    ;;
+  pin)
+    out="$(curl -fsS -m 5 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" "$BASE/api/pin/reset")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
+    pin="$(printf '%s' "$out" | sed -n 's/.*"pin":"\([0-9]*\)".*/\1/p')"
+    echo "New PIN: $pin   (all signed-in devices were signed out)"
+    ;;
+  logs) exec tail -n 50 -f "$DATA/logs/server.log" ;;
+  restart) launchctl kickstart -k "gui/$UIDN/$LABEL" && echo restarted ;;
+  start)
+    if launchctl print "gui/$UIDN/$LABEL" >/dev/null 2>&1; then launchctl kickstart "gui/$UIDN/$LABEL"; else launchctl bootstrap "gui/$UIDN" "$PLIST"; fi
+    echo started
+    ;;
+  stop) launchctl bootout "gui/$UIDN/$LABEL" && echo stopped ;;
+  ""|-h|--help|help) usage ;;
+  *) echo "unknown command: $1" >&2; usage >&2; exit 2 ;;
+esac
