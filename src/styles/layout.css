@@ -54,10 +54,12 @@ button{cursor:pointer}
   .doc-title{order:3;flex:1 1 100%}
   .doc-title input{width:100%;background:var(--surface-2)}
   .top-actions{margin-inline-start:auto;gap:6px}
-  .layout{display:flex;flex-direction:column;padding:0 10px;margin:10px auto;gap:10px}
+  /* align-items:stretch is required: the desktop grid sets align-items:start, which in a column
+     flex container sizes each column to its content, so one long code line widened the whole page. */
+  .layout{display:flex;flex-direction:column;align-items:stretch;padding:0 10px;margin:10px auto;gap:10px}
   .left{order:1}.center{order:2;min-height:70vh}.right{order:3}
   .stage{padding:12px 6px}
-  .hide-mobile{display:none}
+  .hide-mobile,.btn.hide-mobile{display:none} /* `.btn.icon` (0,2,0) outranks a bare `.hide-mobile` */
   .chip .lbl{display:none}
   .seg button{width:30px}
 }

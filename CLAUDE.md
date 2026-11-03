@@ -1,9 +1,12 @@
 # MD2Html Pro
 
-- Source lives in `src/` (vanilla ES modules + CSS). `MD2Html.html` and `dist/` are **build output**: never edit them directly. Run `npm run build` after changes (it rebuilds `dist/MD2Html.html`, `dist/pwa/`, and copies to `./MD2Html.html`).
+- Source lives in `src/` (vanilla ES modules + CSS). `MD2Html.html` and `dist/` are **build output**: never edit them directly. Run `npm run build` after changes (it rebuilds `dist/MD2Html.html`, `dist/pwa/`, and copies to `./MD2Html.html`). Only the root `MD2Html.html` and `dist/pwa/` are tracked; `dist/MD2Html.html` is gitignored (identical copy) and the server serves the root one.
+- `AGENTS.md` is a symlink to this file: edit only `CLAUDE.md`.
 - Tests: `npm test` (node:test, pure modules under `src/js/content`, `brand`, `export/docx.js`, etc.).
-- Browser check: serve with `python3 -m http.server` (Playwright MCP blocks `file:`).
+- Browser tests: `npm run test:e2e` (`@playwright/test`, specs in `tests/e2e/*.spec.mjs`, config `playwright.config.mjs`). Its `webServer` runs `npm run build` and `tests/e2e/static-server.mjs`, which serves the repo root with **no `/api/*`** so the app stays in offline mode. Two projects: `desktop` (all specs) and `mobile` (Pixel 5, `layout.spec.mjs` only). `npm run test:all` runs both suites. Palette commands run on `setTimeout(…, 0)` after the palette closes — always wait for the command's effect, never assume `runCommand` has already run it.
+- Browser check by hand: serve with `python3 -m http.server` (Playwright MCP blocks `file:`).
 - Design spec: `docs/superpowers/specs/2026-10-30-md2html-pro-design.md`. Feature parity list: `docs/superpowers/plans/feature-inventory.md`. User guide: `docs/راهنما.md`.
+- `docs/قالب-گزارش.md` is the prompt handed to outside models (ChatGPT / Gemini). Its two ```text blocks are asserted byte-equal to `src/js/content/report-prompt.js` by `tests/report-prompt.test.mjs`: edit the module, then the doc. The user-level skill `~/.claude/skills/md2html/` mirrors it.
 - `1file-old/` is the user's backup of the original single-file app: read-only.
 - RTL rules: never mirror prev/next controls; progress bars, sliders and chart x-axes fill left→right.
 
