@@ -12,7 +12,9 @@ export function csrfOk(method, urlPath, headers) {
   if (!origin || !headers.host) return false;
   try {
     const u = new URL(origin);
-    return u.protocol === 'http:' && u.host.toLowerCase() === String(headers.host).toLowerCase();
+    // The server speaks http today, but https must not silently 403 every write if it is ever put behind TLS.
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    return u.host.toLowerCase() === String(headers.host).toLowerCase();
   } catch {
     return false;
   }

@@ -35,6 +35,16 @@ test('CSRF: non-GET /api needs X-MD2Html: 1 and the same Origin', () => {
   assert.ok(!csrfOk('PUT', '/api/x', { ...h, origin: 'null' }));
 });
 
+test('CSRF: the Origin check compares hosts, so https does not 403 every write', () => {
+  const h = { host: 'mac.local:7123', 'x-md2html': '1' };
+  assert.ok(csrfOk('POST', '/api/x', { ...h, origin: 'http://mac.local:7123' }));
+  assert.ok(csrfOk('POST', '/api/x', { ...h, origin: 'https://mac.local:7123' }));
+  // Anything that is not an http(s) page origin still fails.
+  for (const origin of ['file://', 'chrome-extension://abc', 'ws://mac.local:7123', 'data:text/html,x']) {
+    assert.ok(!csrfOk('POST', '/api/x', { ...h, origin }), origin);
+  }
+});
+
 test('CSP forbids framing and plugins', () => {
   assert.match(CSP, /frame-ancestors 'none'/);
   assert.match(CSP, /object-src 'none'/);

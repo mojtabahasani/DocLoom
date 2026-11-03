@@ -10,7 +10,8 @@ const INLINE_RE = new RegExp(
     '!\\[([^\\]]*)\\]\\(([^)\\s]+)(?:\\s+"[^"]*")?\\)', // 1 alt, 2 src
     '\\[([^\\]]+)\\]\\(([^)\\s]+)(?:\\s+"[^"]*")?\\)', // 3 text, 4 href
     '`([^`]+)`', // 5 code
-    '(\\*\\*|__)(?=\\S)(.+?)(?<=\\S)\\6', // 6 delim, 7 strong
+    // Named backreference: a positional \6 would break silently if a capturing group were added above.
+    '(?<bold>\\*\\*|__)(?=\\S)(.+?)(?<=\\S)\\k<bold>', // 6 delim, 7 strong
     '~~(.+?)~~', // 8 del
     '\\*(?=\\S)([^*]+?)(?<=\\S)\\*', // 9 em (*)
     '(?<![\\p{L}\\p{N}_])_(?=\\S)([^_]+?)(?<=\\S)_(?![\\p{L}\\p{N}_])', // 10 em (_)

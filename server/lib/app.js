@@ -24,7 +24,8 @@ export function clientIp(req, env = process.env) {
 }
 
 export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, netIfaces = () => os.networkInterfaces(), limiter = new LoginLimiter() }) {
-  const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../dist/MD2Html.html', import.meta.url).pathname });
+  // The repo root copy, not dist/: it is the tracked deliverable, so it exists in a fresh clone before any build.
+  const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../MD2Html.html', import.meta.url).pathname });
   const sse = new Set(); // {res, sid}
   const H = securityHeaders();
   store.on('change', (e) => {

@@ -21,6 +21,10 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return; // never intercept cross-origin (e.g. image upload)
   if (url.pathname.startsWith('/api/')) return; // server API (sync, SSE, health) is never cached
+  // Share pages and the render page are server-generated and revocable: caching one would keep
+  // serving a share after it is revoked or has expired, and `Cache-Control: no-store` does not
+  // stop caches.put(). The scope is the whole origin, so they have to be excluded by path.
+  if (url.pathname.startsWith('/s/') || url.pathname === '/render') return;
   event.respondWith(
     caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(
       (hit) =>
