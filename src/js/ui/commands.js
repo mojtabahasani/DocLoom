@@ -19,6 +19,7 @@ import { openLibrary } from '../library/library-ui.js';
 import { openVersions } from '../library/versions-ui.js';
 import { exportBackup, importBackup } from '../library/backup-ui.js';
 import { saveCommand } from '../server/linked.js';
+import { embedConfig } from '../core/embed-config.js';
 
 const toggle = (key, label, furniture = false) => () => {
   const on = !store.get(key);
@@ -96,8 +97,8 @@ export function registerCommands() {
   ];
   cmds.forEach((c) => palette.register(c));
 
-  // Library documents in the palette.
-  palette.addSource({
+  // Library documents in the palette (not when an embed host has no library).
+  if (embedConfig().library) palette.addSource({
     id: 'docs',
     label: 'سندهای کتابخانه',
     load: async () =>
@@ -109,7 +110,9 @@ export function registerCommands() {
 
   // Shortcuts (⌘ on macOS, Ctrl elsewhere; also matched by key position so a Persian keyboard layout works).
   defineShortcut({ id: 'palette', keys: 'Mod+K', title: 'پالت فرمان', run: () => palette.open() });
-  defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره (روی فایل متصل، وگرنه نسخه)', run: () => saveCommand() });
+  // Embed mode: ⌘S only tells the host (MD2Html.embed.on('save')); the host decides where the document goes.
+  if (embedConfig().active) defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره', run: () => store.emit('embed:save') });
+  else defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره (روی فایل متصل، وگرنه نسخه)', run: () => saveCommand() });
   defineShortcut({ id: 'undo', keys: 'Mod+Z', title: 'واگرد (در سند)', scope: 'preview', run: undo });
   defineShortcut({ id: 'redo', keys: 'Mod+Shift+Z', title: 'انجام دوباره (در سند)', scope: 'preview', run: redo });
   defineShortcut({ id: 'redo-y', keys: 'Mod+Y', title: 'انجام دوباره (در سند)', scope: 'preview', run: redo });

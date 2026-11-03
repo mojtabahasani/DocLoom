@@ -1,4 +1,5 @@
 // Image intake: file picker, clipboard paste, header/footer images, zi2.ir upload.
+import { embedConfig } from '../core/embed-config.js';
 import { store } from '../core/store.js';
 import { $, el } from '../core/dom.js';
 import { notify } from '../core/notify.js';
@@ -102,6 +103,7 @@ async function toPNG(file) {
 }
 
 export async function uploadPendingImage() {
+  if (!embedConfig().upload) return void notify('آپلود تصویر در این صفحه خاموش است؛ تصویر داخل خود سند می‌ماند.');
   const saved = store.get('uploadEndpoint').trim();
   const endpoint = migrateEndpoint(saved);
   if (endpoint !== saved) store.set('uploadEndpoint', endpoint);

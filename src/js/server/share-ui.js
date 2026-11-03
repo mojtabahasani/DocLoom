@@ -3,6 +3,7 @@ import { store } from '../core/store.js';
 import { el } from '../core/dom.js';
 import { notify } from '../core/notify.js';
 import { toFaDigits as fa } from '../content/persian.js';
+import { digitMode } from '../core/digits.js';
 import { qrSVG } from '../brand/qr.js';
 import { openModal } from '../ui/modal.js';
 import { palette } from '../ui/palette.js';
@@ -31,7 +32,7 @@ export async function lanBase() {
   }
 }
 
-export const expiryText = (s) => (s.expiresAt ? 'تا ' + new Date(s.expiresAt).toLocaleString('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }) : 'بدون انقضا');
+export const expiryText = (s) => (s.expiresAt ? 'تا ' + new Date(s.expiresAt).toLocaleString(digitMode() === 'en' ? 'fa-IR-u-nu-latn' : 'fa-IR', { dateStyle: 'medium', timeStyle: 'short' }) : 'بدون انقضا');
 
 export async function shareLinkView(path) {
   const url = (await lanBase()) + path;

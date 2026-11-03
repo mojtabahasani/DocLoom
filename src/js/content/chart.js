@@ -1,6 +1,7 @@
 // Charts from tables. Pure: numeric extraction (Persian / Arabic-Indic digits, separators, %) and SVG string rendering.
 // The x axis of bar and line charts always runs LEFT -> RIGHT (first row at the left); the SVG is forced to direction:ltr.
 import { toFaDigits } from './persian.js';
+import { localSeparators, percentSign } from '../core/digits.js';
 import { escapeHTML } from './markdown.js';
 
 export const CHART_TYPES = [
@@ -63,7 +64,7 @@ export function fmtNum(n, percent = false) {
   const [i, f] = String(Math.abs(r)).split('.');
   const grouped = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const s = (r < 0 ? '-' : '') + grouped + (f ? '.' + f : '');
-  return toFaDigits(s).replace(/,/g, '٬').replace(/\./g, '٫') + (percent ? '٪' : '');
+  return localSeparators(toFaDigits(s)) + (percent ? percentSign() : '');
 }
 
 const W = 640;

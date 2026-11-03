@@ -6,6 +6,9 @@ import { refreshFurniture } from '../editor/preview.js';
 import { normalizeBrand, seedBrand, duplicateBrand, brandThemeColors, planSeedMigration, SEED_ID } from './brand-model.js';
 
 let list = [];
+// Embed mode: brands the host registered for this page only (never written to IndexedDB) and its default.
+const memory = new Map();
+let memoryDefault = null;
 const changed = () => store.emit('brands:changed');
 const sorted = (a) => a.sort((x, y) => (x.name || '').localeCompare(y.name || '', 'fa'));
 
@@ -13,16 +16,28 @@ export const brands = {
   all: () => list,
   get: (id) => list.find((b) => b.id === id) || null,
   current: () => brands.get(store.get('brandId')),
-  defaultId: () => (brands.get(getPref('defaultBrandId')) ? getPref('defaultBrandId') : list[0]?.id || null),
+  defaultId: () => (memoryDefault && brands.get(memoryDefault) ? memoryDefault : brands.get(getPref('defaultBrandId')) ? getPref('defaultBrandId') : list[0]?.id || null),
   setDefault: (id) => setPref('defaultBrandId', id),
 
+  /** Add a brand for this page only (embed host); `asDefault` makes it the default without touching preferences. */
+  register(input, { asDefault = false } = {}) {
+    const b = normalizeBrand(input);
+    memory.set(b.id, b);
+    list = sorted([...list.filter((x) => x.id !== b.id), b]);
+    if (asDefault) memoryDefault = b.id;
+    changed();
+    return b;
+  },
+
   async reload() {
-    list = sorted((await db.all('brands')).map(normalizeBrand));
+    const stored = (await db.all('brands')).map(normalizeBrand).filter((b) => !memory.has(b.id));
+    list = sorted([...stored, ...memory.values()]);
     changed();
   },
   async save(input) {
     const b = normalizeBrand(input);
-    await db.put('brands', b);
+    if (memory.has(b.id)) memory.set(b.id, b); // a host brand stays in memory (letter counter included)
+    else await db.put('brands', b);
     const i = list.findIndex((x) => x.id === b.id);
     if (i >= 0) list[i] = b;
     else list.push(b);
@@ -31,7 +46,9 @@ export const brands = {
     return b;
   },
   async remove(id) {
-    await db.del('brands', id);
+    if (memory.delete(id)) {
+      if (memoryDefault === id) memoryDefault = null;
+    } else await db.del('brands', id);
     list = list.filter((b) => b.id !== id);
     if (getPref('defaultBrandId') === id) setPref('defaultBrandId', null);
     changed();

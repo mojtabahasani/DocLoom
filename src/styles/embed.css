@@ -1,0 +1,4 @@
+/* Embed mode (window.MD2HTML_EMBED): controls the host switched off stay hidden, whatever a module does later. */
+[data-embed-hidden]{display:none!important}
+.embed-slot{display:flex;align-items:center;gap:8px}
+.embed-slot:empty{display:none}
