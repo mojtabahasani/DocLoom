@@ -8,6 +8,7 @@ import { checkDocument } from './suggest.js';
 import { insertToc, showTab } from './toc-panel.js';
 import { openReading } from './reading.js';
 import { openChartPopover, chartableData } from './chart-ui.js';
+import { openReportPrompt } from './prompt-sheet.js';
 import { preview } from '../editor/preview.js';
 
 function chartForCaretTable() {
@@ -28,6 +29,7 @@ export function registerSmartCommands() {
     { id: 'toc-show', title: 'نمایش فهرست مطالب در پنل کناری', group: 'نما', keywords: 'toc outline headings فهرست', run: () => (showTab('toc'), $('#tabBtnToc').focus()) },
     { id: 'reading', title: 'حالت مطالعه', group: 'نما', keywords: 'reading mode focus read مطالعه خواندن', run: openReading },
     { id: 'chart', title: 'درج نمودار از جدول', group: 'درج', keywords: 'chart graph table نمودار', run: chartForCaretTable },
+    { id: 'report-prompt', title: 'کپی پرامپت گزارش (برای ChatGPT و جمینی)', group: 'پرامپت', keywords: 'prompt chatgpt gemini ai report پرامپت گزارش هوش مصنوعی چت جی پی تی جمینی', run: openReportPrompt },
   ].forEach((c) => palette.register(c));
   defineShortcut({ id: 'reading', keys: 'Mod+Shift+E', title: 'حالت مطالعه', run: openReading });
 }

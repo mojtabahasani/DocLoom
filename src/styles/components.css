@@ -123,6 +123,11 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 .modalbody p{margin:0 0 10px}.modal-note{font-size:var(--fs-sm);color:var(--muted)}
 .form-error{color:var(--danger);font-size:var(--fs-sm);background:var(--danger-soft);padding:8px 10px;border-radius:var(--r-sm)}
 .emailview{padding:12px;max-height:50vh;overflow:auto;background:#fff;color:#222}
+.field.inline{display:flex;align-items:center;gap:8px}
+.field.inline input{width:auto;flex:none}
+.field.inline label{margin:0;font-weight:600;color:var(--text-2)}
+.prompt-sheet{width:100%;min-height:260px;max-height:46vh;resize:vertical;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);font:12.5px/1.85 var(--mono-fa);white-space:pre;overflow:auto;direction:rtl;text-align:start}
+.prompt-sheet:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 35%,transparent)}
 @keyframes fade{from{opacity:0}}
 @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
