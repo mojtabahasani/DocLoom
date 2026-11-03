@@ -3,10 +3,11 @@
 // app's one health probe 404s and it stays in offline mode — the same as opening the file directly.
 // (Playwright MCP and the browser pane block file://, which is why the suite goes over http.)
 import http from 'node:http';
+import { fileURLToPath } from 'node:url';
 import { createStatic } from '../../server/lib/static.js';
 
 const PORT = Number(process.env.E2E_PORT) || 8732;
-const root = new URL('../../', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../../', import.meta.url)); // .pathname breaks on Windows (/H:/...)
 const serve = createStatic(root);
 
 const server = http.createServer((req, res) => {
