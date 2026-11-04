@@ -94,7 +94,9 @@ export function readMeta(rows, headerIndex) {
   const out = {};
   const seen = new Set();
   const take = (label, value) => {
-    const v = cleanText(value).replace(/^[:：\s-]+/, '').trim();
+    // One cell often holds the label, its value and then an unrelated note on the next line
+    // ("تا تاریخ : 1405/06/05 \n تعداد 400 گردش آخر"); only the first line is the value.
+    const v = String(value ?? '').split('\n')[0].replace(/^[:：\s-]+/, '').trim();
     if (!v || v === '-') return;
     for (const [field, re] of META) {
       if (re.test(label) && !out[field]) { out[field] = v; return; }
@@ -168,6 +170,9 @@ export function parseStatement(rows, { sort = 'asc' } = {}) {
     };
     // A row with no date and no money in it is noise, not a transaction.
     if (!rec.date && !rec.deposit && !rec.withdraw && rec.balance === null) { dropped.blank++; continue; }
+    // So is a placeholder line with no movement and a zero balance, which Keshavarzi emits
+    // mid-statement; keeping it makes the running balance look like it jumps to zero and back.
+    if (!rec.deposit && !rec.withdraw && rec.balance === 0) { dropped.blank++; continue; }
     records.push(rec);
   }
 

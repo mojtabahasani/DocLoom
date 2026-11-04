@@ -7,6 +7,7 @@
 // A real BIFF8 .xls (the old binary one) is detected and refused with a Persian message rather
 // than half-parsed; `isLegacyXls()` lets the UI say so clearly.
 import { unzipSync, strFromU8 } from 'fflate';
+import { readBiff } from './biff.js';
 
 export class SheetError extends Error {
   constructor(code, message) {
@@ -245,10 +246,13 @@ export function readWorkbook(bytes, filename = '') {
   if (!u8.length) throw new SheetError('empty', 'فایل خالی است.');
 
   if (isLegacyXls(u8)) {
-    throw new SheetError(
-      'legacy-xls',
-      'این فایل قالب قدیمی اکسل (xls باینری) است. در اکسل بازش کنید و با قالب xlsx ذخیره کنید، بعد دوباره اینجا بیندازید.',
-    );
+    try {
+      const sheets = readBiff(u8);
+      if (sheets.length) return { sheets, format: 'xls' };
+    } catch (e) {
+      throw new SheetError('bad-xls', 'این فایل اکسل قدیمی خوانده نشد؛ در اکسل بازش کنید و با قالب xlsx ذخیره کنید.');
+    }
+    throw new SheetError('bad-xls', 'در این فایل اکسل قدیمی برگه‌ای پیدا نشد.');
   }
   if (isZip(u8)) return { sheets: readXlsx(u8), format: 'xlsx' };
 

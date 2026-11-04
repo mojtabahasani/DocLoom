@@ -124,12 +124,13 @@ test('ss:Index leaves a gap instead of shifting the row', () => {
   assert.equal(rows[0][0] ?? null, null);
 });
 
-test('a real binary .xls is refused with a Persian instruction, not half-parsed', () => {
+test('a damaged binary .xls says so instead of being half-parsed', () => {
+  // The real BIFF8 path is covered in xls.test.mjs; this is the truncated-file case.
   const ole = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1, 0, 0, 0, 0]);
   assert.ok(isLegacyXls(ole));
   assert.throws(
     () => readWorkbook(ole, 'bankStatements.xls'),
-    (e) => e instanceof SheetError && e.code === 'legacy-xls' && /xlsx/.test(e.message),
+    (e) => e instanceof SheetError && e.code === 'bad-xls' && /xlsx/.test(e.message),
   );
 });
 
