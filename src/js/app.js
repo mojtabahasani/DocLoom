@@ -5,7 +5,8 @@ import { initTheme } from './ui/theme.js';
 import { initPreview } from './editor/preview.js';
 import { initSource } from './editor/source.js';
 import { initImages } from './editor/images.js';
-import { initFileInput } from './editor/files.js';
+import { initFileInput, registerSheetHandler } from './editor/files.js';
+import { initBankImport } from './bank/bank-ui.js';
 import { initPaste } from './editor/paste.js';
 import { initToolbar } from './editor/toolbar.js';
 import { initPanels } from './ui/panels.js';
@@ -44,6 +45,7 @@ async function main() {
   initSource();
   initImages();
   initFileInput();
+  initBankImport(registerSheetHandler); // spreadsheets open the bank-statement importer
   initPaste();
   initToolbar();
   initPanels();

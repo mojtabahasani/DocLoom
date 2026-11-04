@@ -1,0 +1,55 @@
+/* Bank-statement import dialog. */
+.bank-wrap .bank-info {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: var(--fs-sm);
+}
+.bank-cols,
+.bank-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+}
+.bank-cols .check,
+.bank-opts .check {
+  margin: 4px 0;
+}
+.bank-opts {
+  margin: 12px 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.bank-opts input[type='number'] {
+  width: 110px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.bank-preview {
+  margin-top: 10px;
+}
+/* The preview is a sample of the generated table, so it stays LTR-free but may be wide:
+   it scrolls inside its own box rather than stretching the dialog. */
+.bank-pre {
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font: 11.5px/1.9 var(--mono-fa);
+  white-space: pre;
+}
+@media (max-width: 720px) {
+  .bank-cols,
+  .bank-opts {
+    gap: 0 12px;
+  }
+}

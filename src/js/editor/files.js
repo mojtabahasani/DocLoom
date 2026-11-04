@@ -8,9 +8,18 @@ import { renderFromSource, setContent, applyLook } from './preview.js';
 import { toggleSourceMode, setSourceText, refreshSource } from './source.js';
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const SOURCE_FILE = /\.(md|markdown|txt|html?)$/i;
+const SOURCE_FILE = /\.(md|markdown|txt|html?|xlsx|xlsm|xls|csv)$/i;
 
-/** Which file from a DataTransfer is the document (prefers .md/.txt/.html over others). */
+/**
+ * Spreadsheets take a different route (the bank importer registers itself here) so this module
+ * does not have to pull in the xlsx reader for every document load.
+ */
+let sheetHandler = null;
+export const registerSheetHandler = (h) => {
+  sheetHandler = h;
+};
+
+/** Which file from a DataTransfer is the document (prefers .md/.txt/.html/.xlsx over others). */
 export function pickSourceFile(data) {
   const files = [...((data && data.files) || [])];
   return files.find((f) => SOURCE_FILE.test(f.name)) || files[0] || null;
@@ -36,6 +45,8 @@ export function loadHTMLContent(html, { quiet = false } = {}) {
 
 export async function loadSourceFile(file) {
   if (!file) return;
+  // A spreadsheet is not read as text: it goes to the bank-statement importer, with its own limit.
+  if (sheetHandler && sheetHandler.test(file.name)) return sheetHandler.open(file);
   if (file.size > MAX_FILE_BYTES) {
     notify('فایل نامعتبر است یا بزرگ‌تر از ۵ مگابایت.');
     return;
@@ -55,7 +66,7 @@ export async function loadSourceFile(file) {
       renderFromSource();
       notify('فایل روی همین دستگاه خوانده شد.');
       store.emit('text:imported');
-    } else notify('فقط فایل MD، TXT یا HTML انتخاب کنید.');
+    } else notify('فقط فایل MD، TXT، HTML یا اکسل انتخاب کنید.');
   } catch {
     notify('خواندن فایل ممکن نشد.');
   }

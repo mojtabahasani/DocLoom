@@ -30,6 +30,7 @@ export function registerSmartCommands() {
     { id: 'reading', title: 'حالت مطالعه', group: 'نما', keywords: 'reading mode focus read مطالعه خواندن', run: openReading },
     { id: 'chart', title: 'درج نمودار از جدول', group: 'درج', keywords: 'chart graph table نمودار', run: chartForCaretTable },
     { id: 'report-prompt', title: 'کپی پرامپت گزارش (برای ChatGPT و جمینی)', group: 'پرامپت', keywords: 'prompt chatgpt gemini ai report پرامپت گزارش هوش مصنوعی چت جی پی تی جمینی', run: openReportPrompt },
+    { id: 'bank-import', title: 'تبدیل اکسل بانکی به گزارش…', group: 'ورود', keywords: 'excel xlsx csv bank statement اکسل بانک گردش حساب صورتحساب صورت حساب تراکنش', run: () => $('#file').click() },
   ].forEach((c) => palette.register(c));
   defineShortcut({ id: 'reading', keys: 'Mod+Shift+E', title: 'حالت مطالعه', run: openReading });
 }

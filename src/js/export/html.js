@@ -17,6 +17,8 @@ const BASE_CSS =
   'blockquote,.card,.cover{background:var(--tint);padding:13px 17px;border-right:4px solid var(--accent);margin:16px 0;break-inside:avoid}' +
   'blockquote>p:first-child{margin-top:0}blockquote>p:last-child{margin-bottom:0}' +
   'table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px;text-align:right}th{background:var(--accent);color:#fff}' +
+  // Amount / date columns (the ones Markdown aligned) never break mid-number.
+  'td[style*="text-align:right"],th[style*="text-align:right"],td[style*="text-align:center"],th[style*="text-align:center"]{white-space:nowrap;overflow-wrap:normal}' +
   'pre,code{direction:ltr;text-align:left;background:#f1f2f1}pre{padding:12px;white-space:pre-wrap}pre code,pre code *{background:none;padding:0;border-radius:0}' +
   '.doc-image{max-width:100%;height:auto}.link-button{display:inline-block;background:var(--accent);padding:8px 14px;color:white!important;text-decoration:none}' +
   '.masthead{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #ddd;padding-bottom:12px;margin-bottom:20px}' +

@@ -7,6 +7,7 @@
 - Browser check by hand: serve with `python3 -m http.server` (Playwright MCP blocks `file:`).
 - Design spec: `docs/superpowers/specs/2026-10-30-md2html-pro-design.md`. Feature parity list: `docs/superpowers/plans/feature-inventory.md`. User guide: `docs/راهنما.md`.
 - `docs/قالب-گزارش.md` is the prompt handed to outside models (ChatGPT / Gemini). Its two ```text blocks are asserted byte-equal to `src/js/content/report-prompt.js` by `tests/report-prompt.test.mjs`: edit the module, then the doc. The user-level skill `~/.claude/skills/md2html/` mirrors it.
+- Bank-statement import: `src/js/bank/` — `sheet-read.js` (xlsx via fflate, SpreadsheetML, CSV; a binary BIFF8 `.xls` is refused with a Persian message, never half-parsed), `bank-table.js` (header found by scoring, columns matched by name, newest-first files reordered so the running balance holds), `bank-report.js` (Markdown out), `bank-ui.js`. Spreadsheets reach it through `registerSheetHandler` in `editor/files.js`. Samples the parser is checked against: `~/My-Drive-Mac/Documents/print-bank/` (read-only, outside the repo).
 - `1file-old/` is the user's backup of the original single-file app: read-only.
 - RTL rules: never mirror prev/next controls; progress bars, sliders and chart x-axes fill left→right.
 

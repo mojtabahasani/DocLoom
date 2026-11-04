@@ -26,6 +26,11 @@
 .paper table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.82em}
 .paper th,.paper td{border:1px solid #d6ded9;padding:8px;text-align:right}
 .paper th{background:var(--accent-doc);color:#fff}
+/* .paper sets overflow-wrap:anywhere so long Persian text fits; that would also split «۶٬۶۹۷٬۶۴۴»
+   across two lines. A Markdown alignment marker (`--:` or `:-:`) means the column holds amounts,
+   dates or times, so those cells keep their content on one line and the text column takes the slack. */
+.paper td[style*="text-align:right"],.paper th[style*="text-align:right"],
+.paper td[style*="text-align:center"],.paper th[style*="text-align:center"]{white-space:nowrap;overflow-wrap:normal}
 .paper tr{break-inside:avoid}
 .paper hr{border:0;border-top:1px solid #dce3de;margin:21px 0}
 .paper a{color:var(--accent-doc)}
