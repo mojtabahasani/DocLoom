@@ -15,7 +15,7 @@
   --line-strong: #c7d6cd;
   --text: #17302f;
   --text-2: #3e5553;
-  --muted: #6c7f7b;
+  --muted: #5a6c68; /* 4.7:1 on --surface-3 and 6.0:1 on white — WCAG AA for small text */
   --accent: #1f6f5f;
   --accent-strong: #165548;
   --accent-soft: #e4f1ea;

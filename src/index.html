@@ -71,7 +71,8 @@
     <button class="btn ghost" id="libraryBtn" type="button" aria-haspopup="dialog" aria-expanded="false" title="کتابخانهٔ سندها"><svg class="ic"><use href="#i-library"/></svg><span class="lbl">کتابخانه</span></button>
     <button class="btn ghost" id="filesBtn" type="button" aria-haspopup="dialog" aria-expanded="false" hidden title="فایل‌های سرور (‎⌘O‎)"><svg class="ic"><use href="#i-folder"/></svg><span class="lbl">فایل‌ها</span></button>
     <button class="btn ghost" id="serverBtn" type="button" aria-haspopup="dialog" hidden title="سرور"><svg class="ic"><use href="#i-server"/></svg><span class="lbl">سرور</span><span class="srv-dot" id="syncDot" role="img"></span></button>
-    <button class="chip" id="paletteHint" type="button" aria-label="پالت فرمان"><kbd>⌘K</kbd><span class="lbl">فرمان‌ها</span></button>
+    <!-- No aria-label: the visible text names it, which is what WCAG 2.5.3 asks for. -->
+    <button class="chip" id="paletteHint" type="button" title="پالت فرمان"><kbd>⌘K</kbd><span class="lbl">فرمان‌ها</span></button>
     <div class="seg" role="group" aria-label="پوستهٔ برنامه">
       <button type="button" data-app-theme="light" aria-label="روشن" title="روشن"><svg class="ic"><use href="#i-sun"/></svg></button>
       <button type="button" data-app-theme="system" aria-label="خودکار" title="مطابق سیستم"><svg class="ic"><use href="#i-monitor"/></svg></button>
@@ -127,7 +128,7 @@
       <b>فایل را اینجا رها کنید</b>
       <small>یا کلیک کنید · MD، TXT، HTML</small>
     </div>
-    <div class="paste-zone" id="pasteZone" contenteditable="true" spellcheck="false" inputmode="none" role="button" tabindex="0" aria-label="چسباندن فایل کپی‌شده">
+    <div class="paste-zone" id="pasteZone" contenteditable="true" spellcheck="false" inputmode="none" role="button" tabindex="0">
       <b><svg class="ic"><use href="#i-clipboard"/></svg> فایل کپی‌شده را اینجا بچسبانید</b>
       <small>کلیک راست و <bdi>Paste</bdi> · یا <bdi>⌘V</bdi></small>
     </div>

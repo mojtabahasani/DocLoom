@@ -12,6 +12,12 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const p = (...a) => path.join(root, ...a);
 const MAX_BYTES = 900 * 1024;
 
+// Build identity, read once: the version comes from package.json, the stamp is the day only
+// so an unchanged source does not churn dist/ on every rebuild.
+const pkg = JSON.parse(await readFile(p('package.json'), 'utf8'));
+const VERSION = pkg.version;
+const BUILT_AT = new Date().toISOString().slice(0, 10);
+
 // CSS concat order matters (tokens first).
 const CSS_ORDER = ['tokens', 'layout', 'components', 'library', 'palette', 'document', 'print'];
 const FONTS = [
@@ -27,6 +33,7 @@ async function bundleJS() {
     minify: true,
     target: 'es2022',
     legalComments: 'none',
+    define: { __APP_VERSION__: JSON.stringify(VERSION), __APP_BUILT__: JSON.stringify(BUILT_AT) },
     loader: { '.css': 'text' }, // export/html.js embeds styles/blocks.css into exported pages
     write: false,
   });
@@ -80,7 +87,7 @@ async function buildSingle() {
   await writeFile(p('dist/MD2Html.html'), html);
   await copyFile(p('dist/MD2Html.html'), p('MD2Html.html'));
   const size = (await stat(p('dist/MD2Html.html'))).size;
-  console.log(`dist/MD2Html.html ${(size / 1024).toFixed(1)} KB`);
+  console.log(`dist/MD2Html.html ${(size / 1024).toFixed(1)} KB  (v${VERSION}, ${BUILT_AT})`);
   if (size > MAX_BYTES) throw new Error(`Build exceeds ${MAX_BYTES} bytes`);
 }
 

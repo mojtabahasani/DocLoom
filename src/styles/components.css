@@ -134,3 +134,9 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 
 /* The export menu sits at the far (left) end of the RTL header: open it toward the page, not off-screen. */
 #exportMenu{inset-inline-start:auto;inset-inline-end:0}
+.about .about-head{margin:14px 0 6px;font-weight:700;color:var(--text)}
+.about-table{width:100%;border-collapse:collapse;margin-top:10px}
+.about-table th,.about-table td{padding:5px 2px;text-align:start;vertical-align:top;border-bottom:1px solid var(--line)}
+.about-table th{width:34%;font-weight:600;color:var(--text-2)}
+.about-table small{color:var(--muted)}
+.about-libs{margin:0;padding-inline-start:18px;color:var(--text-2);font-size:var(--fs-sm);line-height:2}

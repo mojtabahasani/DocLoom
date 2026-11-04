@@ -71,7 +71,9 @@ export function openReading() {
     save();
   };
   const bar = el('header', { class: 'reader-bar' },
-    el('button', { type: 'button', class: 'btn', onclick: closeReading, 'aria-label': 'خروج از حالت مطالعه' }, icon('x'), el('span', { text: 'خروج' }), el('kbd', { text: 'Esc' })),
+    // Named by its own text («خروج Esc»): an aria-label that left the «Esc» out would
+    // contradict the visible label, which WCAG 2.5.3 forbids.
+    el('button', { type: 'button', class: 'btn', onclick: closeReading, title: 'خروج از حالت مطالعه' }, icon('x'), el('span', { text: 'خروج' }), el('kbd', { text: 'Esc' })),
     el('span', { class: 'reader-meta', text: `حدود ${toFaDigits(minutes)} دقیقه مطالعه · ${toFaDigits(words)} واژه` }),
     el('span', { class: 'grow' }),
     el('div', { class: 'reader-group ltr-group', role: 'group', 'aria-label': 'اندازهٔ قلم' },

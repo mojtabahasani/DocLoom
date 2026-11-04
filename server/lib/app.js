@@ -15,7 +15,14 @@ import { RenderError } from './pdf.js';
 import { BatchError } from './batch.js';
 import { SHARE_ID_RE, SHARE_CSP, gonePage } from './shares.js';
 
-export const VERSION = '1.0.0';
+// One source of truth for the version: package.json, the same file the client build reads.
+export const VERSION = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 /** The client address. A test-only override header is honoured ONLY when MD2HTML_TEST=1. */
 export function clientIp(req, env = process.env) {

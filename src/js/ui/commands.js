@@ -19,6 +19,7 @@ import { openLibrary } from '../library/library-ui.js';
 import { openVersions } from '../library/versions-ui.js';
 import { exportBackup, importBackup } from '../library/backup-ui.js';
 import { saveCommand } from '../server/linked.js';
+import { openAbout } from './about.js';
 
 const toggle = (key, label, furniture = false) => () => {
   const on = !store.get(key);
@@ -93,6 +94,7 @@ export function registerCommands() {
     { id: 'settings-export', title: 'ذخیرهٔ تنظیمات (JSON)', group: 'تنظیمات', keywords: 'settings export json', run: exportSettings },
     { id: 'settings-import', title: 'بارگذاری تنظیمات (JSON)', group: 'تنظیمات', keywords: 'settings import json', run: () => $('#settingsFile').click() },
     { id: 'shortcuts', title: 'میان‌برها', group: 'راهنما', keywords: 'shortcuts keyboard keys help کلید', run: showShortcuts },
+    { id: 'about', title: 'دربارهٔ برنامه', group: 'راهنما', keywords: 'about version build licence نسخه درباره مجوز ذخیره', run: openAbout },
   ];
   cmds.forEach((c) => palette.register(c));
 
