@@ -13,7 +13,10 @@ const CLASSES = new Set(
   ('card card-label cover subtitle masthead repeat-header page-footer repeat-footer doc-image link-button ' +
     'callout callout-note callout-tip callout-important callout-warning callout-caution callout-title task task-done task-list ' +
     'toc toc-title chart chart-svg code tok-k tok-s tok-c tok-n tok-f tok-a ' +
-    'letter-head letter-top letter-meta letter-line letter-subject letter-to letter-greeting letter-sign sign-box sign-area sig-img stamp-img signer qr-box qr-inline qr-svg').split(' '),
+    'letter-head letter-top letter-meta letter-line letter-subject letter-to letter-greeting letter-sign sign-box sign-area sig-img stamp-img signer qr-box qr-inline qr-svg ' +
+    // bank statement: the printed layout and its colour groups (styles/statement.css)
+    'stmt stmt-legend s-n s-when s-date s-time s-desc s-in s-out s-bal ' +
+    'g-pos g-card-pos g-card-net g-card g-paya-in g-paya-out g-transfer g-fee g-bill g-cheque g-interest').split(' '),
 );
 const HEADING_ID = /^s-[\p{L}\p{N}-]{1,70}$/u;
 const HASH_LINK = /^#s-[\p{L}\p{N}-]{1,70}$/u;

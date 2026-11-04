@@ -1,0 +1,126 @@
+/* Printed bank statement: a fixed layout, built for reconciling line by line on paper.
+   Widths are fixed for everything except «شرح عملیات», which takes whatever is left.
+   The colours are chosen for a colour printer; print-color-adjust keeps the row tints. */
+.stmt {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 8.5px;
+  line-height: 1.6;
+}
+.stmt th,
+.stmt td {
+  border: 1px solid #cfd8d4;
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+.stmt th {
+  font-size: 9px;
+  padding: 4px;
+  text-align: center;
+}
+
+/* رج: just wide enough for a four-digit number. */
+.stmt .s-n {
+  width: 26px;
+  text-align: center;
+  color: #6b7a74;
+  white-space: nowrap;
+}
+/* زمان: the date on top, the clock under it — the clock is what reconciliation turns on. */
+.stmt .s-when {
+  width: 62px;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.25;
+}
+.stmt .s-date {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+}
+.stmt .s-time {
+  display: block;
+  margin-top: 2px;
+  font-size: 7px;
+  color: #6b7a74;
+  direction: ltr;
+}
+/* شرح عملیات: everything the fixed columns leave, in the smallest readable size. */
+.stmt .s-desc {
+  width: auto;
+  font-size: 6.5px;
+  line-height: 1.55;
+  text-align: right;
+  overflow-wrap: anywhere;
+  color: #2d3b38;
+}
+/* The three money columns, in the colours asked for on a colour print. */
+.stmt .s-in,
+.stmt .s-out,
+.stmt .s-bal {
+  width: 74px;
+  text-align: left;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.stmt .s-in {
+  color: #11418a;
+}
+.stmt .s-out {
+  color: #8c1230;
+}
+.stmt .s-bal {
+  color: #14593a;
+}
+
+/* Row tints for the kinds that repeat, light enough to print over. */
+.stmt tbody tr.g-pos,
+.stmt-legend .g-pos { background: #eef7f1; }
+.stmt tbody tr.g-card-pos,
+.stmt-legend .g-card-pos { background: #f3f0fa; }
+.stmt tbody tr.g-card-net,
+.stmt-legend .g-card-net { background: #eef3fb; }
+.stmt tbody tr.g-card,
+.stmt-legend .g-card { background: #f4f6f8; }
+.stmt tbody tr.g-paya-in,
+.stmt-legend .g-paya-in { background: #edf6f4; }
+.stmt tbody tr.g-paya-out,
+.stmt-legend .g-paya-out { background: #fdf3ea; }
+.stmt tbody tr.g-transfer,
+.stmt-legend .g-transfer { background: #f5f5f3; }
+.stmt tbody tr.g-fee,
+.stmt-legend .g-fee { background: #fdfaec; }
+.stmt tbody tr.g-bill,
+.stmt-legend .g-bill { background: #fbf0f4; }
+.stmt tbody tr.g-cheque,
+.stmt-legend .g-cheque { background: #f0f4fb; }
+.stmt tbody tr.g-interest,
+.stmt-legend .g-interest { background: #f0f8ee; }
+
+/* The legend that says what the tints mean. */
+.stmt-legend {
+  margin: 6px 0 12px;
+  font-size: 9px;
+  color: #51625f;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.stmt-legend span {
+  padding: 1px 7px;
+  border: 1px solid #dde4e0;
+  border-radius: 10px;
+}
+
+@media print {
+  .stmt,
+  .stmt tbody tr,
+  .stmt-legend span {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .stmt thead { display: table-header-group; }
+  .stmt tr { break-inside: avoid; }
+}

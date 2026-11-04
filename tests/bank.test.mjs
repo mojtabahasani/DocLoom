@@ -7,7 +7,9 @@ import { zipSync, strToU8 } from 'fflate';
 import { readWorkbook, parseCSV, colFromRef, decodeXML, isLegacyXls, SheetError } from '../src/js/bank/sheet-read.js';
 import { cleanText, parseAmount, parseBankDate, parseTime, faAmount, excelSerialToJalali } from '../src/js/bank/normalize.js';
 import { findHeaderRow, mapColumns, matchField, parseStatement, summarize, mergeFees, orderRecords, sourceDirection } from '../src/js/bank/bank-table.js';
-import { buildReport, monthlyTable, describe, usefulColumns, guessBank, filterRecords } from '../src/js/bank/bank-report.js';
+import { monthlyTable, guessBank, filterRecords } from '../src/js/bank/bank-report.js';
+import { buildStatementHTML, legendHTML } from '../src/js/bank/statement-html.js';
+import { classify, describeCompact, groupCounts } from '../src/js/bank/kinds.js';
 import { extractChartData } from '../src/js/content/chart.js';
 
 // ---------------------------------------------------------------- normalize
@@ -278,48 +280,8 @@ test('orderRecords keeps undated rows where they were', () => {
 
 const statementOf = (...rows) => parseStatement(sheet(HEADER, ...rows));
 
-test('the report carries the account details, a summary callout and a totals row', () => {
-  const st = parseStatement(
-    sheet(
-      ['نام مشتری : مجتبی حسنی شماره حساب : 0107863686001 شعبه : سردار سلیمانی'],
-      HEADER,
-      ['1', '1405/05/12', '10:00', 'واریز پایا', '27,700,000', '0', '34,389,244'],
-      ['2', '1405/06/01', '11:00', 'خرید', '0', '771,000', '33,618,244'],
-    ),
-  );
-  const rep = buildReport({ statement: st, options: { bank: 'صادرات' } });
-  assert.match(rep.markdown, /^# صورت‌حساب بانک صادرات$/m);
-  assert.match(rep.markdown, /\*\*نام:\*\* مجتبی حسنی/);
-  assert.match(rep.markdown, /\*\*شماره حساب:\*\* ۰۱۰۷۸۶۳۶۸۶۰۰۱/);
-  assert.match(rep.markdown, /> \[!نکته\].*جمع واریز \*\*۲۷٬۷۰۰٬۰۰۰\*\*/);
-  assert.match(rep.markdown, /\| \*\*جمع کل\*\* \|/);
-  assert.equal(rep.rows.length, 2);
-  // The two detail lines sit next to each other so MD2Html renders them as one <br>-joined
-  // paragraph, and a blank line separates every block from the next.
-  const lines = rep.markdown.split('\n');
-  const nameAt = lines.findIndex((l) => l.startsWith('**نام:**'));
-  assert.ok(nameAt > 0);
-  assert.match(lines[nameAt + 1], /^\*\*بازه:\*\*/);
-  assert.equal(lines[nameAt + 2], '');
-  assert.equal(lines[lines.findIndex((l) => l.startsWith('| تاریخ')) - 1], '');
-});
 
-test('the table is valid MD2Html Markdown: a pipe in a description does not break the row', () => {
-  const st = statementOf(['1', '1405/05/12', '10:00', 'خرید | نقدی', '100', '0', '100']);
-  const rep = buildReport({ statement: st });
-  const row = rep.markdown.split('\n').find((l) => l.includes('خرید'));
-  assert.ok(row.includes('\\|'), 'the pipe is escaped');
-  assert.equal(row.split(/(?<!\\)\|/).length - 2, rep.columns.length, 'the row still has one cell per column');
-});
 
-test('empty columns are dropped and «شرح» falls back to the transaction type', () => {
-  assert.equal(describe({ desc: '050525121199202506090002583400', kind: 'شاپرک - تجمیعی' }), 'شاپرک - تجمیعی');
-  assert.equal(describe({ desc: '- واریزپایا', kind: '' }), 'واریزپایا');
-  assert.equal(describe({ desc: 'انتقال', kind: 'حواله' }), 'حواله — انتقال');
-  assert.equal(describe({ desc: 'حواله پل', kind: 'حواله پل' }), 'حواله پل');
-  const recs = [{ date: { text: '1405/01/01' }, deposit: 1, withdraw: 0, balance: null, desc: '', kind: '' }];
-  assert.deepEqual(usefulColumns(recs, ['date', 'desc', 'deposit', 'withdraw', 'balance']), ['date', 'deposit']);
-});
 
 test('filters keep a date range and hide small fee rows', () => {
   const st = statementOf(
@@ -361,4 +323,104 @@ test('an unreadable sheet reports why instead of producing an empty report', () 
   const st = parseStatement(sheet(['a', 'b', 'c'], ['1', '2', '3']));
   assert.equal(st.ok, false);
   assert.equal(st.reason, 'no-header');
+});
+
+// ---------------------------------------------------------------- kinds & printed statement
+
+const rec = (over = {}) => ({ desc: '', desc2: '', kind: '', deposit: 0, withdraw: 0, balance: null, time: '', date: null, ...over });
+
+test('a card purchase at a terminal is told apart from one on the internet', () => {
+  // The distinction reconciliation turns on, and every bank words it differently.
+  assert.equal(classify(rec({ kind: 'خرید اینترنتی', desc: 'خرید اینترنتی از پرداخت الکترونیک' })).group, 'card-net');
+  assert.equal(classify(rec({ kind: 'خرید', desc: 'خرید ازپایانه بانک آسان پرداخت' })).group, 'card-pos');
+  assert.equal(classify(rec({ kind: 'خرید POS / پرداخت قبض', desc: 'خرید' })).group, 'card-pos');
+  // Shaparak settles POS takings, so money coming in through it is POS income.
+  assert.equal(classify(rec({ kind: 'شاپرک - تجمیعى', desc: 'پایا۰۵۰۵مرکزشاپرک' })).group, 'pos-in');
+  // A POS fee is a fee, not a POS purchase.
+  assert.equal(classify(rec({ desc: 'کارمزدPOS' })).group, 'fee');
+  assert.equal(classify(rec({ kind: 'کارمزد وارده پایا-شاپرک' })).group, 'fee');
+});
+
+test('the remaining kinds land where they belong', () => {
+  const g = (o) => classify(rec(o)).group;
+  assert.equal(g({ kind: 'واریز پایا', desc: 'پایا - واریزپایا' }), 'paya-in');
+  assert.equal(g({ kind: 'حواله پل' }), 'paya-out');
+  assert.equal(g({ kind: 'انتقال وجه', desc: 'انتقال به حساب' }), 'transfer');
+  assert.equal(g({ kind: 'پرداخت قبض تلفن' }), 'bill');
+  assert.equal(g({ kind: 'چک' }), 'cheque');
+  assert.equal(g({ desc: 'واریز سود علی الحساب' }), 'interest');
+  assert.equal(g({ desc: 'هزینه بسته پیامکی' }), 'other');
+  assert.equal(classify(rec({ kind: 'خرید اینترنتی' })).label, 'خرید اینترنتی');
+});
+
+test('the description cell joins the parts and never repeats one', () => {
+  assert.equal(describeCompact(rec({ desc: 'خرید اینترنتی از ملت', kind: 'خرید اینترنتی' })), 'خرید اینترنتی از ملت');
+  assert.equal(describeCompact(rec({ desc: '- واریزپایا', kind: 'واریز پایا', desc2: '0107863686001' })), 'واریزپایا / واریز پایا / 0107863686001');
+  assert.equal(describeCompact(rec({ desc: 'کارمزد تراکنش شاپرک' })), 'کارمزد تراکنش شاپرک');
+});
+
+const STATEMENT = () =>
+  parseStatement(
+    sheet(
+      ['نام مشتری : مجتبی حسنی شماره حساب : 0107863686001'],
+      ['ردیف', 'تاریخ', 'زمان', 'نوع تراکنش', 'شرح', 'واریز', 'برداشت', 'مانده'],
+      ['1', '1405/05/12', '10:00:00', 'شاپرک - تجمیعى', 'مرکزشاپرک', '27,700,000', '0', '27,700,000'],
+      ['2', '1405/05/13', '11:30:00', 'خرید اینترنتی', 'خرید اینترنتی از ملت', '0', '771,000', '26,929,000'],
+      ['3', '1405/05/14', '09:15:00', 'کارمزد', 'کارمزد تراکنش شاپرک', '0', '4,920', '26,924,080'],
+    ),
+  );
+
+test('the printed statement has the six fixed columns, with the clock under the date', () => {
+  const rep = buildStatementHTML({ statement: STATEMENT(), options: { bank: 'صادرات' } });
+  const heads = [...rep.html.matchAll(/<th class="([a-z-]+)">([^<]*)<\/th>/g)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(heads, [
+    ['s-n', 'رج'], ['s-when', 'زمان'], ['s-desc', 'شرح عملیات'],
+    ['s-in', 'واریز'], ['s-out', 'برداشت'], ['s-bal', 'مانده'],
+  ]);
+  assert.match(rep.html, /<span class="s-date">۱۴۰۵\/۰۵\/۱۲<\/span><span class="s-time">۱۰:۰۰:۰۰<\/span>/);
+  assert.match(rep.html, /<td class="s-n">۱<\/td>/);
+  assert.match(rep.html, /<td class="s-in">۲۷٬۷۰۰٬۰۰۰<\/td>/);
+  assert.match(rep.html, /<td class="s-out">—<\/td>/, 'an empty amount is a dash, not a zero');
+});
+
+test('rows carry their group class, and the legend names the groups present', () => {
+  const rep = buildStatementHTML({ statement: STATEMENT(), options: {} });
+  assert.match(rep.html, /<tr class="g-pos">/);
+  assert.match(rep.html, /<tr class="g-card-net">/);
+  assert.match(rep.html, /<tr class="g-fee">/);
+  const legend = legendHTML(rep.rows);
+  assert.match(legend, /class="stmt-legend"/);
+  for (const label of ['واریز پوز', 'خرید اینترنتی', 'کارمزد']) assert.ok(legend.includes(label), label);
+  assert.deepEqual([...groupCounts(rep.rows).keys()].sort(), ['card-net', 'fee', 'pos-in']);
+});
+
+test('«تازه‌ترین در بالا» reverses the rows but not the totals', () => {
+  const st = STATEMENT();
+  const asc = buildStatementHTML({ statement: st, options: { sort: 'asc' } });
+  const desc = buildStatementHTML({ statement: st, options: { sort: 'desc' } });
+  const dates = (h) => [...h.matchAll(/<span class="s-date">([^<]*)</g)].map((m) => m[1]);
+  assert.deepEqual(dates(asc.html), ['۱۴۰۵/۰۵/۱۲', '۱۴۰۵/۰۵/۱۳', '۱۴۰۵/۰۵/۱۴']);
+  assert.deepEqual(dates(desc.html), ['۱۴۰۵/۰۵/۱۴', '۱۴۰۵/۰۵/۱۳', '۱۴۰۵/۰۵/۱۲']);
+  // رج numbers the printed order, and the summary is the same either way.
+  assert.match(desc.html, /<td class="s-n">۱<\/td><td class="s-when"><span class="s-date">۱۴۰۵\/۰۵\/۱۴/);
+  assert.equal(asc.summary.deposit, desc.summary.deposit);
+  assert.equal(asc.summary.closing, desc.summary.closing);
+});
+
+test('the statement markup survives the sanitizer with its classes intact', async () => {
+  const { parseHTML } = await import('linkedom');
+  const { sanitizeHTML } = await import('../src/js/content/sanitize.js');
+  const { document } = parseHTML('<!doctype html><html><body></body></html>');
+  // linkedom's DOMParser does not wrap a fragment in <body>; the same adapter sanitize.test.mjs uses.
+  class DOMParser {
+    parseFromString(html) {
+      return parseHTML(/<html|<!doctype/i.test(html) ? html : `<!doctype html><html><head></head><body>${html}</body></html>`).document;
+    }
+  }
+  const rep = buildStatementHTML({ statement: STATEMENT(), options: {} });
+  const clean = sanitizeHTML(rep.html, { document, DOMParser });
+  for (const cls of ['stmt', 's-n', 's-when', 's-date', 's-time', 's-desc', 's-in', 's-out', 's-bal', 'g-pos', 'g-fee']) {
+    assert.ok(clean.includes(cls), cls + ' was stripped by the sanitizer');
+  }
+  assert.ok(clean.includes('۲۷٬۷۰۰٬۰۰۰'));
 });

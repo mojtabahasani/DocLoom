@@ -7,6 +7,7 @@ import { assignHeadingIds } from '../content/toc-dom.js';
 import { watermarkExportHTML, WATERMARK_CSS } from '../brand/watermark.js';
 import BLOCKS_CSS from '../../styles/blocks.css';
 import LETTER_CSS from '../../styles/letter.css';
+import STMT_CSS from '../../styles/statement.css';
 import { THEME_COLORS, FONT_STACK, themeColors } from './theme.js';
 
 export { THEME_COLORS };
@@ -44,7 +45,7 @@ export function exportParts(s = store.snapshot(), root = preview) {
   return { main, accent, tint, font };
 }
 
-export const EXPORT_STYLES = BASE_CSS + BLOCKS_CSS + LETTER_CSS + WATERMARK_CSS;
+export const EXPORT_STYLES = BASE_CSS + BLOCKS_CSS + LETTER_CSS + STMT_CSS + WATERMARK_CSS;
 
 export function buildExportHTML(s = store.snapshot(), root = preview) {
   const { main, accent, tint, font } = exportParts(s, root);
@@ -59,7 +60,7 @@ export function buildExportHTML(s = store.snapshot(), root = preview) {
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     `<title>${escapeHTML(s.title || 'سند فارسی')}</title>` +
-    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}${BLOCKS_CSS}${LETTER_CSS}${WATERMARK_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
+    `<style>${font}:root{--accent:${accent};--tint:${tint}}${BASE_CSS}${BLOCKS_CSS}${LETTER_CSS}${STMT_CSS}${WATERMARK_CSS}@page{size:A4 portrait;margin:${s.margin}mm}${repeatCSS}</style>` +
     `</head><body>${watermarkExportHTML(s.watermark)}${main.outerHTML}</body></html>`
   );
 }
