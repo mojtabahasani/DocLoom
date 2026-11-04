@@ -11,7 +11,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:all": "npm test && npm run test:e2e",
     "server": "node server/index.js",
-    "dev": "node build.mjs --watch"
+    "dev": "node build.mjs --watch",
+    "verify:bank": "node tools/verify-bank.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

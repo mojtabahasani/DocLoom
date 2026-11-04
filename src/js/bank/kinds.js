@@ -28,11 +28,21 @@ export const GROUPS = {
 
 const has = (s, ...words) => words.some((w) => s.includes(w));
 
+const LEAD = /^[\s\-–—·:|]+/;
+const head = (v) => String(v ?? '').replace(LEAD, '').trim();
+/**
+ * A fee is a line that *starts* with «کارمزد», not one that merely mentions it.
+ * Saderat labels the transfer itself «حواله اینترنتى ACH و کارمزد» and puts the charge on its
+ * own «کارمزد پایا» line — matching the word anywhere swept 11.9 billion rials of transfers
+ * into the fee group while the real fees came to about 17 million.
+ */
+export const isFeeLine = (rec) =>
+  [rec.kind, rec.desc, rec.desc2].some((v) => /^کارمزد/.test(head(v))) && !(rec.deposit > 0);
+
 // Each rule gets the text and the record: direction settles cases the wording cannot.
 const RULES = [
-  // Fees first: «کارمزد POS» is a fee, not a POS purchase. But a bank never pays you a fee —
-  // «حواله ACH و کارمزد» on an incoming 2-billion line is the transfer, not its charge.
-  ['fee', (s, r) => has(s, 'کارمزد') && !(r.deposit > 0)],
+  // Fees first: «کارمزدPOS» is a fee, not a POS purchase. And a bank never pays you a fee.
+  ['fee', (s, r) => isFeeLine(r)],
   ['interest', (s) => has(s, 'سود سپرده', 'سود بانکی', 'واریز سود')],
   ['cheque', (s) => has(s, 'چک', 'فیش')],
   // Shaparak settles POS takings, so an incoming Shaparak line is POS income.

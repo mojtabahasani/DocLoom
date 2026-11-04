@@ -9,7 +9,7 @@ import { cleanText, parseAmount, parseBankDate, parseTime, faAmount, excelSerial
 import { findHeaderRow, mapColumns, matchField, parseStatement, summarize, mergeFees, orderRecords, sourceDirection } from '../src/js/bank/bank-table.js';
 import { monthlyTable, guessBank, filterRecords } from '../src/js/bank/bank-report.js';
 import { buildStatementHTML, legendHTML } from '../src/js/bank/statement-html.js';
-import { classify, describeCompact, groupCounts } from '../src/js/bank/kinds.js';
+import { classify, describeCompact, groupCounts, groupTotals, isFeeLine } from '../src/js/bank/kinds.js';
 import { extractChartData } from '../src/js/content/chart.js';
 
 // ---------------------------------------------------------------- normalize
@@ -346,9 +346,9 @@ test('the remaining kinds land where they belong', () => {
   // Paya reads the same in both directions, so the amounts decide which it was.
   assert.equal(g({ kind: 'واریز پایا', desc: 'پایا - واریزپایا', deposit: 223500000 }), 'paya-in');
   assert.equal(g({ kind: 'حواله پل', withdraw: 20008000 }), 'paya-out');
-  // A bank never pays a fee: «حواله ACH و کارمزد» on an incoming line is the transfer.
+  // «حواله … و کارمزد» is the transfer whichever way it went: the charge gets its own line.
   assert.equal(g({ kind: 'حواله ACH و کارمزد', desc: 'DRPA', deposit: 2000000000 }), 'paya-in');
-  assert.equal(g({ kind: 'حواله ACH و کارمزد', withdraw: 2400 }), 'fee');
+  assert.equal(g({ kind: 'حواله ACH و کارمزد', withdraw: 2400 }), 'paya-out');
   assert.equal(g({ kind: 'انتقال وجه', desc: 'انتقال به حساب' }), 'transfer');
   assert.equal(g({ kind: 'پرداخت قبض تلفن' }), 'bill');
   assert.equal(g({ kind: 'چک' }), 'cheque');
@@ -427,4 +427,43 @@ test('the statement markup survives the sanitizer with its classes intact', asyn
     assert.ok(clean.includes(cls), cls + ' was stripped by the sanitizer');
   }
   assert.ok(clean.includes('۲۷٬۷۰۰٬۰۰۰'));
+});
+
+test('a fee is a line that STARTS with «کارمزد», not one that merely mentions it', () => {
+  // Saderat labels the transfer itself «حواله اینترنتى ACH و کارمزد» and bills the charge on a
+  // separate «کارمزد پایا» line. Matching the word anywhere put 11.9 billion rials of transfers
+  // into the fee group — the real fees across the same files came to about 17 million.
+  const transfer = rec({ kind: 'حواله اینترنتى ACH و کارمزد', desc: '508050192545507', withdraw: 9600000 });
+  const charge = rec({ kind: 'کارمزد پایا', desc: '', withdraw: 4000 });
+  assert.equal(classify(transfer).group, 'paya-out');
+  assert.equal(classify(charge).group, 'fee');
+
+  assert.equal(classify(rec({ kind: 'حواله ساتنا و کارمزد', withdraw: 1500000000 })).group, 'paya-out');
+  assert.equal(classify(rec({ kind: '', desc: 'انتقال وجه به ش·ک۶۰۳۷وکارمزدش·پ۱۲۳', withdraw: 50025000 })).group, 'transfer');
+  // A leading «کارمزد» anywhere among the three text fields still counts.
+  assert.equal(classify(rec({ kind: '', desc: 'کارمزد تراکنش شاپرک', withdraw: 4920 })).group, 'fee');
+  assert.equal(classify(rec({ kind: '', desc: '- کارمزدPOS |', withdraw: 14600 })).group, 'fee');
+  assert.equal(isFeeLine(rec({ kind: 'کارمزد وارده پایا-شاپرک', withdraw: 7040 })), true);
+  assert.equal(isFeeLine(rec({ kind: 'حواله اینترنتى ACH و کارمزد', withdraw: 9600000 })), false);
+});
+
+test('fees stay a rounding error next to everything else that moved', () => {
+  // The invariant that would have caught the bug above without anyone reading the labels:
+  // bank charges are thousands against millions, so they cannot be a large share of a statement.
+  const st = parseStatement(
+    sheet(
+      ['تاریخ', 'زمان', 'نوع تراکنش', 'شرح', 'واریز', 'برداشت', 'مانده'],
+      ['1405/08/05', '04:06:54', 'حواله اینترنتى ACH و کارمزد', '508050192544040', '0', '8,000,000', '363,156,249'],
+      ['1405/08/05', '04:06:54', 'کارمزد پایا', '', '0', '4,000', '363,152,249'],
+      ['1405/08/05', '04:51:10', 'شاپرک - تجمیعى', 'مرکزشاپرک', '27,200,000', '0', '390,352,249'],
+      ['1405/08/05', '04:51:11', 'کارمزد وارده پایا-شاپرک', '', '0', '7,040', '390,345,209'],
+    ),
+  );
+  const totals = groupTotals(st.records);
+  const moved = st.records.reduce((s, r) => s + r.deposit + r.withdraw, 0);
+  const fee = totals.get('fee');
+  assert.equal(fee.count, 2);
+  assert.equal(fee.out, 11040);
+  assert.ok((fee.in + fee.out) / moved < 0.02, 'fees must be a rounding error, not a category');
+  assert.equal(totals.get('paya-out').out, 8000000);
 });
