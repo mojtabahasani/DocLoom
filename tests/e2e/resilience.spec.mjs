@@ -65,4 +65,9 @@ test('«دربارهٔ برنامه» on a healthy browser shows the build and t
   // The built file carries a real version, not the source-tree placeholder.
   await expect(modal).not.toContainText('نسخهٔ توسعه');
   await expect(modal).toContainText('تاریخ ساخت');
+  // The build fingerprint: the only way to tell an open tab or a cached service worker
+  // from a freshly built file, since the version stays the same all day.
+  await expect(modal).toContainText('شناسهٔ ساخت');
+  const id = await modal.locator('code').first().innerText();
+  expect(id).toMatch(/^[0-9a-f]{8}$/);
 });

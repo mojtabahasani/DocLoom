@@ -4,7 +4,7 @@
 import { el } from '../core/dom.js';
 import { openModal } from './modal.js';
 import { db } from '../library/db.js';
-import { VERSION, BUILT_AT, isDev } from '../core/version.js';
+import { VERSION, BUILT_AT, BUILD_ID, isDev } from '../core/version.js';
 import { toFaDigits } from '../content/persian.js';
 import { syncActive } from '../server/sync.js';
 
@@ -51,6 +51,7 @@ export function openAbout() {
       {},
       row('نسخه', isDev() ? 'نسخهٔ توسعه' : toFaDigits(VERSION)),
       BUILT_AT ? row('تاریخ ساخت', toFaDigits(BUILT_AT)) : null,
+      BUILD_ID ? row('شناسهٔ ساخت', el('code', { dir: 'ltr', text: BUILD_ID }), '— اگر با عددی که انتظار دارید نمی‌خواند، صفحه را با Shift+Reload تازه کنید') : null,
       row('حالت اجرا', mode),
       row('ذخیرهٔ سندها', store.text, store.ok ? '' : '— از «پشتیبان کامل» استفاده کنید'),
     ),

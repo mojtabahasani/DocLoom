@@ -18,6 +18,29 @@ const pkg = JSON.parse(await readFile(p('package.json'), 'utf8'));
 const VERSION = pkg.version;
 const BUILT_AT = new Date().toISOString().slice(0, 10);
 
+/**
+ * A short fingerprint of the sources. The version alone cannot answer "am I running the build
+ * with that fix in it?" — it stays 1.0.0 all day — so «دربارهٔ برنامه» shows this too, and an
+ * open tab or a cached service worker gives itself away at a glance.
+ */
+async function sourceId() {
+  const h = createHash('sha256');
+  const walk = async (dir) => {
+    for (const name of (await readdir(dir)).sort()) {
+      const full = path.join(dir, name);
+      if ((await stat(full)).isDirectory()) await walk(full);
+      else {
+        h.update(name);
+        h.update(await readFile(full));
+      }
+    }
+  };
+  await walk(p('src'));
+  for (const f of ['build.mjs', 'package.json']) h.update(await readFile(p(f)));
+  return h.digest('hex').slice(0, 8);
+}
+const BUILD_ID = await sourceId();
+
 // CSS concat order matters (tokens first).
 const CSS_ORDER = ['tokens', 'layout', 'components', 'library', 'palette', 'document', 'print'];
 const FONTS = [
@@ -33,7 +56,11 @@ async function bundleJS() {
     minify: true,
     target: 'es2022',
     legalComments: 'none',
-    define: { __APP_VERSION__: JSON.stringify(VERSION), __APP_BUILT__: JSON.stringify(BUILT_AT) },
+    define: {
+      __APP_VERSION__: JSON.stringify(VERSION),
+      __APP_BUILT__: JSON.stringify(BUILT_AT),
+      __APP_BUILD_ID__: JSON.stringify(BUILD_ID),
+    },
     loader: { '.css': 'text' }, // export/html.js embeds styles/blocks.css into exported pages
     write: false,
   });
@@ -87,7 +114,7 @@ async function buildSingle() {
   await writeFile(p('dist/MD2Html.html'), html);
   await copyFile(p('dist/MD2Html.html'), p('MD2Html.html'));
   const size = (await stat(p('dist/MD2Html.html'))).size;
-  console.log(`dist/MD2Html.html ${(size / 1024).toFixed(1)} KB  (v${VERSION}, ${BUILT_AT})`);
+  console.log(`dist/MD2Html.html ${(size / 1024).toFixed(1)} KB  (v${VERSION}, ${BUILT_AT}, build ${BUILD_ID})`);
   if (size > MAX_BYTES) throw new Error(`Build exceeds ${MAX_BYTES} bytes`);
 }
 
