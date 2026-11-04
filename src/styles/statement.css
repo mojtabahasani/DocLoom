@@ -1,7 +1,10 @@
 /* Printed bank statement: a fixed layout, built for reconciling line by line on paper.
    Widths are fixed for everything except «شرح عملیات», which takes whatever is left.
    The colours are chosen for a colour printer; print-color-adjust keeps the row tints. */
-.stmt {
+/* `.paper table` in document.css is (0,1,1) and outranks a bare `.stmt`, which silently
+   put the table back to .82em. Matching the element too ties the specificity, and
+   statement.css is loaded last. */
+table.stmt {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
@@ -14,10 +17,21 @@
   padding: 2px 4px;
   vertical-align: middle;
 }
-.stmt th {
+/* The column classes sit on the <th> too, so they would hand the header the body's colour and
+   alignment — «شرح عملیات» in near-black on the dark header bar, the amounts in blue and red.
+   thead wins on specificity: every heading is white and centred, whatever its column does. */
+.stmt thead th,
+.stmt thead th.s-n,
+.stmt thead th.s-when,
+.stmt thead th.s-desc,
+.stmt thead th.s-in,
+.stmt thead th.s-out,
+.stmt thead th.s-bal {
   font-size: 9px;
   padding: 4px;
   text-align: center;
+  color: #fff;
+  font-weight: 700;
 }
 
 /* رج: just wide enough for a four-digit number. */
@@ -46,10 +60,11 @@
   color: #6b7a74;
   direction: ltr;
 }
-/* شرح عملیات: everything the fixed columns leave, in the smallest readable size. */
+/* شرح عملیات: everything the fixed columns leave. Same size as the rest of the table —
+   6.5px was readable but mean; the column has the room. */
 .stmt .s-desc {
   width: auto;
-  font-size: 6.5px;
+  font-size: 8.5px;
   line-height: 1.55;
   text-align: right;
   overflow-wrap: anywhere;
@@ -109,7 +124,7 @@
   gap: 4px 10px;
 }
 .stmt-legend span {
-  padding: 1px 7px;
+  padding: 2px 8px;
   border: 1px solid #dde4e0;
   border-radius: 10px;
 }

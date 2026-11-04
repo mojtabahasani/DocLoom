@@ -28,9 +28,11 @@ export const GROUPS = {
 
 const has = (s, ...words) => words.some((w) => s.includes(w));
 
+// Each rule gets the text and the record: direction settles cases the wording cannot.
 const RULES = [
-  // Fees first: «کارمزد POS» is a fee, not a POS purchase.
-  ['fee', (s) => has(s, 'کارمزد')],
+  // Fees first: «کارمزد POS» is a fee, not a POS purchase. But a bank never pays you a fee —
+  // «حواله ACH و کارمزد» on an incoming 2-billion line is the transfer, not its charge.
+  ['fee', (s, r) => has(s, 'کارمزد') && !(r.deposit > 0)],
   ['interest', (s) => has(s, 'سود سپرده', 'سود بانکی', 'واریز سود')],
   ['cheque', (s) => has(s, 'چک', 'فیش')],
   // Shaparak settles POS takings, so an incoming Shaparak line is POS income.
@@ -41,8 +43,8 @@ const RULES = [
   ['card-pos', (s) => has(s, 'خرید', 'خريد') && has(s, 'پایانه', 'پايانه', 'pos', 'کارتخوان')],
   ['card', (s) => has(s, 'خرید', 'خريد') && !has(s, 'قبض', 'شارژ')],
   ['bill', (s) => has(s, 'قبض', 'شارژ سیم', 'خرید شارژ', 'شارژ کارت')],
-  ['paya-in', (s) => has(s, 'واریز پایا', 'واریزپایا', 'پایا - واریز', 'وصول پایا')],
-  ['paya-out', (s) => has(s, 'حواله', 'ach', 'ACH', 'پایا', 'ساتنا', 'پل')],
+  // One Paya rule, split by direction afterwards: the wording is identical both ways.
+  ['paya', (s) => has(s, 'واریز پایا', 'واریزپایا', 'پایا - واریز', 'وصول پایا', 'حواله', 'ach', 'پایا', 'ساتنا', 'پل')],
   ['transfer', (s) => has(s, 'انتقال', 'به حساب', 'به کارت', 'برداشت')],
 ];
 
@@ -52,12 +54,12 @@ export const subject = (rec) => `${rec.kind || ''} ${rec.desc || ''} ${rec.desc2
 /** classify(record) -> { group, label, cls } */
 export function classify(rec) {
   const s = subject(rec);
-  for (const [group, test] of RULES) {
-    if (test(s)) {
-      const g = GROUPS[group];
-      // An incoming Paya that the «حواله» rule would have swallowed stays an incoming one.
-      return { group, label: g.label, cls: g.cls };
-    }
+  for (const [rule, test] of RULES) {
+    if (!test(s, rec)) continue;
+    // «پایا» reads the same whichever way the money went, so the amounts decide.
+    const group = rule === 'paya' ? (rec.deposit > 0 ? 'paya-in' : 'paya-out') : rule;
+    const g = GROUPS[group];
+    return { group, label: g.label, cls: g.cls };
   }
   return { group: 'other', label: '', cls: '' };
 }
@@ -87,4 +89,24 @@ export function groupCounts(records) {
     counts.set(g, (counts.get(g) || 0) + 1);
   }
   return counts;
+}
+
+/**
+ * Per group: how many lines and how much money moved, split by direction.
+ * A group is almost always one-directional (POS income in, fees out), so the legend shows one
+ * figure; when a group really does move money both ways, both are shown rather than netted,
+ * because a net of zero would hide the traffic.
+ */
+export function groupTotals(records) {
+  const out = new Map();
+  for (const r of records) {
+    const g = classify(r).group;
+    if (g === 'other') continue;
+    const t = out.get(g) || { count: 0, in: 0, out: 0 };
+    t.count++;
+    t.in += r.deposit || 0;
+    t.out += r.withdraw || 0;
+    out.set(g, t);
+  }
+  return out;
 }

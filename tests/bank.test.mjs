@@ -343,8 +343,12 @@ test('a card purchase at a terminal is told apart from one on the internet', () 
 
 test('the remaining kinds land where they belong', () => {
   const g = (o) => classify(rec(o)).group;
-  assert.equal(g({ kind: 'واریز پایا', desc: 'پایا - واریزپایا' }), 'paya-in');
-  assert.equal(g({ kind: 'حواله پل' }), 'paya-out');
+  // Paya reads the same in both directions, so the amounts decide which it was.
+  assert.equal(g({ kind: 'واریز پایا', desc: 'پایا - واریزپایا', deposit: 223500000 }), 'paya-in');
+  assert.equal(g({ kind: 'حواله پل', withdraw: 20008000 }), 'paya-out');
+  // A bank never pays a fee: «حواله ACH و کارمزد» on an incoming line is the transfer.
+  assert.equal(g({ kind: 'حواله ACH و کارمزد', desc: 'DRPA', deposit: 2000000000 }), 'paya-in');
+  assert.equal(g({ kind: 'حواله ACH و کارمزد', withdraw: 2400 }), 'fee');
   assert.equal(g({ kind: 'انتقال وجه', desc: 'انتقال به حساب' }), 'transfer');
   assert.equal(g({ kind: 'پرداخت قبض تلفن' }), 'bill');
   assert.equal(g({ kind: 'چک' }), 'cheque');
@@ -355,7 +359,7 @@ test('the remaining kinds land where they belong', () => {
 
 test('the description cell joins the parts and never repeats one', () => {
   assert.equal(describeCompact(rec({ desc: 'خرید اینترنتی از ملت', kind: 'خرید اینترنتی' })), 'خرید اینترنتی از ملت');
-  assert.equal(describeCompact(rec({ desc: '- واریزپایا', kind: 'واریز پایا', desc2: '0107863686001' })), 'واریزپایا / واریز پایا / 0107863686001');
+  assert.equal(describeCompact(rec({ desc: '- واریزپایا', kind: 'واریز پایا', desc2: '0107863686001', deposit: 8000000 })), 'واریزپایا / واریز پایا / 0107863686001');
   assert.equal(describeCompact(rec({ desc: 'کارمزد تراکنش شاپرک' })), 'کارمزد تراکنش شاپرک');
 });
 

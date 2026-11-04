@@ -10,7 +10,7 @@
 import { escapeHTML } from '../content/markdown.js';
 import { faAmount, toFaDigits } from './normalize.js';
 import { summarize, mergeFees } from './bank-table.js';
-import { classify, describeCompact, groupCounts, GROUPS } from './kinds.js';
+import { classify, describeCompact, groupTotals, GROUPS } from './kinds.js';
 import { filterRecords } from './bank-report.js';
 
 const e = escapeHTML;
@@ -37,13 +37,21 @@ function row(rec, index, { digits }) {
   );
 }
 
-/** Chips naming the tints that actually appear in this statement. */
-export function legendHTML(records) {
-  const counts = groupCounts(records);
-  if (counts.size < 2) return '';
-  const chips = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([g, n]) => `<span class="${GROUPS[g].cls}">${e(GROUPS[g].label)} (${e(toFaDigits(n))})</span>`)
+/**
+ * Chips naming the tints that appear in this statement, each with how many lines and how much
+ * money the group moved — the count alone does not say whether a group matters.
+ */
+export function legendHTML(records, { digits = 'fa' } = {}) {
+  const totals = groupTotals(records);
+  if (totals.size < 2) return '';
+  const money = (t) => {
+    const both = t.in > 0 && t.out > 0;
+    if (both) return `+${faAmount(t.in, { digits })} −${faAmount(t.out, { digits })}`;
+    return faAmount(t.in || t.out, { digits });
+  };
+  const chips = [...totals.entries()]
+    .sort((a, b) => Math.max(b[1].in, b[1].out) - Math.max(a[1].in, a[1].out))
+    .map(([g, t]) => `<span class="${GROUPS[g].cls}">${e(GROUPS[g].label)} <b>${e(toFaDigits(t.count))}</b> · ${e(money(t))}</span>`)
     .join('');
   return `<div class="stmt-legend">${chips}</div>`;
 }
@@ -100,7 +108,7 @@ export function buildStatementHTML({ statement, options = {} }) {
     if (sum.closing !== null) parts.push(`مانده پایان دوره <b>${e(num(sum.closing))}</b>`);
     out.push(`<aside class="callout callout-note"><span class="callout-title">نکته</span><p>${parts.join(' · ')}</p></aside>`);
   }
-  if (o.legend) out.push(legendHTML(ordered));
+  if (o.legend) out.push(legendHTML(ordered, { digits: o.digits }));
 
   if (ordered.length) {
     const head =

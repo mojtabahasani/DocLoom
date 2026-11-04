@@ -104,6 +104,32 @@ test('the money columns are coloured for a colour print', async ({ page }) => {
   expect(await colour('s-bal')).toBe('rgb(20, 89, 58)');
 });
 
+test('every heading is white and centred, whatever its column does', async ({ page }) => {
+  await openApp(page);
+  await upload(page);
+  await make(page);
+  // The column classes sit on the <th> too; without the thead rule «شرح عملیات» would be
+  // near-black on the dark header bar and the amounts would be blue and red.
+  const heads = await page.locator('#preview table.stmt thead th').evaluateAll((ns) =>
+    ns.map((n) => ({ color: getComputedStyle(n).color, align: getComputedStyle(n).textAlign })));
+  expect(heads).toHaveLength(6);
+  for (const h of heads) {
+    expect(h.color).toBe('rgb(255, 255, 255)');
+    expect(h.align).toBe('center');
+  }
+});
+
+test('the table keeps its own compact size against the document stylesheet', async ({ page }) => {
+  await openApp(page);
+  await upload(page);
+  await make(page);
+  // `.paper table{font-size:.82em}` is (0,1,1) and outranks a bare `.stmt`.
+  const px = (sel) => page.locator(sel).first().evaluate((n) => parseFloat(getComputedStyle(n).fontSize));
+  expect(await px('#preview table.stmt')).toBeCloseTo(8.5, 1);
+  expect(await px('#preview tbody .s-desc')).toBeCloseTo(8.5, 1);
+  expect(await px('#preview tbody .s-time')).toBeLessThan(await px('#preview tbody .s-date'));
+});
+
 test('repeating kinds tint their row, and the legend names them', async ({ page }) => {
   await openApp(page);
   await upload(page);
@@ -117,6 +143,9 @@ test('repeating kinds tint their row, and the legend names them', async ({ page 
   const legend = page.locator('#preview .stmt-legend');
   await expect(legend).toContainText('واریز پوز');
   await expect(legend).toContainText('خرید اینترنتی');
+  // Each chip carries how much the group moved, not just how many lines it has.
+  await expect(legend).toContainText('۲۷٬۷۰۰٬۰۰۰');
+  await expect(legend).toContainText('۷۷۱٬۰۰۰');
 });
 
 test('«تازه‌ترین در بالا» flips the order without changing the totals', async ({ page }) => {
