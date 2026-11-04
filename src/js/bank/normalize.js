@@ -19,11 +19,16 @@ export const toLatinDigits = (s) =>
 
 export const toFaDigits = (s) => String(s).replace(/\d/g, (d) => FA_DIGITS[+d]);
 
-/** Strip bidi marks, fix Arabic ي/ك, collapse whitespace. Keeps ZWNJ: it is real Persian. */
+/**
+ * Strip bidi marks and tatweel, fix Arabic ي/ك, collapse whitespace.
+ * Keeps ZWNJ: it is real Persian. Tatweel is not — FastReport stretches headings with it,
+ * so «فـاکـتـور فـروش» has to come back as «فاکتور فروش».
+ */
 export function cleanText(v) {
   if (v === null || v === undefined) return '';
   return String(v)
     .replace(BIDI, '')
+    .replace(/ـ/g, '')
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
     .replace(/ /g, ' ')

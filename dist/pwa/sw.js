@@ -1,5 +1,5 @@
 // MD2Html service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
-const VERSION = '09851bca20';
+const VERSION = 'e10a02b39a';
 const CACHE = 'md2html-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 

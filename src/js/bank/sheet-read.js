@@ -8,6 +8,9 @@
 // than half-parsed; `isLegacyXls()` lets the UI say so clearly.
 import { unzipSync, strFromU8 } from 'fflate';
 import { readBiff } from './biff.js';
+import { decodeXML, attrOf as attr, elements } from '../core/xml.js';
+
+export { decodeXML };
 
 export class SheetError extends Error {
   constructor(code, message) {
@@ -16,45 +19,7 @@ export class SheetError extends Error {
   }
 }
 
-// ---- tiny XML helpers (bank sheets are machine-generated, so a scanner beats a parser here) ----
-
-const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
-
-export function decodeXML(s) {
-  return String(s).replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (m, g) => {
-    if (g[0] === '#') {
-      const code = g[1] === 'x' || g[1] === 'X' ? parseInt(g.slice(2), 16) : parseInt(g.slice(1), 10);
-      return Number.isFinite(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : m;
-    }
-    return ENTITIES[g] ?? m;
-  });
-}
-
-const attr = (tag, name) => {
-  const m = new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`).exec(tag) || new RegExp(`\\s${name}\\s*=\\s*'([^']*)'`).exec(tag);
-  return m ? decodeXML(m[1]) : null;
-};
-
-/** All `<name …>…</name>` bodies (and self-closing tags, as ''), with the open tag kept. */
-function* elements(xml, name) {
-  const re = new RegExp(`<${name}(\\s[^>]*?)?(/)?>`, 'g');
-  let m;
-  while ((m = re.exec(xml))) {
-    const open = m[0];
-    if (m[2]) {
-      yield { open, body: '' };
-      continue;
-    }
-    const close = `</${name}>`;
-    const end = xml.indexOf(close, re.lastIndex);
-    if (end < 0) {
-      yield { open, body: xml.slice(re.lastIndex) };
-      return;
-    }
-    yield { open, body: xml.slice(re.lastIndex, end) };
-    re.lastIndex = end + close.length;
-  }
-}
+// XML scanning lives in core/xml.js: both this reader and the FastReport one need it.
 
 /** Concatenated text of every <t> in a fragment (shared strings can be split into runs). */
 const textOf = (frag) => [...elements(frag, 't')].map((e) => decodeXML(e.body)).join('');

@@ -6,3 +6,6 @@ dist/MD2Html.html
 test-results/
 playwright-report/
 .playwright/
+
+# Real Saba reports: the user's own financial data, kept out of the repo.
+tests/صبا/

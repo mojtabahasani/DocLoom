@@ -7,6 +7,7 @@ import { initSource } from './editor/source.js';
 import { initImages } from './editor/images.js';
 import { initFileInput, registerSheetHandler } from './editor/files.js';
 import { initBankImport } from './bank/bank-ui.js';
+import { initSabaImport } from './saba/saba-ui.js';
 import { initPaste } from './editor/paste.js';
 import { initToolbar } from './editor/toolbar.js';
 import { initPanels } from './ui/panels.js';
@@ -46,6 +47,7 @@ async function main() {
   initImages();
   initFileInput();
   initBankImport(registerSheetHandler); // spreadsheets open the bank-statement importer
+  initSabaImport(registerSheetHandler); // .fp3 opens the Saba / FastReport importer
   initPaste();
   initToolbar();
   initPanels();

@@ -8,16 +8,16 @@ import { renderFromSource, setContent, applyLook } from './preview.js';
 import { toggleSourceMode, setSourceText, refreshSource } from './source.js';
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const SOURCE_FILE = /\.(md|markdown|txt|html?|xlsx|xlsm|xls|csv)$/i;
+const SOURCE_FILE = /\.(md|markdown|txt|html?|xlsx|xlsm|xls|csv|fp3)$/i;
 
 /**
- * Spreadsheets take a different route (the bank importer registers itself here) so this module
- * does not have to pull in the xlsx reader for every document load.
+ * Some files are not documents at all — a bank spreadsheet, a FastReport .fp3 — and are turned
+ * into one by their own importer. They register here so this module never has to import those
+ * readers itself. First match wins, in registration order.
  */
-let sheetHandler = null;
-export const registerSheetHandler = (h) => {
-  sheetHandler = h;
-};
+const importers = [];
+export const registerSheetHandler = (h) => importers.push(h);
+export const findImporter = (name) => importers.find((h) => h.test(name)) || null;
 
 /** Which file from a DataTransfer is the document (prefers .md/.txt/.html/.xlsx over others). */
 export function pickSourceFile(data) {
@@ -45,8 +45,9 @@ export function loadHTMLContent(html, { quiet = false } = {}) {
 
 export async function loadSourceFile(file) {
   if (!file) return;
-  // A spreadsheet is not read as text: it goes to the bank-statement importer, with its own limit.
-  if (sheetHandler && sheetHandler.test(file.name)) return sheetHandler.open(file);
+  // Not read as text: a spreadsheet or a prepared report goes to its importer, with its own limit.
+  const importer = findImporter(file.name);
+  if (importer) return importer.open(file);
   if (file.size > MAX_FILE_BYTES) {
     notify('فایل نامعتبر است یا بزرگ‌تر از ۵ مگابایت.');
     return;
@@ -66,7 +67,7 @@ export async function loadSourceFile(file) {
       renderFromSource();
       notify('فایل روی همین دستگاه خوانده شد.');
       store.emit('text:imported');
-    } else notify('فقط فایل MD، TXT، HTML یا اکسل انتخاب کنید.');
+    } else notify('فقط فایل MD، TXT، HTML، اکسل یا گزارش fp3 انتخاب کنید.');
   } catch {
     notify('خواندن فایل ممکن نشد.');
   }
