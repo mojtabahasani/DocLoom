@@ -102,6 +102,14 @@ test('the money columns are coloured for a colour print', async ({ page }) => {
   expect(await colour('s-in')).toBe('rgb(17, 65, 138)');
   expect(await colour('s-out')).toBe('rgb(140, 18, 48)');
   expect(await colour('s-bal')).toBe('rgb(20, 89, 58)');
+  // Amounts hug the start side of an RTL table, and the «جمع کل» row — the biggest numbers
+  // on the page — must fit its cells instead of running into the next column.
+  for (const cls of ['s-in', 's-out', 's-bal']) {
+    expect(await row.locator('.' + cls).evaluate((n) => getComputedStyle(n).textAlign)).toBe('right');
+  }
+  const overflowing = await page.locator('#preview table.stmt').evaluate((t) =>
+    [...t.querySelectorAll('.s-in,.s-out,.s-bal')].filter((c) => c.scrollWidth > c.clientWidth + 1).map((c) => c.textContent.trim()));
+  expect(overflowing).toEqual([]);
 });
 
 test('every heading is white and centred, whatever its column does', async ({ page }) => {
@@ -144,6 +152,11 @@ test('repeating kinds tint their row, and the legend names them', async ({ page 
   await expect(legend).toContainText('واریز پوز');
   await expect(legend).toContainText('خرید اینترنتی');
   // Each chip carries how much the group moved, not just how many lines it has.
+  // The sum sits on its own line under the count, so the two numbers never read as one.
+  const chip = legend.locator('span').first();
+  await expect(chip.locator('small')).toHaveCount(1);
+  const [countBox, sumBox] = await Promise.all([chip.locator('b').boundingBox(), chip.locator('small').boundingBox()]);
+  expect(sumBox.y).toBeGreaterThan(countBox.y);
   await expect(legend).toContainText('۲۷٬۷۰۰٬۰۰۰');
   await expect(legend).toContainText('۷۷۱٬۰۰۰');
 });

@@ -70,12 +70,14 @@ table.stmt {
   overflow-wrap: anywhere;
   color: #2d3b38;
 }
-/* The three money columns, in the colours asked for on a colour print. */
+/* The three money columns, in the colours asked for on a colour print.
+   Aligned right — the start side in an RTL table — and wide enough that the «جمع کل» row,
+   which carries the largest numbers on the page, is not squeezed into its neighbour. */
 .stmt .s-in,
 .stmt .s-out,
 .stmt .s-bal {
-  width: 74px;
-  text-align: left;
+  width: 88px;
+  text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -124,9 +126,20 @@ table.stmt {
   gap: 4px 10px;
 }
 .stmt-legend span {
-  padding: 2px 8px;
+  padding: 3px 9px;
   border: 1px solid #dde4e0;
   border-radius: 10px;
+  text-align: center;
+  line-height: 1.5;
+}
+/* The group's total sits under its count, not beside it: the chips stay narrow and the
+   two numbers do not read as one. */
+.stmt-legend small {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #2d3b38;
 }
 
 @media print {

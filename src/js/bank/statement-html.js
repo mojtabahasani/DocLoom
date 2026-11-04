@@ -51,7 +51,11 @@ export function legendHTML(records, { digits = 'fa' } = {}) {
   };
   const chips = [...totals.entries()]
     .sort((a, b) => Math.max(b[1].in, b[1].out) - Math.max(a[1].in, a[1].out))
-    .map(([g, t]) => `<span class="${GROUPS[g].cls}">${e(GROUPS[g].label)} <b>${e(toFaDigits(t.count))}</b> · ${e(money(t))}</span>`)
+    .map(
+      ([g, t]) =>
+        `<span class="${GROUPS[g].cls}">${e(GROUPS[g].label)} <b>${e(toFaDigits(t.count))}</b>` +
+        `<small>${e(money(t))}</small></span>`,
+    )
     .join('');
   return `<div class="stmt-legend">${chips}</div>`;
 }
