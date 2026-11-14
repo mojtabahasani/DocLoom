@@ -20,12 +20,13 @@
 
 ## Server (S1)
 - `server/` is pure Node (no npm deps), port 7123 (`MD2HTML_PORT`), data in `~/Documents/MD2Html/` (`MD2HTML_DATA`). Foreground: `npm run server`. Serves `dist/pwa/` directly (no restart after `npm run build`).
+- Listens on `127.0.0.1` unless network access is on: `lan` in `config.json` (panel button, `md2html lan on|off`, Mac-only route `/api/server/lan`), overridden by `MD2HTML_LAN=1|0`. `lanEnabled()` in `server/index.js` is the one place that decides; toggling rebinds the live server. Security work is tracked in `docs/نقد-و-نقشه-راه.md`.
 - `server/install.sh` / `uninstall.sh` (LaunchAgent + `md2html` CLI) are written but **must be run by the user**; never run them, `launchctl` or write to `~/Library` from an agent. Test with `install.sh --dry-run <plist>`.
 - Client sync: `src/js/server/` (pure merge in `sync-core.js`); active only when `/api/health` answers same-origin; never fetches on `file://`.
 - Tests: `tests/server/*.test.mjs` (integration uses `MD2HTML_TEST=1` for the remote-address override header; never set it otherwise).
 
 ## Server (S2)
-- Files: `server/lib/files.js` (+ `file-routes.js`): realpath-confined API `/api/files/*`, SSE `/api/watch?path=`, backups in `data/backups/files/`. Test roots via `MD2HTML_ROOTS` (colon-separated; default `~/MyApp ~/Documents ~/Desktop ~/Downloads`): **never write into the real roots when testing.**
+- Files: `server/lib/files.js` (+ `file-routes.js`): realpath-confined API `/api/files/*`, SSE `/api/watch?path=`, backups in `data/backups/files/`. Test roots via `MD2HTML_ROOTS` (colon-separated; default `~/MyApp ~/Documents ~/Desktop ~/Downloads`): **never write into the real roots when testing.** Writes go through `FileService.resolve({write:true})`, which refuses agent instruction files (`PROTECTED_NAMES` in `security.js`) and `MD2HTML_RO_ROOTS`; a new write path must use it too.
 - Client: `src/js/server/linked.js` (linked docs, live reload, ⌘S), `files-ui.js` (drawer), `files-picker.js`, `files-export.js`. The `link` field ({path,etag,mtime,size,dirty}) lives on the document; seed brand id is `brand_computer123`.
 
 ## Server (S3)

@@ -57,11 +57,34 @@ async function render(body) {
 
   const qr = el('div', { class: 'srv-qr', role: 'img', 'aria-label': 'کد QR نشانی برنامه برای گوشی' });
   qr.innerHTML = qrSVG(first, { size: 148, label: 'کد QR نشانی برنامه' });
-  const phoneSec = section('باز کردن در گوشی',
-    el('div', { class: 'srv-phone' }, qr, el('div', {},
-      el('p', { class: 'modal-note', text: 'گوشی و مک باید به یک شبکهٔ Wi-Fi وصل باشند. بار اول رمز ۶ رقمی را بپرسد.' }),
-      ...phone.map((u) => el('div', {}, mono(u))),
-      el('p', { class: 'modal-note', text: 'روی http در گوشی، نصب برنامه و کپی تصویر در کلیپ‌بورد کار نمی‌کند؛ بقیهٔ امکانات کامل است.' }))));
+  // Opening or closing the network makes the server listen again on another address: the request is
+  // answered first, then every connection drops, so give it a moment before reading the panel again.
+  const setLan = async (on) => {
+    try {
+      await api('POST', '/api/server/lan', { on });
+      await new Promise((r) => setTimeout(r, 900));
+      notify(on ? 'دسترسی از شبکه باز شد.' : 'دسترسی از شبکه بسته شد؛ فقط همین مک.');
+    } catch {
+      notify('تغییر دسترسی شبکه انجام نشد.');
+    }
+    openServerPanel();
+  };
+  const lanBtn = (on) =>
+    !info.local
+      ? el('p', { class: 'modal-note', text: 'باز و بسته کردن دسترسی شبکه فقط از روی خود مک ممکن است.' })
+      : !info.lanCanChange
+        ? el('p', { class: 'modal-note', text: 'دسترسی شبکه با متغیر MD2HTML_LAN ثابت شده است.' })
+        : el('button', { type: 'button', class: on ? 'btn soft' : 'btn', text: on ? 'باز کردن دسترسی از شبکه' : 'بستن دسترسی از شبکه', onclick: () => setLan(on) });
+  const phoneSec = info.lan === false
+    ? section('باز کردن در گوشی',
+        el('p', { class: 'modal-note', text: 'دسترسی از شبکه بسته است: برنامه فقط از روی همین مک باز می‌شود. برای کار با گوشی آن را باز کنید؛ ورود از گوشی رمز ۶ رقمی می‌خواهد و ارتباط رمزنگاری‌شده نیست، پس فقط روی شبکهٔ مطمئن.' }),
+        lanBtn(true))
+    : section('باز کردن در گوشی',
+        el('div', { class: 'srv-phone' }, qr, el('div', {},
+          el('p', { class: 'modal-note', text: 'گوشی و مک باید به یک شبکهٔ Wi-Fi وصل باشند. بار اول رمز ۶ رقمی را بپرسد.' }),
+          ...phone.map((u) => el('div', {}, mono(u))),
+          el('p', { class: 'modal-note', text: 'روی http در گوشی، نصب برنامه و کپی تصویر در کلیپ‌بورد کار نمی‌کند؛ بقیهٔ امکانات کامل است.' }))),
+        lanBtn(false));
 
   const pinBox = el('div', { class: 'srv-pin', hidden: true });
   const pinSec = section('رمز ورود (PIN)',

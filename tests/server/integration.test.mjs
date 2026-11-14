@@ -10,10 +10,11 @@ const data = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'md2h-int-')
 let srv;
 let port;
 const LAN = { 'x-test-remote-addr': '192.168.1.50' };
+const lanChanges = [];
 
 before(async () => {
   process.env.MD2HTML_TEST = '1';
-  srv = await createServer({ dataDir: data, echo: false });
+  srv = await createServer({ dataDir: data, echo: false, onLanChange: (on) => lanChanges.push(on) });
   await new Promise((r) => srv.server.listen(0, '127.0.0.1', r));
   port = srv.server.address().port;
 });
@@ -141,6 +142,23 @@ test('LAN client: login page, API refused, PIN login, lockout, devices', async (
   // revoke from the Mac
   assert.equal((await call('DELETE', '/api/devices/' + devs[0].id)).status, 200);
   assert.equal((await call('GET', '/api/lib/documents', { headers: c })).status, 401);
+});
+
+test('network access: only the Mac may change it; the choice is saved and reported', async () => {
+  const login = await call('POST', '/api/login', { headers: LAN, body: { pin: srv.firstPin } });
+  const c = { ...LAN, Cookie: login.headers['set-cookie'][0].split(';')[0] };
+  assert.equal((await call('POST', '/api/server/lan', { headers: c, body: { on: true } })).status, 403, 'a signed-in phone cannot open the network');
+  assert.equal((await call('POST', '/api/server/lan', { body: { on: 'yes' } })).status, 400);
+  assert.equal((await call('POST', '/api/server/lan', { body: { on: false } })).status, 200);
+  assert.equal(srv.auth.get('lan'), false);
+  const off = (await call('GET', '/api/server/info')).json;
+  assert.equal(off.lan, false);
+  assert.deepEqual(off.urls, [], 'no LAN address is advertised while the network is closed');
+  assert.equal((await call('POST', '/api/server/lan', { body: { on: true } })).json.lan, true);
+  assert.equal(srv.auth.get('lan'), true);
+  assert.equal((await call('GET', '/api/server/info')).json.lan, true);
+  assert.deepEqual(lanChanges, [false, true], 'the listener is told once per real change');
+  await call('DELETE', '/api/devices/' + (await call('GET', '/api/devices', { headers: c })).json.devices[0].id);
 });
 
 test('PIN reset from the Mac signs everyone out and issues a working PIN', async () => {

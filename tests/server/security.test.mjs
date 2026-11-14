@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { isPrivateIp, isLoopback, normalizeIp, hostAllowed } from '../../server/lib/net.js';
-import { csrfOk, LoginLimiter, confine, extAllowed, CSP } from '../../server/lib/security.js';
+import { csrfOk, LoginLimiter, confine, extAllowed, isProtectedName, CSP } from '../../server/lib/security.js';
+import { lanEnabled, listenHost } from '../../server/index.js';
 import { Auth, sessionValid, SESSION_MS, newPin } from '../../server/lib/auth.js';
 import { clientIp } from '../../server/lib/app.js';
 
@@ -148,4 +149,38 @@ test('onLocalSubnet: directly connected public-looking LAN is local; other publi
   assert.ok(!onLocalSubnet('fe80::1', ifaces));
   // a /8 interface is too broad to trust
   assert.ok(!onLocalSubnet('11.2.3.4', { en1: [{ family: 'IPv4', address: '11.0.0.5', netmask: '255.0.0.0', internal: false }] }));
+});
+
+test('PIN lockout: many failures from many addresses lock every login', () => {
+  const l = new LoginLimiter({ globalMax: 20 });
+  const t0 = 5_000_000;
+  // 19 failures, each from a fresh address: no single IP reaches its own limit
+  for (let i = 0; i < 19; i++) assert.equal(l.fail(`10.0.0.${i}`, t0 + i).locked, false);
+  assert.equal(l.lockedFor('10.9.9.9', t0 + 30), 0, 'a new address may still try');
+  assert.equal(l.fail('10.0.0.19', t0 + 40).locked, true, 'the 20th failure locks everyone');
+  assert.ok(l.lockedFor('10.9.9.9', t0 + 50) > 0, 'an address that never failed is locked too');
+  assert.equal(l.lockedFor('10.9.9.9', t0 + 40 + 15 * 60 * 1000), 0, 'and released after the lock time');
+  // failures spread wider than the window never add up
+  const slow = new LoginLimiter({ globalMax: 3 });
+  for (let i = 0; i < 6; i++) assert.equal(slow.fail(`10.1.0.${i}`, i * 16 * 60 * 1000).locked, false);
+  // a correct PIN from one address does not lift the global lock
+  l.success('10.0.0.1');
+  assert.ok(l.lockedFor('10.0.0.1', t0 + 60) > 0);
+});
+
+test('agent instruction files are write-protected by name, any case', () => {
+  for (const n of ['CLAUDE.md', 'claude.md', 'AGENTS.md', 'Agents.MD', 'GEMINI.md', 'MEMORY.md', 'SKILL.md', 'CLAUDE.local.md']) assert.ok(isProtectedName('/x/y/' + n), n);
+  for (const n of ['README.md', 'claude-notes.md', 'my-AGENTS.md', 'CLAUDE.md.txt']) assert.ok(!isProtectedName('/x/' + n), n);
+});
+
+test('network access: env wins, then the saved choice; an upgraded install keeps a signed-in phone', () => {
+  const cfg = (o) => ({ get: (k) => o[k] });
+  assert.equal(lanEnabled(cfg({}), {}), false, 'a fresh install is closed');
+  assert.equal(lanEnabled(cfg({ sessions: [{ id: 'a' }] }), {}), true, 'an install with a signed-in device stays open');
+  assert.equal(lanEnabled(cfg({ lan: false, sessions: [{ id: 'a' }] }), {}), false, 'the saved choice beats the guess');
+  assert.equal(lanEnabled(cfg({ lan: true }), {}), true);
+  assert.equal(lanEnabled(cfg({ lan: true }), { MD2HTML_LAN: '0' }), false);
+  assert.equal(lanEnabled(cfg({ lan: false }), { MD2HTML_LAN: '1' }), true);
+  assert.equal(listenHost(false), '127.0.0.1');
+  assert.equal(listenHost(true), '0.0.0.0');
 });

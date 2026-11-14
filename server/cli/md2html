@@ -69,6 +69,7 @@ md2html — MD2Html local server
 
   md2html status         is the server up? (port $PORT, data dir, LaunchAgent state)
   md2html open [file]    open the app in the browser (a file path is passed as ?open=<path>)
+  md2html lan on|off     open the server to the local network (phone), or keep it to this Mac only
   md2html pin            RESET the LAN PIN and print the new one (only a hash is stored, so the old PIN cannot be shown)
   md2html pdf <file|dir>...   convert to PDF beside each file   [--brand NAME|ID] [--out DIR] [--pages] [--cleanup]
   md2html html <file|dir>...  convert to standalone HTML      [--brand NAME|ID] [--out DIR] [--cleanup]
@@ -97,6 +98,15 @@ case "${1:-}" in
     out="$(curl -fsS -m 5 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" "$BASE/api/pin/reset")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
     pin="$(printf '%s' "$out" | sed -n 's/.*"pin":"\([0-9]*\)".*/\1/p')"
     echo "New PIN: $pin   (all signed-in devices were signed out)"
+    ;;
+  lan)
+    case "${2:-}" in on) v=true ;; off) v=false ;; *) echo "usage: md2html lan on|off" >&2; exit 2 ;; esac
+    out="$(curl -sS -m 5 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "{\"on\":$v}" "$BASE/api/server/lan")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
+    case "$out" in
+      *'"lan":true'*) echo "Network access is ON: phones on the same Wi-Fi can open the app (PIN required)." ;;
+      *'"lan":false'*) echo "Network access is OFF: only this Mac can open the app." ;;
+      *) echo "Server refused: $out" >&2; exit 1 ;;
+    esac
     ;;
   pdf) shift; convert '["pdf"]' "$@"; exit $? ;;
   html) shift; convert '["html"]' "$@"; exit $? ;;

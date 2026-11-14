@@ -240,6 +240,39 @@ test('recent and pinned persist in the data dir and survive a restart', () => {
   assert.ok(!svc.metaView().recent.some((r) => r.name === 'tmp-recent.md'));
 });
 
+test('writes: agent instruction files and read-only roots are refused; reading still works', () => {
+  const claude = path.join(rootA, 'CLAUDE.md');
+  fs.writeFileSync(claude, 'rules');
+  fs.symlinkSync(claude, path.join(rootA, 'innocent.md'));
+  assert.equal(svc.read(claude).content, 'rules');
+  for (const p of [claude, path.join(rootA, 'innocent.md'), path.join(rootA, 'پوشه', 'AGENTS.md'), path.join(rootA, 'memory.md')]) {
+    let err;
+    try { svc.write(p, 'planted', { overwrite: true }); } catch (e) { err = e; }
+    assert.equal(err?.status, 403, p);
+    assert.equal(err?.message, 'protected-file', p);
+  }
+  assert.equal(fs.readFileSync(claude, 'utf8'), 'rules');
+  assert.ok(!fs.existsSync(path.join(rootA, 'پوشه', 'AGENTS.md')));
+
+  const ro = new FileService({ roots: [rootA, rootB], readOnlyRoots: [rootB], dataDir: data, watchIndex: false });
+  try {
+    assert.deepEqual(ro.roots.map((r) => r.readOnly), [false, true]);
+    assert.equal(ro.read(path.join(rootB, 'b.md')).content, 'b');
+    for (const fn of [() => ro.write(path.join(rootB, 'b.md'), 'x', { overwrite: true }), () => ro.write(path.join(rootB, 'new.md'), 'x'), () => ro.mkdir(path.join(rootB, 'sub'))]) {
+      let err;
+      try { fn(); } catch (e) { err = e; }
+      assert.equal(err?.message, 'read-only-root');
+    }
+    assert.equal(fs.readFileSync(path.join(rootB, 'b.md'), 'utf8'), 'b');
+    ro.write(path.join(rootA, 'ro-ok.md'), 'fine');
+    fs.rmSync(path.join(rootA, 'ro-ok.md'));
+  } finally {
+    ro.close();
+  }
+  fs.rmSync(path.join(rootA, 'innocent.md'));
+  fs.rmSync(claude);
+});
+
 // ---- HTTP layer ----
 test('HTTP: auth, CSRF, 409 payload, SSE watch', async () => {
   process.env.MD2HTML_TEST = '1';

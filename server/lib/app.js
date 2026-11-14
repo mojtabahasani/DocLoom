@@ -30,7 +30,7 @@ export function clientIp(req, env = process.env) {
   return normalizeIp(req.socket.remoteAddress);
 }
 
-export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, netIfaces = () => os.networkInterfaces(), limiter = new LoginLimiter() }) {
+export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, netIfaces = () => os.networkInterfaces(), limiter = new LoginLimiter(), lan = { enabled: () => true, canChange: () => false, set() {} } }) {
   // The repo root copy, not dist/: it is the tracked deliverable, so it exists in a fresh clone before any build.
   const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../MD2Html.html', import.meta.url).pathname });
   const sse = new Set(); // {res, sid}
@@ -160,9 +160,19 @@ export function createApp({ auth, store, backups, log, files, render, batch, sha
       const last = backups.list()[0] || null;
       return sendJson(res, 200, {
         version: VERSION, port, dataDir, local: ctx.local, hostname: localHostname(),
-        urls: ips.map((ip) => `http://${ip}:${port}`), localUrl: `http://localhost:${port}`,
+        lan: lan.enabled(), lanCanChange: lan.canChange(),
+        urls: lan.enabled() ? ips.map((ip) => `http://${ip}:${port}`) : [], localUrl: `http://localhost:${port}`,
         lastBackup: last, documents: store.list('documents').filter((e) => !e.deleted).length,
       }, H);
+    }
+    if (p === '/api/server/lan' && method === 'POST') {
+      // Opening the server to the network is the Mac owner's decision: never a signed-in phone's.
+      if (!ctx.local) throw new HttpError(403, 'network access can be changed from the Mac only');
+      if (!lan.canChange()) throw new HttpError(409, 'fixed-by-env');
+      const b = await readJson(req, 4096);
+      if (typeof b.on !== 'boolean') throw new HttpError(400, 'bad request');
+      if (b.on !== lan.enabled()) lan.set(b.on);
+      return sendJson(res, 200, { lan: b.on }, H);
     }
     if (p === '/api/pin/reset' && method === 'POST') {
       if (!ctx.local) throw new HttpError(403, 'PIN can be reset from the Mac only');

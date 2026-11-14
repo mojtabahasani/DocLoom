@@ -44,35 +44,52 @@ export const securityHeaders = () => ({
   'X-Frame-Options': 'DENY',
 });
 
-/** Per-IP wrong-PIN counter: `max` failures lock the IP for `lockMs`. */
+/**
+ * Wrong-PIN counter. `max` failures lock one IP for `lockMs`; `globalMax` failures from ANY addresses
+ * inside one `lockMs` window lock every login for `lockMs`. The per-IP lock alone is not enough on a
+ * LAN, where a new address is one DHCP release away: the PIN has only a million values.
+ * The Mac itself never logs in (loopback is trusted), so the global lock cannot lock the owner out.
+ */
 export class LoginLimiter {
-  constructor({ max = 5, lockMs = 15 * 60 * 1000 } = {}) {
+  constructor({ max = 5, lockMs = 15 * 60 * 1000, globalMax = 20 } = {}) {
     this.max = max;
     this.lockMs = lockMs;
+    this.globalMax = globalMax;
     this.map = new Map(); // ip -> {fails, until}
+    this.recent = []; // times of recent failures, any address
+    this.globalUntil = 0;
   }
   /** @returns {number} ms left on the lock (0 = not locked) */
   lockedFor(ip, now = Date.now()) {
+    const g = this.globalUntil > now ? this.globalUntil - now : 0;
     const e = this.map.get(ip);
-    if (!e || !e.until) return 0;
+    if (!e || !e.until) return g;
     if (e.until <= now) {
       this.map.delete(ip);
-      return 0;
+      return g;
     }
-    return e.until - now;
+    return Math.max(g, e.until - now);
   }
   fail(ip, now = Date.now()) {
     const e = this.map.get(ip) || { fails: 0, until: 0 };
     e.fails++;
     if (e.fails >= this.max) e.until = now + this.lockMs;
     this.map.set(ip, e);
-    return { fails: e.fails, locked: e.until > now, left: Math.max(0, this.max - e.fails) };
+    this.recent = this.recent.filter((t) => now - t < this.lockMs);
+    this.recent.push(now);
+    if (this.recent.length >= this.globalMax) {
+      this.globalUntil = now + this.lockMs;
+      this.recent = [];
+    }
+    return { fails: e.fails, locked: e.until > now || this.globalUntil > now, left: Math.max(0, this.max - e.fails) };
   }
   success(ip) {
     this.map.delete(ip);
   }
   clear() {
     this.map.clear();
+    this.recent = [];
+    this.globalUntil = 0;
   }
 }
 
@@ -81,6 +98,15 @@ export const DEFAULT_ROOTS = () => ['MyApp', 'Documents', 'Desktop', 'Downloads'
 export const IGNORED_DIRS = new Set(['node_modules', '.git', 'Library', '.Trash']);
 export const READ_EXT = new Set(['.md', '.markdown', '.txt', '.html', '.htm']);
 export const WRITE_EXT = new Set([...READ_EXT, '.pdf', '.docx', '.png']);
+/**
+ * Files this server never writes, whatever the root: the instruction files coding agents load on
+ * every session. They are plain Markdown inside the default roots, so without this a script that got
+ * past the HTML sanitizer could plant instructions for the next agent run. Reading them stays allowed.
+ */
+export const PROTECTED_NAMES = new Set(['claude.md', 'claude.local.md', 'agents.md', 'gemini.md', 'memory.md', 'skill.md']);
+export const isProtectedName = (file) => PROTECTED_NAMES.has(path.basename(file).toLowerCase());
+/** Roots that are browse-and-read only (`MD2HTML_RO_ROOTS`, colon-separated). None by default. */
+export const roRootsFromEnv = (env = process.env) => (env.MD2HTML_RO_ROOTS ? env.MD2HTML_RO_ROOTS.split(':').filter(Boolean) : []);
 
 const inside = (root, p) => p === root || p.startsWith(root.endsWith(path.sep) ? root : root + path.sep);
 
