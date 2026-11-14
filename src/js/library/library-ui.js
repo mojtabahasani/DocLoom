@@ -1,5 +1,6 @@
-// Library drawer: search, tag filter, sort, pin, tags, duplicate, delete (with undo), versions, backup.
+// Library drawer: search, tag filter, sort, pin, tags, duplicate, archive (with undo), the archive view, versions, backup.
 import { store } from '../core/store.js';
+import { notify } from '../core/notify.js';
 import { $, el, icon, debounce } from '../core/dom.js';
 import { toFaDigits } from '../content/persian.js';
 import { promptDialog } from '../ui/modal.js';
@@ -12,8 +13,9 @@ import { exportBackup, importBackup } from './backup-ui.js';
 
 const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),select:not([disabled]),[href]';
 let ui = null;
-const filters = { query: '', tag: '', sort: 'recent' };
+const filters = { query: '', tag: '', sort: 'recent', archive: false };
 let docs = [];
+let archived = [];
 
 function iconBtn(name, label, onClick, extra = '') {
   const b = el('button', { type: 'button', class: 'lib-icon ' + extra, 'aria-label': label, title: label });
@@ -53,21 +55,51 @@ function renderRow(doc) {
       iconBtn('pin', doc.pinned ? 'برداشتن سنجاق' : 'سنجاق کردن', () => library.togglePin(doc.id), doc.pinned ? 'on' : ''),
       iconBtn('tag', 'ویرایش برچسب‌ها', () => editTags(doc)),
       iconBtn('copy', 'تکثیر سند', () => library.duplicate(doc.id)),
-      iconBtn('trash', 'حذف سند', () => library.remove(doc.id), 'danger')),
+      iconBtn('archive', 'بایگانی سند', () => library.remove(doc.id))),
     tags);
+}
+
+/** A row of the archive view: read-only, with one way out — «بازگردانی». */
+function renderArchivedRow(doc) {
+  const restore = el('button', { type: 'button', class: 'btn lib-restore', text: 'بازگردانی' });
+  restore.addEventListener('click', async () => {
+    await library.restore(doc.id);
+    notify('سند به کتابخانه برگشت.', { action: { label: 'باز کردن', run: async () => (await library.open(doc.id)) && closeLibrary() } });
+  });
+  return el('li', { class: 'lib-item archived' },
+    el('div', { class: 'lib-open' },
+      el('span', { class: 'lib-title' }, displayTitle(doc)),
+      el('span', { class: 'lib-meta', text: 'بایگانی‌شده در ' + fmtDate(doc.archivedAt) }),
+      snippet(doc) ? el('span', { class: 'lib-snip', text: snippet(doc) }) : null),
+    el('div', { class: 'lib-acts solid' }, restore));
+}
+
+function setArchive(on) {
+  filters.archive = on;
+  render();
 }
 
 function render() {
   if (!ui) return;
-  const rows = queryDocs(docs, filters);
-  const tags = allTags(docs);
+  if (!archived.length) filters.archive = false;
+  const pool = filters.archive ? archived : docs;
+  const rows = queryDocs(pool, filters);
+  const tags = allTags(pool);
   if (filters.tag && !tags.includes(filters.tag)) filters.tag = '';
   ui.count.textContent = `${toFaDigits(docs.length)} سند`;
   ui.tags.replaceChildren(...tags.map((t) => el('button', { type: 'button', class: 'tag' + (t === filters.tag ? ' on' : ''), 'aria-pressed': String(t === filters.tag), text: t, onclick: () => setTag(t === filters.tag ? '' : t) })));
   ui.tags.hidden = !tags.length;
-  ui.list.replaceChildren(...rows.map(renderRow));
+  ui.archive.hidden = !archived.length;
+  ui.archive.textContent = `بایگانی (${toFaDigits(archived.length)})`;
+  ui.archive.classList.toggle('on', filters.archive);
+  ui.archive.setAttribute('aria-pressed', String(filters.archive));
+  // A search that misses in the library may still hit in the archive: say so instead of "nothing found".
+  const hits = !filters.archive && filters.query.trim() ? queryDocs(archived, { query: filters.query }).length : 0;
+  ui.hint.hidden = !hits;
+  ui.hint.textContent = `${toFaDigits(hits)} نتیجه در بایگانی`;
+  ui.list.replaceChildren(...rows.map(filters.archive ? renderArchivedRow : renderRow));
   ui.empty.hidden = rows.length > 0;
-  ui.empty.textContent = docs.length ? 'سندی با این جست‌وجو پیدا نشد.' : 'کتابخانه خالی است. هر چه بنویسید به‌صورت خودکار همین‌جا ذخیره می‌شود.';
+  ui.empty.textContent = pool.length ? 'سندی با این جست‌وجو پیدا نشد.' : 'کتابخانه خالی است. هر چه بنویسید به‌صورت خودکار همین‌جا ذخیره می‌شود.';
 }
 
 function setTag(t) {
@@ -76,7 +108,7 @@ function setTag(t) {
 }
 
 async function refresh() {
-  docs = await library.list();
+  [docs, archived] = await Promise.all([library.list(), library.archived()]);
   render();
 }
 
@@ -97,6 +129,8 @@ function build() {
   const count = el('span', { class: 'lib-count' });
   const notice = el('p', { class: 'lib-notice', role: 'status', hidden: true, text: 'ذخیرهٔ دائمی در این مرورگر در دسترس نیست؛ سندها فقط تا بستن صفحه می‌مانند. از پشتیبان کامل استفاده کنید.' });
   const tags = el('div', { class: 'lib-tagbar', role: 'group', 'aria-label': 'فیلتر برچسب' });
+  const archive = el('button', { type: 'button', class: 'tag lib-archive', 'aria-pressed': 'false', hidden: true, onclick: () => setArchive(!filters.archive) });
+  const hint = el('button', { type: 'button', class: 'lib-hint', hidden: true, onclick: () => setArchive(true) });
   const list = el('ul', { class: 'lib-list' });
   const empty = el('p', { class: 'lib-empty' });
   const foot = el('div', { class: 'lib-foot' },
@@ -106,13 +140,13 @@ function build() {
   const panel = el('aside', { class: 'lib-drawer', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'کتابخانه', tabindex: '-1' },
     el('div', { class: 'lib-head' }, el('h2', { text: 'کتابخانه' }), count, el('span', { class: 'grow' }), closeBtn),
     el('div', { class: 'lib-tools' }, search, sort),
-    notice, tags, list, empty, foot);
+    notice, el('div', { class: 'lib-archbar' }, archive), tags, hint, list, empty, foot);
   const back = el('div', { class: 'lib-back' }, panel);
   back.addEventListener('mousedown', (e) => {
     if (e.target === back) closeLibrary();
   });
   document.body.append(back);
-  ui = { back, panel, search, sort, count, tags, list, empty, notice };
+  ui = { back, panel, search, sort, count, tags, list, empty, notice, archive, hint };
 }
 
 function onKey(e) {

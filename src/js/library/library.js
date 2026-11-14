@@ -1,4 +1,5 @@
-// Library controller: the open document, autosave, open / new / duplicate / delete (with undo), version restore.
+// Library controller: the open document, autosave, open / new / duplicate / archive (with undo), version restore.
+// Nothing here destroys a document that ever held content: «حذف» sets `archivedAt` and the record, with its versions, stays.
 import { store, DEFAULTS } from '../core/store.js';
 import { notify } from '../core/notify.js';
 import { sanitizeToFragment } from '../content/sanitize.js';
@@ -138,11 +139,28 @@ function leaveCurrent() {
   return saveNow();
 }
 
-async function removeRecords(id) {
+const isLive = (d) => !d.archivedAt;
+
+/** Mark a stored document archived. A normal edit as far as sync is concerned, so it travels like one. */
+async function archiveRecord(doc, now = Date.now()) {
+  await db.put('documents', { ...doc, archivedAt: now, updatedAt: now });
+}
+
+async function unarchiveRecord(doc, now = Date.now()) {
+  const { archivedAt: _gone, ...rest } = doc;
+  const live = { ...rest, updatedAt: now };
+  await db.put('documents', live);
+  return live;
+}
+
+/** Drop a document the user walked away from: destroyed only when it never held content, archived otherwise. */
+async function discardRecord(id) {
+  const doc = await db.get('documents', id);
+  if (!doc) return;
+  if (!isBlankDoc(doc)) return archiveRecord(doc);
   const vs = await db.versionsOf(id);
   await db.delMany('versions', vs.map((v) => v.id));
   await db.del('documents', id);
-  return vs;
 }
 
 function blankState() {
@@ -155,7 +173,9 @@ function blankState() {
 }
 
 export const library = {
-  list: async () => (await db.all('documents')).sort((a, b) => b.updatedAt - a.updatedAt),
+  /** Live documents, newest first. Archived ones are only reachable through `archived()`. */
+  list: async () => (await db.all('documents')).filter(isLive).sort((a, b) => b.updatedAt - a.updatedAt),
+  archived: async () => (await db.all('documents')).filter((d) => !isLive(d)).sort((a, b) => b.archivedAt - a.archivedAt),
   currentId: () => store.get('docId'),
   get persistent() {
     return db.persistent;
@@ -172,7 +192,7 @@ export const library = {
       changed();
       return false;
     }
-    applyDoc(doc);
+    applyDoc(doc.archivedAt ? await unarchiveRecord(doc) : doc); // opening an archived document brings it back
     return true;
   },
 
@@ -211,13 +231,14 @@ export const library = {
     notify('نسخهٔ تکراری ساخته شد.', { action: { label: 'باز کردن', run: () => library.open(copy.id) } });
   },
 
+  /** «حذف»: archive. The record and its versions stay; `restore` (or opening it) brings it back. */
   async remove(id) {
     const wasCurrent = id === store.get('docId');
     if (wasCurrent) await saveNow();
     await queue;
     const doc = await db.get('documents', id);
-    if (!doc) return;
-    const vs = await removeRecords(id);
+    if (!doc || doc.archivedAt) return;
+    await archiveRecord(doc);
     changed();
     if (wasCurrent) {
       const rest = await library.list();
@@ -228,17 +249,16 @@ export const library = {
         fresh = true;
       }
     }
-    notify('سند حذف شد.', {
-      action: {
-        label: 'برگردان',
-        run: async () => {
-          await db.put('documents', doc);
-          await db.putMany('versions', vs);
-          changed();
-          if (wasCurrent) applyDoc(doc);
-        },
-      },
-    });
+    notify('سند بایگانی شد.', { action: { label: 'برگردان', run: () => (wasCurrent ? library.open(id) : library.restore(id)) } });
+  },
+
+  /** Bring an archived document back into the library. */
+  async restore(id) {
+    const doc = await db.get('documents', id);
+    if (!doc) return false;
+    if (doc.archivedAt) await unarchiveRecord(doc);
+    changed();
+    return true;
   },
 
   async setTags(id, tags) {
@@ -304,7 +324,7 @@ export function initLibrary() {
       if (doc) meta = { tags: doc.tags || [], pinned: !!doc.pinned, createdAt: doc.createdAt, brandId: doc.brandId || null };
       persisted = !!doc;
       fresh = false;
-      if (abandonedId && abandonedId !== id) await removeRecords(abandonedId);
+      if (abandonedId && abandonedId !== id) await discardRecord(abandonedId);
       changed();
     });
     changeSeq++;

@@ -15,6 +15,13 @@
 .tag{border:1px solid var(--line);background:var(--surface-2);color:var(--text-2);border-radius:99px;padding:2px 10px;font-size:var(--fs-xs);line-height:1.9}
 .tag:hover{border-color:var(--accent);color:var(--accent-ink)}
 .tag.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.lib-archbar{display:flex;padding:2px 16px 0}
+.lib-archbar:has(.lib-archive[hidden]){display:none}
+.lib-hint{margin:6px 16px 0;padding:6px 10px;border:1px dashed var(--line);border-radius:var(--r-sm);background:transparent;color:var(--accent-ink);font-size:var(--fs-xs);text-align:start}
+.lib-hint:hover{border-color:var(--accent)}
+.lib-item.archived .lib-title{color:var(--text-2)}
+.lib-acts.solid{opacity:1}
+.lib-restore{height:30px;padding:0 10px;font-size:var(--fs-xs)}
 .lib-list{list-style:none;margin:0;padding:8px 10px;overflow:auto;flex:1;scrollbar-width:thin}
 .lib-item{position:relative;border:1px solid transparent;border-radius:var(--r-md);padding:2px 2px 6px;margin-bottom:2px}
 .lib-item:hover{background:var(--surface-2);border-color:var(--line)}

@@ -128,10 +128,10 @@ export function openBrandManager() {
     body.querySelector('[data-autofocus]')?.focus();
   };
   async function remove(b) {
-    const ok = await confirmDialog({ title: 'حذف برند', message: `برند «${b.name}» حذف شود؟ سندهایی که از آن استفاده کرده‌اند تغییری نمی‌کنند.`, confirmLabel: 'حذف', danger: true });
+    const ok = await confirmDialog({ title: 'حذف برند', message: `برند «${b.name}» بایگانی شود؟ از فهرست برندها کنار می‌رود؛ سندهایی که از آن استفاده کرده‌اند تغییری نمی‌کنند.`, confirmLabel: 'حذف', danger: true });
     if (ok) {
       await brands.remove(b.id);
-      notify('برند حذف شد.');
+      notify('برند بایگانی شد.', { action: { label: 'برگردان', run: () => brands.restore(b.id) } });
     }
     openBrandManager();
   }

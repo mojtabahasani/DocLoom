@@ -1,12 +1,19 @@
 // Library on disk: library/<store>/<id>.json envelopes {id, store, ts, deleted?, data}.
 // Documents also get a readable copy next to the JSON: <slug(title)>-<id>.md (or .html when there is no Markdown source).
+// A delete never destroys content: the last envelope is gzipped into library/_retired/ first, then the tombstone is written.
+//   _retired/<store>/<id>-<ts>.json.gz            documents, brands, settings
+//   _retired/versions/<docId>/<id>-<ts>.json.gz   versions, grouped by their document so listing one document is a readdir
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { EventEmitter } from 'node:events';
 
 export const STORES = ['documents', 'versions', 'brands', 'settings'];
 export const ID_RE = /^[A-Za-z0-9_]{1,80}$/;
 export const MAX_ITEM = 20 * 1024 * 1024;
+export const RETIRED_DIR = '_retired';
+const RETIRED_NAME = /^([A-Za-z0-9_]{1,80})-(\d{1,16})(?:-\d{1,4})?\.json\.gz$/;
+const MAX_RETIRED_LIST = 500;
 
 export class StoreError extends Error {
   constructor(status, message, extra = {}) {
@@ -119,11 +126,73 @@ export class LibraryStore extends EventEmitter {
     this.emit('change', { store, id, ts, deleted: false, by });
     return { ts };
   }
+  /** Keep the content a delete is about to replace with a tombstone. Throws when it cannot: then the delete does not happen. */
+  retire(store, id, ts) {
+    let text;
+    try {
+      text = fs.readFileSync(this.p(store, id), 'utf8');
+    } catch {
+      return null; // nothing on disk, nothing to lose
+    }
+    let env = null;
+    try {
+      env = JSON.parse(text);
+    } catch {
+      /* unreadable JSON is still kept, byte for byte */
+    }
+    if (env && (env.deleted || !env.data)) return null;
+    const docId = store === 'versions' && ID_RE.test(String(env?.data?.docId || '')) ? env.data.docId : null;
+    const dir = path.join(this.dir, RETIRED_DIR, store, ...(docId ? [docId] : []));
+    fs.mkdirSync(dir, { recursive: true });
+    let name = `${id}-${ts}.json.gz`;
+    for (let n = 2; fs.existsSync(path.join(dir, name)); n++) name = `${id}-${ts}-${n}.json.gz`;
+    this.write(path.join(dir, name), zlib.gzipSync(text));
+    return name;
+  }
+  readRetiredFile(file) {
+    try {
+      return JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString('utf8'));
+    } catch {
+      return null;
+    }
+  }
+  /** What the server still holds for one document after deletes: its pruned versions and its own retired copies. */
+  retiredOf(docId) {
+    if (!ID_RE.test(String(docId))) throw new StoreError(400, 'bad id');
+    const scan = (dir, keep) => {
+      let names = [];
+      try {
+        names = fs.readdirSync(dir);
+      } catch {
+        return [];
+      }
+      const out = [];
+      for (const name of names) {
+        const m = RETIRED_NAME.exec(name);
+        if (!m || !keep(m[1])) continue;
+        const d = this.readRetiredFile(path.join(dir, name))?.data;
+        if (d) out.push({ name, id: m[1], retiredAt: Number(m[2]), savedAt: Number(d.savedAt || d.updatedAt) || 0, reason: String(d.reason || ''), title: String(d.title || '').slice(0, 200), size: (d.source || '').length });
+      }
+      return out.sort((a, b) => b.savedAt - a.savedAt).slice(0, MAX_RETIRED_LIST);
+    };
+    return {
+      versions: scan(path.join(this.dir, RETIRED_DIR, 'versions', docId), () => true),
+      documents: scan(path.join(this.dir, RETIRED_DIR, 'documents'), (id) => id === docId),
+    };
+  }
+  /** One retired envelope. `docId` is given for versions (they live one folder deeper). */
+  getRetired(store, name, docId = null) {
+    if (!STORES.includes(store)) throw new StoreError(404, 'unknown store');
+    if (!RETIRED_NAME.test(String(name))) throw new StoreError(400, 'bad name');
+    if (docId != null && !ID_RE.test(String(docId))) throw new StoreError(400, 'bad id');
+    return this.readRetiredFile(path.join(this.dir, RETIRED_DIR, store, ...(docId ? [docId] : []), name));
+  }
   del(store, id, { ts = Date.now(), by = '' } = {}) {
     this.check(store, id);
     const key = `${store}/${id}`;
     const cur = this.index.get(key);
     if (cur?.deleted && cur.ts >= ts) return { ts: cur.ts };
+    this.retire(store, id, ts);
     this.write(this.p(store, id), JSON.stringify({ id, store, ts, deleted: true, data: null }));
     if (store === 'documents') this.dropCopy(id);
     this.index.set(key, { store, id, ts, deleted: true });

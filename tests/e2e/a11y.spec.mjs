@@ -80,6 +80,24 @@ test('the library drawer passes, and Escape gives focus back', async ({ page }) 
   await expect(page.locator('#libraryBtn')).toBeFocused();
 });
 
+test('the archive view of the library passes in both themes', async ({ page }) => {
+  await openApp(page);
+  await setSource(page, DOC);
+  await page.fill('#title', 'سند بایگانی');
+  await runCommand(page, 'ذخیرهٔ نسخه');
+  await page.click('#libraryBtn');
+  const drawer = page.locator('.lib-drawer');
+  await drawer.getByRole('button', { name: 'بایگانی سند' }).first().click();
+  await drawer.locator('.lib-archive').click();
+  await expect(drawer.locator('.lib-item.archived')).toHaveCount(1);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+    await page.waitForTimeout(400); // colours cross-fade on a theme change; scan the settled ones
+    const results = await scan(page, '.lib-drawer');
+    expect(results.violations, `${theme}\n  ` + report(results)).toEqual([]);
+  }
+});
+
 test('a modal is labelled, traps Tab and returns focus on close', async ({ page }) => {
   await openApp(page);
   await runCommand(page, 'دربارهٔ برنامه');

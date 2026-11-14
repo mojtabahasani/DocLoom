@@ -17,7 +17,7 @@ export const brands = {
   setDefault: (id) => setPref('defaultBrandId', id),
 
   async reload() {
-    list = sorted((await db.all('brands')).map(normalizeBrand));
+    list = sorted((await db.all('brands')).map(normalizeBrand).filter((b) => !b.archivedAt));
     changed();
   },
   async save(input) {
@@ -30,11 +30,17 @@ export const brands = {
     changed();
     return b;
   },
+  /** «حذف»: the brand is archived (hidden everywhere), never destroyed. */
   async remove(id) {
-    await db.del('brands', id);
-    list = list.filter((b) => b.id !== id);
+    const b = brands.get(id);
+    if (b) await db.put('brands', { ...b, archivedAt: Date.now() });
+    list = list.filter((x) => x.id !== id);
     if (getPref('defaultBrandId') === id) setPref('defaultBrandId', null);
     changed();
+  },
+  async restore(id) {
+    const b = (await db.all('brands')).find((x) => x.id === id);
+    return b ? brands.save({ ...b, archivedAt: null }) : null;
   },
   async duplicate(id) {
     const src = brands.get(id);

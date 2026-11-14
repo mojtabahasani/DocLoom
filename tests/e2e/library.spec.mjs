@@ -88,3 +88,82 @@ test('a saved version can be restored after the text changes', async ({ page }) 
   await expect(dialog.getByText(/نسخه|بازگردانی/).first()).toBeVisible();
   await page.keyboard.press('Escape');
 });
+
+/** Every stored document as {title, archived, versions}, read straight out of IndexedDB. */
+function storedState(page) {
+  return page.evaluate(async () => {
+    const db = await new Promise((res) => {
+      const r = indexedDB.open('md2html');
+      r.onsuccess = () => res(r.result);
+    });
+    const all = (s) => new Promise((res) => {
+      const r = db.transaction(s, 'readonly').objectStore(s).getAll();
+      r.onsuccess = () => res(r.result);
+    });
+    const [docs, vers] = [await all('documents'), await all('versions')];
+    return docs.map((d) => ({ title: d.title || '', archived: !!d.archivedAt, versions: vers.filter((v) => v.docId === d.id).length }));
+  });
+}
+
+test('«بایگانی» keeps the document and its versions; the archive view brings it back', async ({ page }) => {
+  await openApp(page);
+  await newDocWith(page, title('ماندگار'), '# ماندگار\n\nواژهٔ یکتا: کشک‌بادمجان.\n');
+  await newDocWith(page, title('رفتنی'), '# رفتنی\n\nواژهٔ یکتا: میرزاقاسمی.\n');
+
+  await page.click('#libraryBtn');
+  const drawer = page.locator('.lib-drawer');
+  await expect(drawer.locator('.lib-item')).toHaveCount(2);
+  await expect(drawer.locator('.lib-archive')).toBeHidden(); // no archive, no button
+
+  // The open document is archived: the editor moves to the other one and the row leaves the list.
+  await drawer.locator('.lib-item', { hasText: title('رفتنی') }).getByRole('button', { name: 'بایگانی سند' }).click();
+  await expect(drawer.locator('.lib-item')).toHaveCount(1);
+  await expect(page.locator('#title')).toHaveValue(title('ماندگار'));
+  await expect(drawer.locator('.lib-count')).toHaveText('۱ سند');
+
+  // Nothing was destroyed: the record is still stored, marked, with its version.
+  await expect.poll(async () => (await storedState(page)).find((d) => d.title === title('رفتنی'))).toEqual({ title: title('رفتنی'), archived: true, versions: 1 });
+
+  // A search that misses in the library points at the archive.
+  await drawer.locator('.lib-search').fill('میرزاقاسمی');
+  await expect(drawer.locator('.lib-item')).toHaveCount(0);
+  await expect(drawer.locator('.lib-hint')).toHaveText('۱ نتیجه در بایگانی');
+  await drawer.locator('.lib-hint').click();
+  await expect(drawer.locator('.lib-item.archived')).toHaveCount(1);
+  await expect(drawer.locator('.lib-archive')).toHaveAttribute('aria-pressed', 'true');
+  await drawer.locator('.lib-search').fill('');
+
+  // It survives a reload, and does not come back as the open document.
+  await page.reload();
+  await expect(page.locator('#title')).toHaveValue(title('ماندگار'));
+  await page.click('#libraryBtn');
+  await expect(drawer.locator('.lib-item')).toHaveCount(1);
+  await drawer.locator('.lib-archive').click();
+  await expect(drawer.locator('.lib-archive')).toHaveText('بایگانی (۱)');
+  await drawer.locator('.lib-item.archived').getByRole('button', { name: 'بازگردانی' }).click();
+
+  // Back in the library, archive view closes itself when it is empty.
+  await expect(drawer.locator('.lib-item:not(.archived)')).toHaveCount(2);
+  await expect(drawer.locator('.lib-archive')).toBeHidden();
+  await expect.poll(async () => (await storedState(page)).map((d) => d.archived)).toEqual([false, false]);
+});
+
+test('archiving has an undo, and the palette does not list archived documents', async ({ page }) => {
+  await openApp(page);
+  await newDocWith(page, title('الف'), '# الف\n\nمتن الف.\n');
+  await newDocWith(page, title('ب'), '# ب\n\nمتن ب.\n');
+
+  await page.click('#libraryBtn');
+  const drawer = page.locator('.lib-drawer');
+  await drawer.locator('.lib-item', { hasText: title('الف') }).getByRole('button', { name: 'بایگانی سند' }).click();
+  await expect(drawer.locator('.lib-item')).toHaveCount(1);
+  await page.getByRole('button', { name: 'برگردان' }).click();
+  await expect(drawer.locator('.lib-item')).toHaveCount(2);
+
+  await drawer.locator('.lib-item', { hasText: title('الف') }).getByRole('button', { name: 'بایگانی سند' }).click();
+  await expect(drawer.locator('.lib-item')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
+  await page.locator('.palette-input').fill(title('الف'));
+  await expect(page.locator('.pal-item', { hasText: title('الف') })).toHaveCount(0);
+});

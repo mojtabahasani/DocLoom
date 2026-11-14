@@ -202,6 +202,19 @@ export function createApp({ auth, store, backups, log, files, render, batch, sha
       }
     }
 
+    // Read-only window onto what deletes left behind. There is no route that removes anything from it.
+    if (parts[0] === 'retired' && method === 'GET') {
+      try {
+        if (parts.length === 1) return sendJson(res, 200, store.retiredOf(url.searchParams.get('doc') || ''), H);
+        const [, s, a, b] = parts;
+        const e = parts.length === 4 ? store.getRetired(s, b, a) : parts.length === 3 ? store.getRetired(s, a) : null;
+        return e ? sendJson(res, 200, e, H) : sendJson(res, 404, { error: 'not-found' }, H);
+      } catch (e) {
+        if (e.status) throw new HttpError(e.status, e.message);
+        throw e;
+      }
+    }
+
     if (p === '/api/sync/index' && method === 'GET') return sendJson(res, 200, { items: store.all() }, H);
     if (p === '/api/lib/fetch' && method === 'POST') {
       const { keys } = await readJson(req);

@@ -123,3 +123,51 @@ test('logger rotates at the size limit', () => {
   assert.ok(files.includes('server.log') && files.includes('server.log.1'));
   assert.ok(!files.includes('server.log.3'));
 });
+
+test('store: a delete retires the content first — documents flat, versions under their document', () => {
+  const dir = tmp();
+  const s = new LibraryStore(dir);
+  s.put('documents', 'd1', { ts: 5, data: doc('d1', { title: 'ماندنی' }) });
+  s.put('versions', 'v1', { ts: 6, data: { id: 'v1', docId: 'd1', savedAt: 6, reason: 'auto', title: 'ماندنی', source: '# قدیمی', html: '<h1>قدیمی</h1>' } });
+  s.put('versions', 'v2', { ts: 7, data: { id: 'v2', docId: 'd1', savedAt: 7, reason: 'manual', title: 'ماندنی', source: '# تازه', html: '' } });
+  s.del('versions', 'v1', { ts: 100 });
+  s.del('documents', 'd1', { ts: 101 });
+  assert.equal(s.get('documents', 'd1').deleted, true); // clients still see the tombstone
+  assert.deepEqual(fs.readdirSync(path.join(dir, '_retired', 'versions', 'd1')), ['v1-100.json.gz']);
+  assert.deepEqual(fs.readdirSync(path.join(dir, '_retired', 'documents')), ['d1-101.json.gz']);
+
+  const r = s.retiredOf('d1');
+  assert.deepEqual(r.versions.map((v) => [v.name, v.id, v.savedAt, v.reason, v.retiredAt]), [['v1-100.json.gz', 'v1', 6, 'auto', 100]]);
+  assert.equal(r.documents[0].title, 'ماندنی');
+  assert.equal(s.getRetired('versions', 'v1-100.json.gz', 'd1').data.source, '# قدیمی');
+  assert.equal(s.getRetired('documents', 'd1-101.json.gz').data.title, 'ماندنی');
+  assert.deepEqual(s.retiredOf('nobody'), { versions: [], documents: [] });
+
+  // Deleting a tombstone again retires nothing; a second life of the same id gets its own file.
+  s.del('documents', 'd1', { ts: 200 });
+  s.put('documents', 'd1', { ts: 300, data: doc('d1', { title: 'دوباره' }) });
+  s.del('documents', 'd1', { ts: 301 });
+  s.put('documents', 'd1', { ts: 302, data: doc('d1', { title: 'سه‌باره' }) });
+  s.del('documents', 'd1', { ts: 301 }); // same stamp as before: must not overwrite the earlier retirement
+  assert.deepEqual(fs.readdirSync(path.join(dir, '_retired', 'documents')).sort(), ['d1-101.json.gz', 'd1-301-2.json.gz', 'd1-301.json.gz']);
+  // survives a restart and stays out of the live index
+  assert.deepEqual(new LibraryStore(dir).list('documents').map((e) => e.id), ['d1']);
+});
+
+test('store: retired names are validated, so the read route cannot walk out of _retired', () => {
+  const s = new LibraryStore(tmp());
+  assert.throws(() => s.getRetired('documents', '../documents/d1.json'), (e) => e instanceof StoreError && e.status === 400);
+  assert.throws(() => s.getRetired('versions', 'v1-1.json.gz', '..'), (e) => e.status === 400);
+  assert.throws(() => s.getRetired('nope', 'v1-1.json.gz'), (e) => e.status === 404);
+  assert.throws(() => s.retiredOf('../x'), (e) => e.status === 400);
+  assert.equal(s.getRetired('documents', 'd9-1.json.gz'), null);
+});
+
+test('store: restoring a backup retires what the backup does not contain', () => {
+  const dir = tmp();
+  const s = new LibraryStore(dir);
+  s.put('documents', 'keep', { ts: 1, data: doc('keep') });
+  s.put('documents', 'gone', { ts: 1, data: doc('gone', { title: 'بیرون از پشتیبان' }) });
+  s.restore({ documents: [doc('keep')] }, 50);
+  assert.equal(s.getRetired('documents', 'gone-50.json.gz').data.title, 'بیرون از پشتیبان');
+});

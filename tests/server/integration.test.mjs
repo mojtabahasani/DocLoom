@@ -189,6 +189,24 @@ test('library API: put / get / list / delete / conditional write / batch fetch /
   assert.equal((await call('PUT', '/api/lib/documents/bad', { raw: '{nope' })).status, 400);
 });
 
+test('retired API: a deleted document and a pruned version stay readable; nothing can remove them', async () => {
+  await call('PUT', '/api/lib/documents/r1', { body: { ts: 10, data: doc('r1', { title: 'بازنشسته' }) } });
+  await call('PUT', '/api/lib/versions/rv1', { body: { ts: 11, data: { id: 'rv1', docId: 'r1', savedAt: 11, reason: 'auto', title: 'بازنشسته', source: '# قدیمی', html: '' } } });
+  await call('DELETE', '/api/lib/versions/rv1?ts=30');
+  await call('DELETE', '/api/lib/documents/r1?ts=31');
+  const list = await call('GET', '/api/retired?doc=r1');
+  assert.equal(list.status, 200);
+  assert.deepEqual(list.json.versions.map((v) => v.name), ['rv1-30.json.gz']);
+  assert.deepEqual(list.json.documents.map((v) => v.name), ['r1-31.json.gz']);
+  assert.equal((await call('GET', '/api/retired/versions/r1/rv1-30.json.gz')).json.data.source, '# قدیمی');
+  assert.equal((await call('GET', '/api/retired/documents/r1-31.json.gz')).json.data.title, 'بازنشسته');
+  assert.equal((await call('GET', '/api/retired/documents/zz-1.json.gz')).status, 404);
+  assert.equal((await call('GET', '/api/retired?doc=..%2Fx')).status, 400);
+  assert.equal((await call('GET', '/api/retired/documents/..%2F..%2Fconfig.json')).status, 400);
+  assert.equal((await call('DELETE', '/api/retired/documents/r1-31.json.gz')).status, 404);
+  assert.equal((await call('GET', '/api/retired?doc=r1', { headers: LAN })).status, 401, 'needs a session from the network, like the rest of the API');
+});
+
 test('SSE: another client sees changes immediately', async () => {
   const got = await new Promise((resolve, reject) => {
     const req = http.get({ host: '127.0.0.1', port, path: '/api/events', headers: { Host: `127.0.0.1:${port}` } }, (res) => {

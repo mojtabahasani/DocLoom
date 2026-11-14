@@ -33,6 +33,7 @@ export function normalizeBrand(b = {}) {
     letterCounter: Number.isFinite(counter) ? Math.max(1, Math.min(999999, counter)) : 1,
     website: str(o.website, 200),
     qr: normalizeQr(o.qr),
+    ...(Number(o.archivedAt) > 0 ? { archivedAt: Number(o.archivedAt) } : {}),
   };
 }
 
@@ -59,7 +60,7 @@ export function seedBrand() {
 }
 
 export function duplicateBrand(b, id = newBrandId()) {
-  return { ...normalizeBrand(b), id, name: (b.name || 'برند') + ' (کپی)', letterCounter: 1 };
+  return { ...normalizeBrand({ ...b, archivedAt: null }), id, name: (b.name || 'برند') + ' (کپی)', letterCounter: 1 };
 }
 
 /** A light tint of a hex colour (used for card backgrounds when a brand gives only a primary colour). */

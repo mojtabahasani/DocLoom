@@ -133,3 +133,11 @@ test('backup carries brands and re-validates their fields', () => {
   assert.equal(r.data.documents[0].letter.number, '۱۲۳/۱');
   assert.equal(r.data.documents[0].brandId, 'b1');
 });
+
+test('normalizeBrand keeps the archive mark, and a duplicate of an archived brand is live', async () => {
+  const { normalizeBrand, duplicateBrand } = await import('../src/js/brand/brand-model.js');
+  assert.equal(normalizeBrand({ id: 'b1', name: 'x', archivedAt: 1234 }).archivedAt, 1234);
+  assert.equal('archivedAt' in normalizeBrand({ id: 'b1', name: 'x', archivedAt: null }), false);
+  assert.equal('archivedAt' in normalizeBrand({ id: 'b1', name: 'x' }), false);
+  assert.equal('archivedAt' in duplicateBrand({ id: 'b1', name: 'x', archivedAt: 1234 }), false);
+});

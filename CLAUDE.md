@@ -15,6 +15,7 @@
 - Saba / FastReport import: `src/js/saba/` — `fp3.js` (the `.fp3` prepared-report XML: short names `m1`, `b1` index the template in `<sourcepages>`, numbered **globally** in document order), `fp3-table.js` (no table exists in FastReport, so columns are rebuilt from Left/Width geometry and headers matched by overlap), `saba-report.js`, `saba-ui.js`. Shares `core/xml.js` with the spreadsheet reader and `bank/normalize.js` for the Persian cleanup.
 - `editor/files.js` keeps a list of importers (`registerSheetHandler`, `findImporter`); the bank and Saba importers register themselves in `app.js`.
 - `tests/صبا/` holds the user's real Saba exports and is **gitignored**: real financial data, used to check the parser by hand, never committed.
+- Archive rule (spec `docs/superpowers/specs/2026-11-14-md2html-archive-design.md`): **no button destroys data.** «حذف» sets `archivedAt` on the document/brand (`library.list()` returns live ones only, `library.archived()` the rest); `LibraryStore.del` gzips the content into `library/_retired/` before the tombstone. `tests/no-destroy.test.mjs` lists every allowed destructive call with its reason — a new `db.del`/`rmSync` must be justified there.
 - `1file-old/` is the user's backup of the original single-file app: read-only.
 - RTL rules: never mirror prev/next controls; progress bars, sliders and chart x-axes fill left→right.
 
