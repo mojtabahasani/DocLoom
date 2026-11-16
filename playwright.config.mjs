@@ -4,6 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.E2E_PORT) || 8732;
 const baseURL = `http://127.0.0.1:${PORT}`;
+// E2E_CHANNEL=msedge|chrome uses an installed browser instead of Playwright's downloaded Chromium.
+const channel = process.env.E2E_CHANNEL ? { channel: process.env.E2E_CHANNEL } : {};
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -23,11 +25,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } } },
-    { name: 'mobile', use: { ...devices['Pixel 5'] }, testMatch: /layout\.spec\.mjs/ },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], ...channel, viewport: { width: 1280, height: 900 } } },
+    { name: 'mobile', use: { ...devices['Pixel 5'], ...channel }, testMatch: /layout\.spec\.mjs/ },
   ],
   webServer: {
-    command: `npm run build && E2E_PORT=${PORT} node tests/e2e/static-server.mjs`,
+    command: 'npm run build && node tests/e2e/static-server.mjs',
+    env: { ...process.env, E2E_PORT: String(PORT) }, // not `E2E_PORT=… node`: cmd.exe (Windows) has no inline env
     url: `${baseURL}/MD2Html.html`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
