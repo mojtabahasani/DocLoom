@@ -1,5 +1,6 @@
 // Library sync with the MD2Html server. Active ONLY when the page is served over http(s) and same-origin /api/health answers;
 // on file:// nothing is fetched at all. IndexedDB stays the offline cache.
+import { embedConfig } from '../core/embed-config.js';
 import { db } from '../library/db.js';
 import { store } from '../core/store.js';
 import { library } from '../library/library.js';
@@ -249,7 +250,7 @@ export const syncNow = () => (active ? sync() : Promise.resolve());
 
 /** Probe same-origin /api/health once. Never touches the network on file:// or other non-web origins. */
 export async function initSync() {
-  const ok = await probe();
+  const ok = embedConfig().server ? await probe() : false; // embed host without the MD2Html server: no probe at all
   readyResolve(ok);
   return ok;
 }

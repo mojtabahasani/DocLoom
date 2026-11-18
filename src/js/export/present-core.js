@@ -3,6 +3,7 @@
 // direction:ltr, previous on the left and next on the right; the progress bar fills left -> right.
 import { escapeHTML } from '../content/markdown.js';
 import { toFaDigits } from '../content/persian.js';
+import { digitMode } from '../core/digits.js';
 
 const TAIL = new Set(['footer', 'signature', 'qr']);
 
@@ -51,7 +52,7 @@ export function splitSlides(root) {
 function runtime() {
   var d = document, slides = Array.prototype.slice.call(d.querySelectorAll('.slide')), n = slides.length, i = 0;
   var fill = d.querySelector('.pbar i'), count = d.querySelector('.count'), prev = d.getElementById('prev'), next = d.getElementById('next');
-  var FA = '۰۱۲۳۴۵۶۷۸۹', fa = function (v) { return String(v).replace(/\d/g, function (c) { return FA[c]; }); };
+  var FA = d.body.getAttribute('data-digits') === 'en' ? '0123456789' : '۰۱۲۳۴۵۶۷۸۹', fa = function (v) { return String(v).replace(/\d/g, function (c) { return FA[c]; }); };
   var embedded = window.parent !== window;
   function fit(s) {
     var inner = s.firstElementChild, avail = s.clientHeight - 120, w = s.clientWidth;
@@ -134,7 +135,7 @@ export function renderPresentation({ title, slides, accent, tint, fontCss = '' }
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     `<title>${escapeHTML(title || 'ارائه')}</title>` +
-    `<style>${fontCss}:root{--accent:${accent};--tint:${tint}}${PRESENT_CSS}</style></head><body data-kind="${list[0].kind}">` +
+    `<style>${fontCss}:root{--accent:${accent};--tint:${tint}}${PRESENT_CSS}</style></head><body data-kind="${list[0].kind}"${digitMode() === 'en' ? ' data-digits="en"' : ''}>` +
     '<div class="pbar" aria-hidden="true"><i></i></div>' +
     list.map((s, k) => `<section class="slide" data-kind="${s.kind}" aria-label="اسلاید ${toFaDigits(k + 1)}"><div class="slide-in">${s.html}</div></section>`).join('') +
     '<div class="ctl" dir="ltr" role="group" aria-label="پیمایش اسلاید">' +

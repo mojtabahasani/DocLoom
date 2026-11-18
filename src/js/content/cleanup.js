@@ -1,6 +1,7 @@
 // AI-output cleanup. Pure (no DOM): text-level rules + a Markdown-source driver.
 // Code (fenced + inline), URLs and e-mail addresses are never modified.
 // The DOM driver (preview text nodes) lives in cleanup-dom.js and reuses cleanText/isFillerParagraph.
+import { digitMode } from '../core/digits.js';
 
 export const RULES = [
   { id: 'arabic', label: 'ی و ک عربی ← فارسی', hint: 'ي ك و ارقام عربی-هندی به شکل فارسی', def: true },
@@ -13,7 +14,8 @@ export const RULES = [
   { id: 'artifacts', label: 'مصنوعات Markdown', hint: '** یتیم، خط خالی اضافه، فاصلهٔ انتهای خط، جداکنندهٔ تکراری', def: true },
 ];
 
-export const defaultRules = () => Object.fromEntries(RULES.map((r) => [r.id, r.def]));
+// With Latin digits active (embed mode, digits:'en') the Latin → Persian digit rule starts switched off.
+export const defaultRules = () => Object.fromEntries(RULES.map((r) => [r.id, r.id === 'digits' && digitMode() === 'en' ? false : r.def]));
 
 const LET = '\\u0621-\\u064A\\u0671-\\u06D3'; // Arabic-script letters (no digits)
 const PD = '\\u06F0-\\u06F9';
@@ -65,7 +67,7 @@ function sub(s, re, id, rec, fn) {
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 function arabic(s, rec) {
   if (/[\u064B-\u0652]/.test(s)) return s; // vocalised Arabic text (e.g. a Quran verse) is left alone
-  return sub(s, /[يك٠-٩]/g, 'arabic', rec, (m) => (m === 'ي' ? 'ی' : m === 'ك' ? 'ک' : '۰۱۲۳۴۵۶۷۸۹'[AR_DIGITS.indexOf(m)]));
+  return sub(s, /[يك٠-٩]/g, 'arabic', rec, (m) => (m === 'ي' ? 'ی' : m === 'ك' ? 'ک' : (digitMode() === 'en' ? '0123456789' : '۰۱۲۳۴۵۶۷۸۹')[AR_DIGITS.indexOf(m)]));
 }
 
 const prevWord = (s, off) => (s.slice(0, off).match(new RegExp(`([${LET}]+)$`)) || [])[1] || '';

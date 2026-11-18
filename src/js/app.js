@@ -37,6 +37,11 @@ import { initBrandUI } from './brand/brand-ui.js';
 import { initLetterUI } from './brand/letter-ui.js';
 import { initLayers } from './brand/layers-ui.js';
 import { registerSmartCommands, initSmartButtons } from './ui/commands-smart.js';
+import { embedConfig } from './core/embed-config.js';
+import { initEmbed } from './embed/embed.js';
+
+// Embed mode (window.MD2HTML_EMBED): without the global every flag is on and `active` is false.
+const EMBED = embedConfig();
 
 async function main() {
   initGuard();
@@ -67,16 +72,21 @@ async function main() {
   initBrandUI();
   initLetterUI();
   initLayers();
-  initLibrary();
-  initLibraryUI();
-  await library.start(); // reopen the last document
-  initServerUI();
-  initPwa();
-  initLinked({ openFiles });
-  initFilesUI();
-  initExportDest();
-  initBatchUI();
-  initShareUI();
+  if (EMBED.library) {
+    initLibrary();
+    initLibraryUI();
+    await library.start(); // reopen the last document
+  }
+  if (EMBED.server) initServerUI();
+  if (!EMBED.active) initPwa(); // the host page owns installation and file launching
+  if (EMBED.server) {
+    initLinked({ openFiles });
+    initFilesUI();
+    initExportDest();
+    initBatchUI();
+    initShareUI();
+  }
+  if (EMBED.active) initEmbed();
   if (await initSync()) {
     activateLinked();
     await openFromUrl();

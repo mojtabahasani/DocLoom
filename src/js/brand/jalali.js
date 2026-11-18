@@ -1,4 +1,5 @@
 // Jalali (Solar Hijri) calendar: pure arithmetic, no Date parsing quirks. 33-year cycle algorithm.
+import { digitMode } from '../core/digits.js';
 const BREAKS = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
 const div = (a, b) => Math.trunc(a / b);
 const mod = (a, b) => a - Math.trunc(a / b) * b;
@@ -81,8 +82,8 @@ const toFa = (s) => String(s).replace(/\d/g, (d) => FA[d]);
 const toLatin = (s) =>
   String(s).replace(/[۰-۹]/g, (c) => String(c.charCodeAt(0) - 0x06f0)).replace(/[٠-٩]/g, (c) => String(c.charCodeAt(0) - 0x0660));
 
-/** formatJalali({y,m,d}, {digits:'fa'|'en', sep:'/'}) -> "۱۴۰۵/۰۸/۰۸" */
-export function formatJalali({ y, m, d }, { digits = 'fa', sep = '/' } = {}) {
+/** formatJalali({y,m,d}, {digits:'fa'|'en', sep:'/'}) -> "۱۴۰۵/۰۸/۰۸". `digits` defaults to the active script (core/digits.js). */
+export function formatJalali({ y, m, d }, { digits = digitMode(), sep = '/' } = {}) {
   const s = [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join(sep);
   return digits === 'fa' ? toFa(s) : s;
 }
