@@ -9,3 +9,6 @@ playwright-report/
 
 # Real Saba reports: the user's own financial data, kept out of the repo.
 tests/صبا/
+
+# Arena sketches: ideas only, never built from, never committed.
+Sample-arena/
