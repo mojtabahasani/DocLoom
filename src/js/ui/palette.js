@@ -2,6 +2,8 @@
 //   palette.register({ id, title, keywords, shortcut, group, run })
 //   palette.addSource({ id, label, load: async () => [{ id, title, subtitle, run }] })
 import { el, icon } from '../core/dom.js';
+import { store } from '../core/store.js';
+import { localizeCommand } from '../core/i18n.js';
 import { fuzzyFilter } from './fuzzy.js';
 import { shortcutFor } from './shortcuts.js';
 import { getPref, setPref } from '../library/prefs.js';
@@ -41,26 +43,30 @@ const cmdFields = (c) => [
 
 /** Build the visible sections for a query. Exported shape: [{label, items}] */
 function compute(query) {
-  const all = [...commands.values()].map((c) => ({ ...c, kind: 'command', shortcut: c.shortcut || shortcutFor(c.id) }));
+  const lang = store.get('lang');
+  const en = lang !== 'fa';
+  const all = [...commands.values()].map((c) => localizeCommand({ ...c, kind: 'command', shortcut: c.shortcut || shortcutFor(c.id) }, lang));
   const out = [];
+  const srcLabel = (s) => (en && s.id === 'docs' ? 'Library Documents' : s.label);
   if (!query.trim()) {
     const recent = recentIds().map((id) => all.find((c) => c.id === id)).filter(Boolean);
-    if (recent.length) out.push({ label: 'اخیراً استفاده‌شده', items: recent });
-    out.push({ label: 'فرمان‌ها', items: all.filter((c) => !recent.includes(c)) });
-    for (const s of sources) if (s.items.length) out.push({ label: s.label, items: s.items.slice(0, 5) });
+    if (recent.length) out.push({ label: en ? 'Recently Used' : 'اخیراً استفاده‌شده', items: recent });
+    out.push({ label: en ? 'Commands' : 'فرمان‌ها', items: all.filter((c) => !recent.includes(c)) });
+    for (const s of sources) if (s.items.length) out.push({ label: srcLabel(s), items: s.items.slice(0, 5) });
     return out;
   }
   const cmds = fuzzyFilter(all, query, cmdFields);
-  if (cmds.length) out.push({ label: 'فرمان‌ها', items: cmds.slice(0, 14) });
+  if (cmds.length) out.push({ label: en ? 'Commands' : 'فرمان‌ها', items: cmds.slice(0, 14) });
   for (const s of sources) {
     const hits = fuzzyFilter(s.items, query, (i) => [{ text: i.title }, { text: i.keywords || '', weight: 0.6 }, { text: i.body || '', weight: 0.25 }]);
-    if (hits.length) out.push({ label: s.label, items: hits.slice(0, 8) });
+    if (hits.length) out.push({ label: srcLabel(s), items: hits.slice(0, 8) });
   }
   return out;
 }
 
 function open() {
   if (openState) return;
+  const en = store.get('lang') !== 'fa';
   const opener = document.activeElement;
   let flat = [];
   let active = 0;
@@ -68,18 +74,26 @@ function open() {
 
   const input = el('input', {
     type: 'text', class: 'palette-input', role: 'combobox', 'aria-expanded': 'true', 'aria-controls': 'paletteList',
-    'aria-autocomplete': 'list', 'aria-label': 'جست‌وجوی فرمان یا سند', placeholder: 'فرمان یا سند را جست‌وجو کنید…',
+    'aria-autocomplete': 'list',
+    'aria-label': en ? 'Search commands or documents' : 'جست‌وجوی فرمان یا سند',
+    placeholder: en ? 'Search commands or documents...' : 'فرمان یا سند را جست‌وجو کنید…',
     autocomplete: 'off', spellcheck: 'false', dir: 'auto',
   });
-  const list = el('ul', { id: 'paletteList', class: 'palette-list', role: 'listbox', 'aria-label': 'نتایج' });
-  const empty = el('p', { class: 'palette-empty', hidden: true, text: 'نتیجه‌ای پیدا نشد.' });
+  const list = el('ul', { id: 'paletteList', class: 'palette-list', role: 'listbox', 'aria-label': en ? 'Results' : 'نتایج' });
+  const empty = el('p', { class: 'palette-empty', hidden: true, text: en ? 'No matching results.' : 'نتیجه‌ای پیدا نشد.' });
   const box = el(
     'div',
-    { class: 'palette', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'پالت فرمان' },
+    { class: 'palette', role: 'dialog', 'aria-modal': 'true', 'aria-label': en ? 'Command Palette' : 'پالت فرمان' },
     el('div', { class: 'palette-top' }, icon('search'), input, el('kbd', { text: 'Esc' })),
     list,
     empty,
-    el('div', { class: 'palette-foot' }, el('span', {}, el('kbd', { text: '↑↓' }), ' حرکت'), el('span', {}, el('kbd', { text: 'Enter' }), ' اجرا'), el('span', {}, el('kbd', { text: 'Esc' }), ' بستن')),
+    el(
+      'div',
+      { class: 'palette-foot' },
+      el('span', {}, el('kbd', { text: '↑↓' }), en ? ' Navigate' : ' حرکت'),
+      el('span', {}, el('kbd', { text: 'Enter' }), en ? ' Run' : ' اجرا'),
+      el('span', {}, el('kbd', { text: 'Esc' }), en ? ' Close' : ' بستن'),
+    ),
   );
   const back = el('div', { class: 'palette-back' }, box);
 

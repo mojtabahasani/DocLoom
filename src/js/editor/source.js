@@ -2,6 +2,7 @@
 import { store } from '../core/store.js';
 import { $ } from '../core/dom.js';
 import { notify } from '../core/notify.js';
+import { t } from '../core/i18n.js';
 import { highlightHTML, beautifyHTML } from '../content/html-source.js';
 import { parseHTMLDocument, sanitizeChildren } from '../content/sanitize.js';
 import { buildExportHTML } from '../export/html.js';
@@ -41,37 +42,40 @@ export function toggleSourceMode(force) {
 }
 
 function renderMode(on) {
+  const lang = store.get('lang');
   $('#preview').hidden = on;
   $('#sourcePane').hidden = !on;
-  $('#centerTitle').textContent = on ? 'سورس HTML سند' : 'پیش‌نمایش سند';
-  $('#modeLabel').textContent = on ? 'ویرایش کد' : 'زنده';
+  $('#centerTitle').textContent = t(on ? 'centerTitleSource' : 'centerTitle', lang);
+  $('#modeLabel').textContent = t(on ? 'modeSource' : 'modeLive', lang);
   const btn = $('#sourceToggle');
   btn.setAttribute('aria-pressed', String(on));
-  btn.querySelector('span').textContent = on ? 'اعمال و بازگشت به پیش‌نمایش' : 'سورس HTML';
+  btn.querySelector('span').textContent = t(on ? 'applyAndBack' : 'htmlSource', lang);
   document.body.classList.toggle('source-mode', on);
 }
 
 export function applySource() {
+  const en = store.get('lang') !== 'fa';
   let doc;
   try {
     doc = parseHTMLDocument(area().value);
   } catch {
-    notify('خواندن سورس HTML ممکن نشد.');
+    notify(en ? 'Could not parse HTML source.' : 'خواندن سورس HTML ممکن نشد.');
     return;
   }
   if (doc.querySelector('parsererror')) {
-    notify('ساختار HTML معتبر نیست؛ پیش‌نمایش تغییر نکرد.');
+    notify(en ? 'Invalid HTML structure; preview unchanged.' : 'ساختار HTML معتبر نیست؛ پیش‌نمایش تغییر نکرد.');
     return;
   }
   const root = doc.body.querySelector('main') || doc.body;
   setContent(sanitizeChildren(root));
   applyLook();
   toggleSourceMode(false);
-  notify('سورس پاک‌سازی و در پیش‌نمایش اعمال شد.');
+  notify(en ? 'HTML source sanitized and applied.' : 'سورس پاک‌سازی و در پیش‌نمایش اعمال شد.');
 }
 
 export function initSource() {
   store.on('sourceMode', renderMode);
+  store.on('lang', () => renderMode(store.get('sourceMode')));
   renderMode(false);
   $('#sourceToggle').addEventListener('click', () => (store.get('sourceMode') ? applySource() : toggleSourceMode(true)));
   $('#refreshSource').addEventListener('click', refreshSource);

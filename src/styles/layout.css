@@ -13,7 +13,8 @@ button{cursor:pointer}
 /* ---- header ---- */
 .top{position:sticky;top:0;z-index:20;height:64px;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--topbar);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;flex:none}
-.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(165deg,#2b7a67,#15453b 70%);color:#eaf6f0;display:grid;place-items:center;font:700 13.5px/1 Arial,sans-serif;letter-spacing:.5px;direction:ltr;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 6px rgba(12,46,38,.28)}
+.logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;overflow:hidden;box-shadow:0 2px 6px rgba(30,30,84,.22)}
+.logo svg{display:block;width:36px;height:36px}
 .brand h1{font-size:15px;margin:0;line-height:1.2;letter-spacing:.2px}
 .brand small{display:block;font-size:10.5px;color:var(--muted);line-height:1.3}
 /* The header no longer holds the name field — it says which document is open, and that is all. */

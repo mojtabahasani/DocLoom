@@ -4,6 +4,7 @@ import { store } from '../core/store.js';
 import { embedConfig } from '../core/embed-config.js';
 import { setDigitMode } from '../core/digits.js';
 import { normalizeLang, dirForLang, t, GROUP_I18N, TOOL_I18N } from '../core/i18n.js';
+import { DOC_THEMES } from '../export/theme.js';
 import { faPercent } from '../content/persian.js';
 import { refreshDrawers } from './drawer.js';
 import { palette } from './palette.js';
@@ -251,6 +252,15 @@ export function applyLang(rawLang) {
   for (const node of $$('[data-tool-id]')) {
     const entry = TOOL_I18N[node.dataset.toolId]?.[lang];
     if (entry) node.dataset.tool = entry;
+  }
+
+  for (const th of DOC_THEMES) {
+    const btn = $(`.theme[data-theme="${th.id}"]`);
+    if (!btn) continue;
+    const label = lang === 'en' ? th.labelEn || th.label : th.label;
+    const span = $('span', btn);
+    if (span) span.textContent = label;
+    btn.title = lang === 'en' ? `Document theme: ${label}` : `قالب رنگی سند: ${label}`;
   }
 
   refreshDrawers();

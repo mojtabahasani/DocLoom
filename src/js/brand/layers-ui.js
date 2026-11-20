@@ -11,6 +11,11 @@ import { brands } from './brands.js';
 
 const PAGE_PX = 1000; // preview watermark repeats about once per printed page
 const KIND_LABEL = { url: 'نشانی وب (مثلاً example.com)', tel: 'شمارهٔ تلفن', text: 'متن دلخواه' };
+const KIND_LABEL_EN = { url: 'Website URL (e.g. example.com)', tel: 'Phone number', text: 'Custom text' };
+const WM_LABEL_EN = { none: 'No Watermark', draft: 'Draft', confidential: 'Confidential', final: 'Final', copy: 'Copy', custom: 'Custom Text' };
+const QR_KIND_EN = { url: 'Website URL', tel: 'Phone Number', text: 'Custom Text' };
+const QR_POS_EN = { footer: 'Footer Corner', letter: 'Beside Letter Block' };
+const WORD_NOTE_EN = 'Watermarks appear in preview, print/PDF, HTML, and PNG (not Word .docx export).';
 
 export function setWatermark(patch) {
   store.set('watermark', normalizeWatermark({ ...store.get('watermark'), ...patch }));
@@ -37,7 +42,16 @@ export function setQr(patch) {
   refreshFurniture();
 }
 
+function syncSelects() {
+  const en = store.get('lang') !== 'fa';
+  $('#wmPreset').replaceChildren(...WATERMARK_PRESETS.map(([v, label]) => el('option', { value: v, text: en ? WM_LABEL_EN[v] || label : label })));
+  $('#qrKind').replaceChildren(...QR_KINDS.map(([v, label]) => el('option', { value: v, text: en ? QR_KIND_EN[v] || label : label })));
+  $('#qrPos').replaceChildren(...QR_POSITIONS.map(([v, label]) => el('option', { value: v, text: en ? QR_POS_EN[v] || label : label })));
+  $('#wmNote').textContent = en ? WORD_NOTE_EN : WORD_NOTE;
+}
+
 function syncPanel() {
+  const en = store.get('lang') !== 'fa';
   const w = normalizeWatermark(store.get('watermark'));
   $('#wmPreset').value = w.preset;
   $('#wmTextField').hidden = w.preset !== 'custom';
@@ -46,20 +60,24 @@ function syncPanel() {
   $('#qrOn').checked = q.enabled;
   $('#qrFields').hidden = !q.enabled;
   $('#qrKind').value = q.kind;
-  $('#qrValueLabel').textContent = KIND_LABEL[q.kind];
+  $('#qrValueLabel').textContent = (en ? KIND_LABEL_EN : KIND_LABEL)[q.kind];
   if (document.activeElement !== $('#qrValue')) $('#qrValue').value = q.value;
-  $('#qrValue').placeholder = q.kind === 'url' ? 'خالی = وب‌سایت برند' : '';
+  $('#qrValue').placeholder = q.kind === 'url' ? (en ? 'Empty = brand website' : 'خالی = وب‌سایت برند') : '';
   $('#qrPos').value = q.position;
   $('#qrSize').value = q.size;
   const content = qrContent({ kind: q.kind, value: q.value || (q.kind === 'url' ? brands.current()?.website : '') });
-  $('#qrNote').textContent = !q.enabled ? '' : !content ? 'مقداری برای QR نیست؛ آن را بنویسید.' : content.length > MAX_QR_CHARS ? 'متن برای QR بیش از حد بلند است.' : 'محتوا: ' + content;
+  $('#qrNote').textContent = !q.enabled
+    ? ''
+    : !content
+      ? en ? 'Enter a value for QR code.' : 'مقداری برای QR نیست؛ آن را بنویسید.'
+      : content.length > MAX_QR_CHARS
+        ? en ? 'Text is too long for QR code.' : 'متن برای QR بیش از حد بلند است.'
+        : (en ? 'Content: ' : 'محتوا: ') + content;
 }
 
 export function initLayers() {
-  $('#wmPreset').replaceChildren(...WATERMARK_PRESETS.map(([v, label]) => el('option', { value: v, text: label })));
-  $('#qrKind').replaceChildren(...QR_KINDS.map(([v, label]) => el('option', { value: v, text: label })));
-  $('#qrPos').replaceChildren(...QR_POSITIONS.map(([v, label]) => el('option', { value: v, text: label })));
-  $('#wmNote').textContent = WORD_NOTE;
+  syncSelects();
+  store.on('lang', () => (syncSelects(), syncPanel()));
   $('#wmPreset').addEventListener('change', (e) => setWatermark({ preset: e.target.value }));
   $('#wmText').addEventListener('input', (e) => setWatermark({ text: e.target.value }));
   $('#qrOn').addEventListener('change', (e) => setQr({ enabled: e.target.checked }));

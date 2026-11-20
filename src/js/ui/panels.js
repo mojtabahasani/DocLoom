@@ -82,7 +82,7 @@ export function initPanels() {
           'button',
           { class: 'theme', type: 'button', dataset: { theme: t.id }, title: `قالب رنگی سند: ${t.label}` },
           el('i', { style: `background:linear-gradient(90deg,${t.accent} 0 28%,${t.tint} 28%)` + (t.rule ? `;border-bottom:2px dotted ${t.accent}` : '') }),
-          t.label,
+          el('span', { text: t.label }),
         ),
       ),
     );

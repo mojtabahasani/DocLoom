@@ -1,6 +1,7 @@
 // UI-only block tools: a floating bar over code blocks (copy), tables (chart) and charts (remove).
 // It lives outside the document, so nothing here can reach print, HTML export or e-mail.
 import { el } from '../core/dom.js';
+import { store } from '../core/store.js';
 import { preview, markChanged } from './preview.js';
 import { copyPlain } from '../export/files.js';
 import { chartableData, openChartPopover } from '../ui/chart-ui.js';
@@ -30,11 +31,18 @@ function show({ n, kind }) {
   clearTimeout(timer);
   if (target === n && !bar.hidden) return;
   target = n;
+  const en = store.get('lang') !== 'fa';
+  bar.setAttribute('aria-label', en ? 'Block tools' : 'ابزار بلوک');
   const btn = (label, run, cls = '') => el('button', { type: 'button', class: 'bt ' + cls, text: label, onclick: run });
   bar.replaceChildren(
-    kind === 'code' ? btn('کپی کد', (e) => { copyPlain(n.textContent || ''); e.currentTarget.textContent = 'کپی شد'; }) : null,
-    kind === 'table' ? btn('نمودار', () => openChartPopover(n, bar.getBoundingClientRect())) : null,
-    kind === 'chart' ? btn('حذف نمودار', () => { n.remove(); hide(); markChanged(); }, 'danger') : null,
+    kind === 'code'
+      ? btn(en ? 'Copy Code' : 'کپی کد', (e) => {
+          copyPlain(n.textContent || '');
+          e.currentTarget.textContent = en ? 'Copied!' : 'کپی شد';
+        })
+      : null,
+    kind === 'table' ? btn(en ? 'Chart' : 'نمودار', () => openChartPopover(n, bar.getBoundingClientRect())) : null,
+    kind === 'chart' ? btn(en ? 'Remove Chart' : 'حذف نمودار', () => { n.remove(); hide(); markChanged(); }, 'danger') : null,
   );
   bar.hidden = false;
   const r = n.getBoundingClientRect();

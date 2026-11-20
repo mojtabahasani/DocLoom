@@ -27,9 +27,11 @@ export function initDocCrumb(store) {
   const crumb = $('#docCrumb');
   if (!crumb) return;
   const paint = (t) => {
-    crumb.textContent = (t || '').trim() || 'سند بی‌نام';
+    const emptyText = store.get('lang') !== 'fa' ? 'Untitled Document' : 'سند بی‌نام';
+    crumb.textContent = (t || '').trim() || emptyText;
     crumb.classList.toggle('empty', !(t || '').trim());
   };
   store.on('title', paint);
+  store.on('lang', () => paint(store.get('title')));
   paint(store.get('title'));
 }

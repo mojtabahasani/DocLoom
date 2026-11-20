@@ -2,6 +2,7 @@
 import { store } from '../core/store.js';
 import { $, el } from '../core/dom.js';
 import { notify } from '../core/notify.js';
+import { CMD_I18N } from '../core/i18n.js';
 import { palette } from './palette.js';
 import { defineShortcut, listShortcuts } from './shortcuts.js';
 import { openModal } from './modal.js';
@@ -37,9 +38,16 @@ const DOC_THEMES = DOC_THEME_LIST.map((t) => [t.id, t.label]);
 const APP_THEMES = [['light', 'روشن', 'light'], ['dark', 'تیره', 'dark'], ['system', 'مطابق سیستم', 'system auto']];
 
 function showShortcuts() {
-  const rows = [...listShortcuts(), { title: 'بستن پالت، پنجره یا کشو', keys: 'Esc' }, { title: 'حرکت در نتایج پالت', keys: '↑ ↓' }, { title: 'اجرای نتیجهٔ انتخاب‌شده', keys: 'Enter' }];
+  const en = store.get('lang') !== 'fa';
+  const mapped = listShortcuts().map((r) => ({ ...r, title: en ? (CMD_I18N[r.id] || r.title) : r.title }));
+  const rows = [
+    ...mapped,
+    { title: en ? 'Close palette, modal or drawer' : 'بستن پالت، پنجره یا کشو', keys: 'Esc' },
+    { title: en ? 'Navigate palette results' : 'حرکت در نتایج پالت', keys: '↑ ↓' },
+    { title: en ? 'Run selected result' : 'اجرای نتیجهٔ انتخاب‌شده', keys: 'Enter' },
+  ];
   const body = el('table', { class: 'kbd-table' }, el('tbody', {}, ...rows.map((r) => el('tr', {}, el('td', { text: r.title }), el('td', {}, el('kbd', { text: r.keys }))))));
-  openModal({ title: 'میان‌برهای صفحه‌کلید', body });
+  openModal({ title: en ? 'Keyboard Shortcuts' : 'میان‌برهای صفحه‌کلید', body });
 }
 
 export function registerCommands() {
@@ -106,8 +114,11 @@ export function registerCommands() {
     label: 'سندهای کتابخانه',
     load: async () =>
       (await library.list()).map((d) => ({
-        id: 'doc:' + d.id, kind: 'doc', title: d.title?.trim() || 'بدون عنوان', keywords: (d.tags || []).join(' '), body: (d.text || '').slice(0, 1500),
-        subtitle: d.id === library.currentId() ? 'سند فعلی' : '', run: () => library.open(d.id),
+        id: 'doc:' + d.id, kind: 'doc',
+        title: d.title?.trim() || (store.get('lang') !== 'fa' ? 'Untitled Document' : 'بدون عنوان'),
+        keywords: (d.tags || []).join(' '), body: (d.text || '').slice(0, 1500),
+        subtitle: d.id === library.currentId() ? (store.get('lang') !== 'fa' ? 'Current document' : 'سند فعلی') : '',
+        run: () => library.open(d.id),
       })),
   });
 

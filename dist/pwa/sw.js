@@ -1,5 +1,5 @@
 // DocLoom service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
-const VERSION = '3b92ac2a68';
+const VERSION = '6044c1044b';
 const CACHE = 'docloom-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 

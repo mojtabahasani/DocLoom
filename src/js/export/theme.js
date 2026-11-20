@@ -11,15 +11,15 @@
 // preview is styled by CSS, not by script. `tests/doc-themes.test.mjs` asserts the two agree, so
 // the duplication cannot drift.
 export const DOC_THEMES = [
-  { id: 'navy', label: 'رسمی', accent: '#1c5263', tint: '#edf3f2', paper: '#fffefa' },
-  { id: 'green', label: 'سبز', accent: '#286b57', tint: '#edf5ee', paper: '#fffefa' },
-  { id: 'warm', label: 'گرم', accent: '#925f37', tint: '#f8efdf', paper: '#fffaf1' },
-  { id: 'mono', label: 'ساده', accent: '#353b40', tint: '#f0f1f1', paper: '#fffefa' },
-  { id: 'daftar', label: 'دفتر', accent: '#24486f', tint: '#e9eef6', paper: '#ffffff' },
-  { id: 'naghsheh', label: 'نقشه', accent: '#1737c6', tint: '#e4eaf9', paper: '#fbfcff' },
-  { id: 'shabkar', label: 'شب‌کار', accent: '#8a6314', tint: '#f4ecdc', paper: '#faf9f6' },
-  { id: 'sonar', label: 'سونار', accent: '#0e6e77', tint: '#e2f0ef', paper: '#ffffff' },
-  { id: 'daftarche', label: 'دفترچه', accent: '#2e4a7d', tint: '#eaeff7', paper: '#fdfcf8', rule: '#d7deea' },
+  { id: 'navy', label: 'رسمی', labelEn: 'Classic', accent: '#1c5263', tint: '#edf3f2', paper: '#fffefa' },
+  { id: 'green', label: 'سبز', labelEn: 'Forest', accent: '#286b57', tint: '#edf5ee', paper: '#fffefa' },
+  { id: 'warm', label: 'گرم', labelEn: 'Warm', accent: '#925f37', tint: '#f8efdf', paper: '#fffaf1' },
+  { id: 'mono', label: 'ساده', labelEn: 'Mono', accent: '#353b40', tint: '#f0f1f1', paper: '#fffefa' },
+  { id: 'daftar', label: 'دفتر', labelEn: 'Ledger', accent: '#24486f', tint: '#e9eef6', paper: '#ffffff' },
+  { id: 'naghsheh', label: 'نقشه', labelEn: 'Blueprint', accent: '#1737c6', tint: '#e4eaf9', paper: '#fbfcff' },
+  { id: 'shabkar', label: 'شب‌کار', labelEn: 'Amber', accent: '#8a6314', tint: '#f4ecdc', paper: '#faf9f6' },
+  { id: 'sonar', label: 'سونار', labelEn: 'Sonar', accent: '#0e6e77', tint: '#e2f0ef', paper: '#ffffff' },
+  { id: 'daftarche', label: 'دفترچه', labelEn: 'Notebook', accent: '#2e4a7d', tint: '#eaeff7', paper: '#fdfcf8', rule: '#d7deea' },
 ];
 
 export const THEME_IDS = DOC_THEMES.map((t) => t.id);

@@ -14,9 +14,11 @@ export function initMetrics() {
       images: preview.querySelectorAll('img').length,
       tables: preview.querySelectorAll('table').length,
       headings: preview.querySelectorAll('h1,h2,h3,h4,h5,h6').length,
+      lang: store.get('lang'),
     });
     box.replaceChildren(...vals.map(([label, value]) => el('div', { class: 'metric' }, el('b', { text: String(value) }), ' ' + label)));
   });
   store.on('content', update);
+  store.on('lang', update);
   update();
 }
