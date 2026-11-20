@@ -2,9 +2,9 @@
 import { THEME_IDS } from '../export/theme.js';
 
 // The name written into an exported settings file. The old one is still accepted on import, so a
-// settings JSON saved before the app was renamed to «دیتاسیو» keeps opening.
-export const APP_NAME = 'دیتاسیو';
-const KNOWN_APP_NAMES = [APP_NAME, 'DataSave'];
+// settings JSON saved before the app was renamed to «DocLoom» keeps opening.
+export const APP_NAME = 'DocLoom';
+const KNOWN_APP_NAMES = [APP_NAME, 'DocLoom'];
 const THEMES = THEME_IDS;
 const ALIGNS = ['stretch', 'center', 'flex-start', 'flex-end'];
 const APP_THEMES = ['light', 'dark', 'system'];

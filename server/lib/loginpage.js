@@ -1,7 +1,7 @@
 // Minimal Persian RTL PIN page for LAN clients without a session (styled like the app: Vazirmatn fallback stack, green accent).
 export const loginPage = () => `<!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="data:,"><meta name="color-scheme" content="light dark"><title>DataSave | ورود</title>
+<link rel="icon" href="data:,"><meta name="color-scheme" content="light dark"><title>DocLoom | ورود</title>
 <style>
 :root{--bg:#eef2ef;--surface:#fff;--line:#dfe7e2;--text:#17302f;--muted:#6c7f7b;--accent:#1f6f5f;--accent-strong:#165548;--ring:#7fc3a9;--danger:#b4443c;--danger-soft:#fbeceb}
 @media(prefers-color-scheme:dark){:root{--bg:#0e1815;--surface:#16231f;--line:#27382f;--text:#e6f0ec;--muted:#93a8a1;--accent:#3f9d86;--accent-strong:#58b9a1;--ring:#2c6b5c;--danger:#e0766d;--danger-soft:#3a1f1d}}
@@ -17,7 +17,7 @@ button:hover{background:var(--accent-strong)}button:disabled{opacity:.5;cursor:d
 </style></head><body>
 <form class="card" id="f" autocomplete="off">
 <div class="logo" aria-hidden="true">MD</div>
-<h1>DataSave</h1><p>رمز ۶ رقمی را وارد کنید. (اگر آن را ندارید، روی مک «datasave pin» بزنید یا از پنل سرور رمز جدید بگیرید.)</p>
+<h1>DocLoom</h1><p>رمز ۶ رقمی را وارد کنید. (اگر آن را ندارید، روی مک «docloom pin» بزنید یا از پنل سرور رمز جدید بگیرید.)</p>
 <input id="pin" name="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" aria-label="رمز ۶ رقمی" autofocus>
 <button id="go" type="submit">ورود</button>
 <div class="err" id="err" role="alert" hidden></div>
@@ -31,7 +31,7 @@ e.preventDefault();err.hidden=true;
 var v=pin.value.replace(/[۰-۹]/g,function(c){return String(c.charCodeAt(0)-1776)});
 if(!/^\\d{6}$/.test(v)){show('رمز باید ۶ رقم باشد.');return}
 go.disabled=true;
-fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json','X-DataSave':'1'},body:JSON.stringify({pin:v})})
+fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json','X-DocLoom':'1'},body:JSON.stringify({pin:v})})
 .then(function(r){return r.json().then(function(j){return{s:r.status,j:j}})})
 .then(function(r){
 if(r.s===200){location.replace('/');return}

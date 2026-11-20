@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "دیتاسیو",
-  "short_name": "دیتاسیو",
+  "name": "DocLoom",
+  "short_name": "DocLoom",
   "description": "استودیوی سند فارسی: تبدیل Markdown به سند و صفحهٔ HTML، بدون اینترنت",
   "lang": "fa",
   "dir": "rtl",

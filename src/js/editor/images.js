@@ -138,10 +138,10 @@ export async function uploadPendingImage() {
   const data = new FormData();
   data.append(fieldFor(endpoint, store.get('uploadField')), blob, uploadName(blob.type, file.name));
   try {
-    // zi2.ir sends no CORS headers, so a browser cannot post to it directly; the DataSave server relays the upload.
+    // zi2.ir sends no CORS headers, so a browser cannot post to it directly; the DocLoom server relays the upload.
     const viaServer = syncActive();
     const response = viaServer
-      ? await fetch('/api/upload', { method: 'POST', headers: { 'X-DataSave': '1', 'X-Upload-Target': endpoint }, body: data })
+      ? await fetch('/api/upload', { method: 'POST', headers: { 'X-DocLoom': '1', 'X-Upload-Target': endpoint }, body: data })
       : await fetch(endpoint, { method: 'POST', body: data });
     let result;
     try {
@@ -149,7 +149,7 @@ export async function uploadPendingImage() {
     } catch {
       throw Error(response.status === 404 ? 'نشانی API آپلود پیدا نشد (404)' : 'پاسخ سرور آپلود قابل‌خواندن نبود');
     }
-    if (result.error === 'upload-host-not-allowed') throw Error('سرور DataSave فقط به zi2.ir آپلود می‌کند');
+    if (result.error === 'upload-host-not-allowed') throw Error('سرور DocLoom فقط به zi2.ir آپلود می‌کند');
     if (!response.ok || result.success !== true) throw Error(replyError(result) || 'سرور آپلود را نپذیرفت');
     const url = safeURL(imageUrlFrom(result, endpoint));
     if (!url) throw Error('سرور لینک مستقیم تصویر را برنگرداند');
@@ -159,7 +159,7 @@ export async function uploadPendingImage() {
     notify('تصویر آپلود شد و لینک در سند قرار گرفت.');
   } catch (err) {
     const blocked = err instanceof TypeError && !syncActive();
-    notify('آپلود انجام نشد: ' + (blocked ? 'zi2.ir آپلود مستقیم از مرورگر را نمی‌پذیرد؛ برنامه را از سرور DataSave (http://localhost:7123) باز کنید.' : err.message || 'اتصال یا مسیر API را بررسی کنید.'));
+    notify('آپلود انجام نشد: ' + (blocked ? 'zi2.ir آپلود مستقیم از مرورگر را نمی‌پذیرد؛ برنامه را از سرور DocLoom (http://localhost:7123) باز کنید.' : err.message || 'اتصال یا مسیر API را بررسی کنید.'));
   }
 }
 

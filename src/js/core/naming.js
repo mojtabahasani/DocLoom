@@ -1,4 +1,4 @@
-// The app was «MD2Html» before it became DocLoom / DataSave (docloom).
+// The app was «MD2Html» before it became DocLoom / DocLoom (docloom).
 //
 // Everything written from here on carries the new name. Everything the old name wrote is still the
 // user's own data, so it is adopted, never abandoned: each helper below reads the new name first and
@@ -11,12 +11,12 @@
 //   • `data-md2-furniture` / `data-md2-keep-digits` — these are written into the HTML of every
 //     document, and 44 saved documents already carry them. Renaming the attribute would mean
 //     rewriting that HTML, or carrying two spellings forever, to change a marker nobody ever sees.
-export const APP_ID = 'datasave';
+export const APP_ID = 'docloom';
 export const LEGACY_APP_ID = 'md2html';
-export const APP_NAME_FA = 'دیتاسیو';
-export const APP_NAME_EN = 'DataSave';
+export const APP_NAME_FA = 'DocLoom';
+export const APP_NAME_EN = 'DocLoom';
 
-/** The old spelling of a key this version writes, e.g. `datasave.prefs` → `md2html.prefs`. */
+/** The old spelling of a key this version writes, e.g. `docloom.prefs` → `md2html.prefs`. */
 export const legacyKey = (key) => String(key).replace(APP_ID, LEGACY_APP_ID);
 
 const store = () => {

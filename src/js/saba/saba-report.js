@@ -1,4 +1,4 @@
-// A reconstructed FastReport table -> DataSave Markdown. Pure: no DOM, no state.
+// A reconstructed FastReport table -> DocLoom Markdown. Pure: no DOM, no state.
 // Same reasoning as the bank importer: emit Markdown, and the brand letterhead, print layout,
 // PDF, Word and the chart button all work on the result.
 import { cleanText, parseAmount, faAmount, toFaDigits } from '../bank/normalize.js';

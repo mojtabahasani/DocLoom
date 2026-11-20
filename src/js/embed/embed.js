@@ -1,4 +1,4 @@
-// Embed mode: the API a host page uses when it embeds the single-file app (window.DATASAVE_EMBED,
+// Embed mode: the API a host page uses when it embeds the single-file app (window.DOCLOOM_EMBED,
 // or the older window.MD2HTML_EMBED, see CLAUDE.md).
 // Only app.js calls initEmbed(), and only when the global is defined: without it nothing here runs.
 import { store, DOC_DEFAULTS } from '../core/store.js';
@@ -23,7 +23,7 @@ function fire(name, ...args) {
     try {
       fn(...args);
     } catch (e) {
-      console.error('DataSave embed listener failed', e);
+      console.error('DocLoom embed listener failed', e);
     }
   }
 }
@@ -109,8 +109,8 @@ function applyBrand(input) {
 }
 
 function on(name, fn) {
-  if (!listeners[name]) throw new Error('DataSave embed: unknown event ' + name);
-  if (typeof fn !== 'function') throw new TypeError('DataSave embed: listener must be a function');
+  if (!listeners[name]) throw new Error('DocLoom embed: unknown event ' + name);
+  if (typeof fn !== 'function') throw new TypeError('DocLoom embed: listener must be a function');
   listeners[name].add(fn);
   return () => listeners[name].delete(fn);
 }
@@ -160,7 +160,7 @@ function makeSlot() {
   return slot;
 }
 
-/** Wire embed mode. Called by app.js after every module is initialised, only when DATASAVE_EMBED is defined. */
+/** Wire embed mode. Called by app.js after every module is initialised, only when DOCLOOM_EMBED is defined. */
 export function initEmbed() {
   const cfg = embedConfig();
   trimChrome(cfg);
@@ -188,14 +188,14 @@ export function initEmbed() {
     if (TRACKED_KEYS.has(key)) touched();
   });
   store.on('embed:save', () => fire('save'));
-  // `window.DataSave` is the name now; `window.MD2Html` is the one host pages were written against
+  // `window.DocLoom` is the name now; `window.MD2Html` is the one host pages were written against
   // and it points at the same object, so an existing host keeps working untouched. Same for the
   // ready event: both are fired, and a host that listens for either hears it exactly once.
-  window.DataSave = Object.assign(window.DataSave || {}, { embed: api });
-  window.MD2Html = window.DataSave;
+  window.DocLoom = Object.assign(window.DocLoom || {}, { embed: api });
+  window.MD2Html = window.DocLoom;
   markClean();
   api.ready = true;
-  window.dispatchEvent(new Event('datasave:ready'));
+  window.dispatchEvent(new Event('docloom:ready'));
   window.dispatchEvent(new Event('md2html:ready'));
   return api;
 }

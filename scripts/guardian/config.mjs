@@ -1,4 +1,4 @@
-// نگهبان کدِ دیتاسیو — پیکربندیِ پروژه روی موتور مشترک @darwin/guardian (ADR 0003).
+// نگهبان کدِ DocLoom — پیکربندیِ پروژه روی موتور مشترک @darwin/guardian (ADR 0003).
 //
 // مرز طبق همان ADR: موتور و «بستهٔ قواعد مشترک» در داروین‌اند، قاعده و شدتِ این پروژه همین‌جا.
 // هر قاعده یک `origin` دارد: از کدام باگ یا قرارداد واقعی آمده. قانونی که شکستنش نامرئی باشد
@@ -35,7 +35,7 @@ const manifest = createManifest([
   {
     code: 'MD-SECRET', title: 'راز یا کلید درون کد', severity: 'critical',
     greppable: true, enforcedBy: ['hook'],
-    origin: 'DW-SECRET داروین. این برنامه تک‌فایل است و کل کدش در DataSave.html به دست کاربر می‌رسد: هر رازی در کد، رازِ منتشرشده است.',
+    origin: 'DW-SECRET داروین. این برنامه تک‌فایل است و کل کدش در DocLoom.html به دست کاربر می‌رسد: هر رازی در کد، رازِ منتشرشده است.',
   },
   {
     code: 'MD-ACC', title: 'آکاردئون در پنل کناری برگشته', severity: 'advisory',
@@ -88,8 +88,8 @@ const RULES = [
 ];
 
 export const config = {
-  name: 'دیتاسیو',
-  title: 'نگهبانِ دیتاسیو',
+  name: 'DocLoom',
+  title: 'نگهبانِ DocLoom',
   roots: ['src', 'server', 'scripts', 'build.mjs'],
   fileRegex: /\.(js|mjs|css|html)$/,
   skipDirs: ['node_modules', 'dist', 'vendor', '.git', 'Sample-arena', '1file-old'],

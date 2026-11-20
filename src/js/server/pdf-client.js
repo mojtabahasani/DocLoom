@@ -8,7 +8,7 @@ import { saveAs, safeFilename } from '../export/files.js';
 import { syncActive } from './sync.js';
 import { readStored, writeStored } from '../core/naming.js';
 
-const NUM_KEY = 'datasave.pdfPageNumbers';
+const NUM_KEY = 'docloom.pdfPageNumbers';
 export const getPageNumbers = () => readStored(NUM_KEY) === '1';
 export const setPageNumbers = (on) => writeStored(NUM_KEY, on ? '1' : '0');
 
@@ -18,13 +18,13 @@ export async function exportPDFDirect() {
     notify(why + ' پنجرهٔ چاپ باز شد.');
     printDocument();
   };
-  if (!syncActive()) return fallback('PDF مستقیم به سرور دیتاسیو نیاز دارد.');
+  if (!syncActive()) return fallback('PDF مستقیم به سرور DocLoom نیاز دارد.');
   notify('در حال ساخت PDF…');
   let bytes;
   try {
     const r = await fetch('/api/pdf', {
       method: 'POST',
-      headers: { 'X-DataSave': '1', 'Content-Type': 'application/json' },
+      headers: { 'X-DocLoom': '1', 'Content-Type': 'application/json' },
       body: JSON.stringify({ html: buildExportHTML(), pageNumbers: getPageNumbers() }),
     });
     if (!r.ok) {

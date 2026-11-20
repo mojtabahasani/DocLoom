@@ -113,7 +113,7 @@ export function registerCommands() {
 
   // Shortcuts (⌘ on macOS, Ctrl elsewhere; also matched by key position so a Persian keyboard layout works).
   defineShortcut({ id: 'palette', keys: 'Mod+K', title: 'پالت فرمان', run: () => palette.open() });
-  // Embed mode: ⌘S only tells the host (DataSave.embed.on('save')); the host decides where the document goes.
+  // Embed mode: ⌘S only tells the host (DocLoom.embed.on('save')); the host decides where the document goes.
   if (embedConfig().active) defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره', run: () => store.emit('embed:save') });
   else defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره (روی فایل متصل، وگرنه نسخه)', run: () => saveCommand() });
   defineShortcut({ id: 'undo', keys: 'Mod+Z', title: 'واگرد (در سند)', scope: 'preview', run: undo });

@@ -1,5 +1,5 @@
 // Active digit script for everything the app writes: 'fa' (Persian, the default) or 'en' (Latin).
-// Embed mode can ask for Latin (`DATASAVE_EMBED.digits = 'en'`); generators read digitMode() at call time.
+// Embed mode can ask for Latin (`DOCLOOM_EMBED.digits = 'en'`); generators read digitMode() at call time.
 import { embedConfig } from './embed-config.js';
 
 export const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';

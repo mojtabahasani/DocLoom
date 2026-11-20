@@ -62,5 +62,5 @@ test('the API, other origins and non-GET requests are left alone', async () => {
 test('the cache name carries the build version so a rebuild drops the old shell', async () => {
   const src = await readFile(new URL('../pwa/sw.js', import.meta.url), 'utf8');
   assert.match(src, /const VERSION = '__VERSION__'/, 'build.mjs substitutes this placeholder');
-  assert.match(src, /datasave-' \+ VERSION/);
+  assert.match(src, /docloom-' \+ VERSION/);
 });

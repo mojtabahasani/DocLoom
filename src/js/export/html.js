@@ -30,7 +30,7 @@ const BASE_CSS =
   '@media print{body{padding:0;background:white}main{max-width:none;padding:0;background:var(--paper,#fffefa)}h1,h2,h3{break-after:avoid-page}blockquote,.card,.doc-image{break-inside:avoid}thead{display:table-header-group}tr{break-inside:avoid}}';
 
 export function embeddedFontCSS() {
-  return document.getElementById('datasave-font')?.textContent || '';
+  return document.getElementById('docloom-font')?.textContent || '';
 }
 
 /** Shared by the plain and interactive exports: the sanitized <main> plus colours and font CSS. */

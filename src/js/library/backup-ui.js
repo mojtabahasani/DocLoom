@@ -22,7 +22,7 @@ export async function exportBackup() {
   await library.flush();
   const data = await readAll();
   const backup = buildBackup(data);
-  downloadFile(`datasave-backup-${stamp()}.json`, JSON.stringify(backup), 'application/json;charset=utf-8');
+  downloadFile(`docloom-backup-${stamp()}.json`, JSON.stringify(backup), 'application/json;charset=utf-8');
   notify(`پشتیبان ساخته شد: ${fa(data.documents.length)} سند، ${fa(data.versions.length)} نسخه.`);
 }
 

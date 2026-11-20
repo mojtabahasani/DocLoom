@@ -43,7 +43,7 @@ import { registerSmartCommands, initSmartButtons } from './ui/commands-smart.js'
 import { embedConfig } from './core/embed-config.js';
 import { initEmbed } from './embed/embed.js';
 
-// Embed mode (window.DATASAVE_EMBED): without the global every flag is on and `active` is false.
+// Embed mode (window.DOCLOOM_EMBED): without the global every flag is on and `active` is false.
 const EMBED = embedConfig();
 
 async function main() {
@@ -96,7 +96,7 @@ async function main() {
   if (await initSync()) {
     activateLinked();
     await openFromUrl();
-  } // no-op (and no network) unless served by the DataSave server
+  } // no-op (and no network) unless served by the DocLoom server
 }
 
-main().catch((e) => console.error('DataSave failed to start', e));
+main().catch((e) => console.error('DocLoom failed to start', e));

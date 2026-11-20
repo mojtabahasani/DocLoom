@@ -7,7 +7,7 @@ import { downloadFile } from '../export/files.js';
 import { refreshFurniture } from '../editor/preview.js';
 
 export function exportSettings() {
-  downloadFile('datasave-settings.json', JSON.stringify(buildSettings(store.snapshot()), null, 2), 'application/json;charset=utf-8');
+  downloadFile('docloom-settings.json', JSON.stringify(buildSettings(store.snapshot()), null, 2), 'application/json;charset=utf-8');
   notify('تنظیمات ذخیره شد؛ متن سند، تصویرها و توکن‌ها داخل JSON نیستند.');
 }
 
@@ -37,6 +37,6 @@ export function initSettings() {
       return;
     }
     if (applySettingsText(await file.text())) notify('تنظیمات JSON بارگذاری و اعمال شد.');
-    else notify('فایل تنظیمات معتبرِ دیتاسیو نیست یا مقدارهای آن خارج از محدوده‌اند.');
+    else notify('فایل تنظیمات معتبرِ DocLoom نیست یا مقدارهای آن خارج از محدوده‌اند.');
   });
 }

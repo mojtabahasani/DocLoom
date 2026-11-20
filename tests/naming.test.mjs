@@ -1,4 +1,4 @@
-// The app was renamed from MD2Html to دیتاسیو / DataSave. These tests are the promise that came
+// The app was renamed from MD2Html to DocLoom / DocLoom. These tests are the promise that came
 // with the rename: nothing written under the old name is lost, and nothing that still speaks the
 // old name is turned away. A rename must cost no one a document, a preference or a backup.
 import test from 'node:test';
@@ -38,38 +38,38 @@ const withStorage = (storage, fn) => {
 };
 
 test('legacyKey maps the new spelling back to the old one', () => {
-  assert.equal(legacyKey('datasave.prefs'), 'md2html.prefs');
-  assert.equal(legacyKey('datasave.sync'), 'md2html.sync');
-  assert.equal(legacyKey('datasave-backup'), 'md2html-backup');
-  assert.equal(APP_ID, 'datasave');
+  assert.equal(legacyKey('docloom.prefs'), 'md2html.prefs');
+  assert.equal(legacyKey('docloom.sync'), 'md2html.sync');
+  assert.equal(legacyKey('docloom-backup'), 'md2html-backup');
+  assert.equal(APP_ID, 'docloom');
   assert.equal(LEGACY_APP_ID, 'md2html');
 });
 
 test('a value stored under the old name is adopted, once, and then owned', () => {
   const ls = fakeStorage({ 'md2html.reader': '{"size":21}' });
   withStorage(ls, () => {
-    assert.equal(readStored('datasave.reader'), '{"size":21}', 'the old value is found');
-    assert.ok(ls.has('datasave.reader'), 'and carried over to the new key');
+    assert.equal(readStored('docloom.reader'), '{"size":21}', 'the old value is found');
+    assert.ok(ls.has('docloom.reader'), 'and carried over to the new key');
     assert.ok(!ls.has('md2html.reader'), 'the old key is not left behind to drift');
-    assert.equal(readStored('datasave.reader'), '{"size":21}', 'a second read is plain and unchanged');
+    assert.equal(readStored('docloom.reader'), '{"size":21}', 'a second read is plain and unchanged');
   });
 });
 
 test('the new key wins when both exist, and absence stays absence', () => {
-  const ls = fakeStorage({ 'md2html.reader': 'old', 'datasave.reader': 'new' });
+  const ls = fakeStorage({ 'md2html.reader': 'old', 'docloom.reader': 'new' });
   withStorage(ls, () => {
-    assert.equal(readStored('datasave.reader'), 'new');
-    assert.equal(readStored('datasave.nothing'), null);
+    assert.equal(readStored('docloom.reader'), 'new');
+    assert.equal(readStored('docloom.nothing'), null);
   });
 });
 
 test('writing and removing touch both spellings sensibly', () => {
   const ls = fakeStorage({ 'md2html.followEnd': '1' });
   withStorage(ls, () => {
-    writeStored('datasave.followEnd', '0');
-    assert.equal(ls.getItem('datasave.followEnd'), '0');
-    removeStored('datasave.followEnd');
-    assert.ok(!ls.has('datasave.followEnd') && !ls.has('md2html.followEnd'), 'remove clears the old copy too');
+    writeStored('docloom.followEnd', '0');
+    assert.equal(ls.getItem('docloom.followEnd'), '0');
+    removeStored('docloom.followEnd');
+    assert.ok(!ls.has('docloom.followEnd') && !ls.has('md2html.followEnd'), 'remove clears the old copy too');
   });
 });
 
@@ -86,29 +86,29 @@ test('storage that throws never takes the app down', () => {
     },
   };
   withStorage(hostile, () => {
-    assert.equal(readStored('datasave.prefs'), null);
-    assert.equal(writeStored('datasave.prefs', 'x'), false);
-    assert.doesNotThrow(() => removeStored('datasave.prefs'));
+    assert.equal(readStored('docloom.prefs'), null);
+    assert.equal(writeStored('docloom.prefs', 'x'), false);
+    assert.doesNotThrow(() => removeStored('docloom.prefs'));
   });
 });
 
 test('env vars answer to both names, new first', () => {
-  assert.equal(envVar('DATA', { DATASAVE_DATA: '/new' }), '/new');
+  assert.equal(envVar('DATA', { DOCLOOM_DATA: '/new' }), '/new');
   assert.equal(envVar('DATA', { MD2HTML_DATA: '/old' }), '/old', 'an installed LaunchAgent still sets the old name');
-  assert.equal(envVar('DATA', { DATASAVE_DATA: '/new', MD2HTML_DATA: '/old' }), '/new');
+  assert.equal(envVar('DATA', { DOCLOOM_DATA: '/new', MD2HTML_DATA: '/old' }), '/new');
   assert.equal(envVar('PORT', {}), undefined);
 });
 
 test('the data directory never moves a library out from under the user', () => {
   const home = '/home/u';
-  assert.equal(defaultDataDir({ DATASAVE_DATA: '/explicit' }, home), '/explicit', 'an explicit setting wins');
+  assert.equal(defaultDataDir({ DOCLOOM_DATA: '/explicit' }, home), '/explicit', 'an explicit setting wins');
   // Nothing on disk yet → the new name.
-  assert.equal(defaultDataDir({}, '/nonexistent-home-for-this-test'), '/nonexistent-home-for-this-test/Documents/DataSave');
+  assert.equal(defaultDataDir({}, '/nonexistent-home-for-this-test'), '/nonexistent-home-for-this-test/Documents/DocLoom');
 });
 
 test('the CSRF header is accepted under either name', () => {
   const ok = (h) => csrfOk('POST', '/api/lib/documents/x', { ...h, origin: 'http://localhost:7123', host: 'localhost:7123' });
-  assert.equal(ok({ 'x-datasave': '1' }), true);
+  assert.equal(ok({ 'x-docloom': '1' }), true);
   assert.equal(ok({ 'x-md2html': '1' }), true, 'the CLI and the Finder workflows still send the old one');
   assert.equal(ok({}), false, 'and a request with neither is still refused');
 });
@@ -116,20 +116,20 @@ test('the CSRF header is accepted under either name', () => {
 test('a backup file from before the rename still validates', () => {
   const made = buildBackup({ documents: [], versions: [], brands: [] });
   assert.equal(made.format, BACKUP_FORMAT);
-  assert.equal(made.app, 'DataSave');
+  assert.equal(made.app, 'DocLoom');
   assert.equal(validateBackup(made).ok, true);
   assert.equal(validateBackup({ ...made, format: LEGACY_BACKUP_FORMAT }).ok, true, 'the old format is the same backup');
   assert.equal(validateBackup({ ...made, format: 'something-else' }).ok, false);
 });
 
 test('backup filenames: both prefixes are recognised and ordered by date', () => {
-  assert.ok(NAME_RE.test('datasave-2026-11-18.json.gz'));
+  assert.ok(NAME_RE.test('docloom-2026-11-18.json.gz'));
   assert.ok(NAME_RE.test('md2html-2026-11-18.json.gz'));
   assert.equal(dayOf('md2html-2026-11-18.json.gz'), '2026-11-18');
-  assert.equal(dayOf('datasave-2026-11-18.json.gz'), '2026-11-18');
+  assert.equal(dayOf('docloom-2026-11-18.json.gz'), '2026-11-18');
   assert.equal(dayOf('notes.txt'), null);
-  // Alphabetically «datasave-» precedes «md2html-», so a naive sort would drop the newest file.
-  const mixed = ['datasave-2026-11-18.json.gz', 'md2html-2026-01-01.json.gz'];
+  // Alphabetically «docloom-» precedes «md2html-», so a naive sort would drop the newest file.
+  const mixed = ['docloom-2026-11-18.json.gz', 'md2html-2026-01-01.json.gz'];
   assert.deepEqual(rotation(mixed, 1), ['md2html-2026-01-01.json.gz']);
 });
 

@@ -1,6 +1,6 @@
-// DataSave service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
-const VERSION = '731ab0d224';
-const CACHE = 'datasave-' + VERSION;
+// DocLoom service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
+const VERSION = 'ba55d51d8c';
+const CACHE = 'docloom-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -11,7 +11,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('datasave-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('docloom-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

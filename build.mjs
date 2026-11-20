@@ -1,5 +1,5 @@
-// DataSave build: bundles src/ into one self-contained HTML file.
-//   dist/DataSave.html  -> copied to ./DataSave.html
+// DocLoom build: bundles src/ into one self-contained HTML file.
+//   dist/DocLoom.html  -> copied to ./DocLoom.html
 //   dist/pwa/          -> installable build: index.html (same app + manifest link), sw.js, manifest, icons
 import { build, transform } from 'esbuild';
 import { createHash } from 'node:crypto';
@@ -107,14 +107,14 @@ async function buildSingle() {
     bundleCSS(),
     fontCSS(),
   ]);
-  let html = inject(tpl, '<!--FONT-->', `<style id="datasave-font">${font}</style>`);
+  let html = inject(tpl, '<!--FONT-->', `<style id="docloom-font">${font}</style>`);
   html = inject(html, '<!--CSS-->', `<style>${css}</style>`);
   html = inject(html, '<!--JS-->', `<script>${js}</script>`);
   await mkdir(p('dist'), { recursive: true });
-  await writeFile(p('dist/DataSave.html'), html);
-  await copyFile(p('dist/DataSave.html'), p('DataSave.html'));
-  const size = (await stat(p('dist/DataSave.html'))).size;
-  console.log(`dist/DataSave.html ${(size / 1024).toFixed(1)} KB  (v${VERSION}, ${BUILT_AT}, build ${BUILD_ID})`);
+  await writeFile(p('dist/DocLoom.html'), html);
+  await copyFile(p('dist/DocLoom.html'), p('DocLoom.html'));
+  const size = (await stat(p('dist/DocLoom.html'))).size;
+  console.log(`dist/DocLoom.html ${(size / 1024).toFixed(1)} KB  (v${VERSION}, ${BUILT_AT}, build ${BUILD_ID})`);
   if (size > MAX_BYTES) throw new Error(`Build exceeds ${MAX_BYTES} bytes`);
 }
 
@@ -122,7 +122,7 @@ const MANIFEST_TAGS =
   '<link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">\n<link rel="apple-touch-icon" href="icons/icon-192.png">\n<meta name="theme-color" content="#1f6f5f">\n';
 
 async function buildPwa() {
-  const single = await readFile(p('dist/DataSave.html'), 'utf8');
+  const single = await readFile(p('dist/DocLoom.html'), 'utf8');
   const html = inject(single, '</head>', MANIFEST_TAGS + '</head>');
   const version = createHash('sha256').update(html).digest('hex').slice(0, 10);
   const out = p('dist/pwa');

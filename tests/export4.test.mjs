@@ -225,7 +225,7 @@ test('presentation html: next on the right, prev on the left, keys not mirrored,
   assert.match(html, /ArrowRight[^]*?show\(i ?\+ ?1\)/);
   assert.match(html, /ArrowLeft[^]*?show\(i ?- ?1\)/);
   assert.equal(document.querySelectorAll('.slide').length, 2);
-  assert.ok(!/contenteditable|indexedDB|datasave-font/i.test(html));
+  assert.ok(!/contenteditable|indexedDB|docloom-font/i.test(html));
 });
 
 test('interactive html: features present, no editor code, no external URLs', () => {
@@ -237,7 +237,7 @@ test('interactive html: features present, no editor code, no external URLs', () 
   for (const needle of ['xi-toc', 'xi-progress', 'xi-top', 'xi-copy', 'prefers-color-scheme', 'li.task']) assert.ok(html.includes(needle), needle);
   assert.match(html, /\.xi-group\{[^}]*direction:ltr/);
   assert.match(html, /\.xi-progress\{[^}]*direction:ltr/);
-  assert.ok(!/contenteditable|indexedDB|serviceWorker|datasave-font/i.test(html), 'editor code leaked');
+  assert.ok(!/contenteditable|indexedDB|serviceWorker|docloom-font/i.test(html), 'editor code leaked');
   assert.ok(!/(src|href)=["']https?:/i.test(html), 'external reference');
   assert.ok(!/url\(["']?https?:|@import|<script[^>]+src=|<link/i.test(html), 'external resource');
   assert.ok(!/fetch\(|XMLHttpRequest|WebSocket/.test(html));

@@ -5,7 +5,7 @@ import { MIME } from './http.js';
 
 export function createStatic(root, extra = {}) {
   const base = fs.realpathSync(root);
-  const alias = new Map(Object.entries(extra)); // url path -> absolute file (e.g. /DataSave.html)
+  const alias = new Map(Object.entries(extra)); // url path -> absolute file (e.g. /DocLoom.html)
   return function serve(req, res, urlPath, headers) {
     let file;
     if (alias.has(urlPath)) file = alias.get(urlPath);

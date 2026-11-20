@@ -1,4 +1,4 @@
-// Library sync with the DataSave server. Active ONLY when the page is served over http(s) and same-origin /api/health answers;
+// Library sync with the DocLoom server. Active ONLY when the page is served over http(s) and same-origin /api/health answers;
 // on file:// nothing is fetched at all. IndexedDB stays the offline cache.
 import { embedConfig } from '../core/embed-config.js';
 import { db } from '../library/db.js';
@@ -12,7 +12,7 @@ import { brands } from '../brand/brands.js';
 import { APP_ID, LEGACY_APP_ID, readStored, writeStored } from '../core/naming.js';
 import { SYNC_STORES, keyOf, splitKey, isSynced, localTs, decide, conflictCopy, sameDocContent } from './sync-core.js';
 
-const STATE_KEY = 'datasave.sync';
+const STATE_KEY = 'docloom.sync';
 const CLIENT = Math.random().toString(36).slice(2, 12);
 const INTERVAL = 30000;
 const PUSH_DELAY = 2000;
@@ -49,7 +49,7 @@ function saveState() {
 async function req(method, path, body) {
   const r = await fetch(path, {
     method,
-    headers: { 'X-DataSave': '1', 'X-DataSave-Client': CLIENT, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { 'X-DocLoom': '1', 'X-DocLoom-Client': CLIENT, ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });
@@ -259,7 +259,7 @@ export const syncNow = () => (active ? sync() : Promise.resolve());
 
 /** Probe same-origin /api/health once. Never touches the network on file:// or other non-web origins. */
 export async function initSync() {
-  const ok = embedConfig().server ? await probe() : false; // embed host without the DataSave server: no probe at all
+  const ok = embedConfig().server ? await probe() : false; // embed host without the DocLoom server: no probe at all
   readyResolve(ok);
   return ok;
 }

@@ -4,7 +4,7 @@ import { REASONS } from './version-rules.js';
 import { normalizeTags } from './doc-model.js';
 import { normalizeBrand } from '../brand/brand-model.js';
 
-export const BACKUP_FORMAT = 'datasave-backup';
+export const BACKUP_FORMAT = 'docloom-backup';
 /** Backups written before the app was renamed. They are still the user's backups: read them. */
 export const LEGACY_BACKUP_FORMAT = 'md2html-backup';
 export const BACKUP_VERSION = 1;
@@ -14,7 +14,7 @@ export function buildBackup({ documents = [], versions = [], brands = [], settin
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
-    app: 'DataSave',
+    app: 'DocLoom',
     exportedAt: new Date(now).toISOString(),
     documents,
     versions,
@@ -56,7 +56,7 @@ function cleanBrand(b) {
 
 /** @returns {{ok:true, data:{documents,versions,brands,settings}, counts} | {ok:false, error:string}} */
 export function validateBackup(obj) {
-  if (!plain(obj) || (obj.format !== BACKUP_FORMAT && obj.format !== LEGACY_BACKUP_FORMAT)) return { ok: false, error: 'فایل پشتیبان معتبرِ دیتاسیو نیست.' };
+  if (!plain(obj) || (obj.format !== BACKUP_FORMAT && obj.format !== LEGACY_BACKUP_FORMAT)) return { ok: false, error: 'فایل پشتیبان معتبرِ DocLoom نیست.' };
   if (obj.version !== BACKUP_VERSION) return { ok: false, error: 'نسخهٔ این فایل پشتیبان پشتیبانی نمی‌شود.' };
   if (![obj.documents, obj.versions, obj.brands].every(Array.isArray)) return { ok: false, error: 'ساختار فایل پشتیبان ناقص است.' };
   const take = (list, clean, label) => {

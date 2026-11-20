@@ -1,4 +1,4 @@
-// Daily automatic backups: backups/datasave-YYYY-MM-DD.json.gz (whole library, client backup format).
+// Daily automatic backups: backups/docloom-YYYY-MM-DD.json.gz (whole library, client backup format).
 // Keeps the newest 30. Files written before the app was renamed are called md2html-… ; they are the
 // same user's backups, so every pattern here accepts either prefix and only new files get the new one.
 import fs from 'node:fs';
@@ -6,8 +6,8 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 
 export const KEEP = 30;
-const APP = 'datasave';
-const PREFIX = '(?:datasave|md2html)';
+const APP = 'docloom';
+const PREFIX = '(?:docloom|md2html)';
 export const NAME_RE = new RegExp(`^${PREFIX}-(\\d{4}-\\d{2}-\\d{2}|pre-restore-\\d{8}-\\d{6})\\.json\\.gz$`);
 const DAILY_RE = new RegExp(`^${PREFIX}-\\d{4}-\\d{2}-\\d{2}\\.json\\.gz$`);
 
@@ -74,7 +74,7 @@ export class Backups {
     this.log?.info(`daily backup written (${dayStamp(now)})`);
   }
   lastDailyDay() {
-    // Two prefixes now live side by side, and «datasave-» sorts before «md2html-» whatever the
+    // Two prefixes now live side by side, and «docloom-» sorts before «md2html-» whatever the
     // date is — so the newest backup is found by its date, never by its filename.
     const days = fs.readdirSync(this.dir).filter((n) => DAILY_RE.test(n)).map(dayOf).filter(Boolean).sort();
     return days.pop() || null;
@@ -101,7 +101,7 @@ export class Backups {
     const file = path.join(this.dir, name);
     if (!fs.existsSync(file)) throw Object.assign(new Error('not found'), { status: 404 });
     const backup = JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString('utf8'));
-    if (!/^(datasave|md2html)-backup$/.test(String(backup.format)) || !Array.isArray(backup.documents)) throw Object.assign(new Error('invalid backup'), { status: 422 });
+    if (!/^(docloom|md2html)-backup$/.test(String(backup.format)) || !Array.isArray(backup.documents)) throw Object.assign(new Error('invalid backup'), { status: 422 });
     const pre = `${APP}-pre-restore-${timeStamp(new Date())}.json.gz`;
     this.create(pre);
     this.store.restore(backup);

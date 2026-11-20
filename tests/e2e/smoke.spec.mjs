@@ -27,7 +27,7 @@ test('the app boots clean and makes no network request but the health probe', as
   expect(offTargetRequests(requests, baseURL), 'the offline app must not reach the network').toEqual([]);
 });
 
-test('the DataSave Markdown dialect renders', async ({ page }) => {
+test('the DocLoom Markdown dialect renders', async ({ page }) => {
   await openApp(page);
   await setSource(page, SAMPLE);
   const p = page.locator('#preview');

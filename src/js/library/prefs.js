@@ -4,8 +4,8 @@ import { db } from './db.js';
 import { sanitizePrefs, STORE_PREF_KEYS } from './prefs-schema.js';
 import { readStored, writeStored, removeStored } from '../core/naming.js';
 
-const LEGACY_THEME = 'datasave.appTheme'; // read under the old «md2html.» spelling too — see core/naming.js
-const MIRROR = 'datasave.prefs'; // used only when IndexedDB is unavailable
+const LEGACY_THEME = 'docloom.appTheme'; // read under the old «md2html.» spelling too — see core/naming.js
+const MIRROR = 'docloom.prefs'; // used only when IndexedDB is unavailable
 let cache = {};
 
 const readMirror = () => {

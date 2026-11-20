@@ -12,7 +12,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>DataSave: PDF بساز</string>
+				<string>DocLoom: PDF بساز</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>runWorkflowAsService</string>

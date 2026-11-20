@@ -13,13 +13,13 @@ const LAN = { 'x-test-remote-addr': '192.168.1.50' };
 const lanChanges = [];
 
 before(async () => {
-  process.env.DATASAVE_TEST = '1';
+  process.env.DOCLOOM_TEST = '1';
   srv = await createServer({ dataDir: data, echo: false, onLanChange: (on) => lanChanges.push(on) });
   await new Promise((r) => srv.server.listen(0, '127.0.0.1', r));
   port = srv.server.address().port;
 });
 after(() => {
-  delete process.env.DATASAVE_TEST;
+  delete process.env.DOCLOOM_TEST;
   srv.server.closeAllConnections?.();
   srv.server.close();
   fs.rmSync(data, { recursive: true, force: true });
@@ -29,8 +29,8 @@ function call(method, p, { headers = {}, body, raw } = {}) {
   return new Promise((resolve, reject) => {
     const payload = raw ?? (body === undefined ? null : JSON.stringify(body));
     const h = { Host: `127.0.0.1:${port}`, ...headers };
-    if (method !== 'GET' && h['X-DataSave'] === undefined && !h.noapi) {
-      h['X-DataSave'] = '1';
+    if (method !== 'GET' && h['X-DocLoom'] === undefined && !h.noapi) {
+      h['X-DocLoom'] = '1';
       h.Origin ??= `http://127.0.0.1:${port}`;
     }
     if (payload) h['Content-Length'] = Buffer.byteLength(payload);
@@ -58,13 +58,13 @@ test('static: app, standalone file, security headers; traversal is refused', asy
   assert.match(r.headers['content-security-policy'], /frame-ancestors 'none'/);
   assert.equal(r.headers['x-content-type-options'], 'nosniff');
   assert.equal(r.headers['referrer-policy'], 'no-referrer');
-  assert.equal((await call('GET', '/DataSave.html')).status, 200);
+  assert.equal((await call('GET', '/DocLoom.html')).status, 200);
   assert.equal((await call('GET', '/manifest.webmanifest')).status, 200);
   assert.equal((await call('GET', '/sw.js')).status, 200);
   for (const p of ['/../package.json', '/%2e%2e/package.json', '/..%2fpackage.json', '/icons/../../package.json', '/%00']) {
     const x = await call('GET', p);
     assert.ok([400, 404].includes(x.status), `${p} → ${x.status}`);
-    assert.ok(!x.text.includes('datasave'), p);
+    assert.ok(!x.text.includes('docloom'), p);
   }
   assert.equal((await call('GET', '/nope.txt')).status, 404);
 });
@@ -72,7 +72,7 @@ test('static: app, standalone file, security headers; traversal is refused', asy
 test('localhost needs no PIN; health is open', async () => {
   const h = await call('GET', '/api/health');
   assert.equal(h.json.ok, true);
-  assert.equal(h.json.app, 'datasave');
+  assert.equal(h.json.app, 'docloom');
   assert.equal((await call('GET', '/api/lib/documents')).status, 200);
 });
 
@@ -81,7 +81,7 @@ test('guards: public IP, bad Host, CSRF, body limit', async () => {
   assert.equal((await call('GET', '/api/health', { headers: { Host: 'evil.com' } })).status, 421);
   assert.equal((await call('GET', '/api/health', { headers: { Host: 'evil.com:80' } })).status, 421);
   const put = (headers) => call('PUT', '/api/lib/documents/c1', { headers, body: { ts: 1, data: doc('c1') } });
-  assert.equal((await put({ 'X-DataSave': '0' })).status, 403, 'wrong CSRF header');
+  assert.equal((await put({ 'X-DocLoom': '0' })).status, 403, 'wrong CSRF header');
   assert.equal((await put({ Origin: 'http://evil.com' })).status, 403, 'foreign Origin');
   assert.equal((await put({ Origin: 'null' })).status, 403);
   assert.equal((await put({})).status, 200);
@@ -89,14 +89,14 @@ test('guards: public IP, bad Host, CSRF, body limit', async () => {
   assert.equal(big.status, 413);
 });
 
-test('the test-only remote address header is ignored when DATASAVE_TEST is not 1', async () => {
-  delete process.env.DATASAVE_TEST;
+test('the test-only remote address header is ignored when DOCLOOM_TEST is not 1', async () => {
+  delete process.env.DOCLOOM_TEST;
   try {
     const r = await call('GET', '/api/lib/documents', { headers: LAN });
     assert.equal(r.status, 200, 'treated as the real (loopback) peer, not as a LAN client');
     assert.equal((await call('GET', '/api/health', { headers: { 'x-test-remote-addr': '8.8.8.8' } })).status, 200);
   } finally {
-    process.env.DATASAVE_TEST = '1';
+    process.env.DOCLOOM_TEST = '1';
   }
 });
 
@@ -106,10 +106,10 @@ test('LAN client: login page, API refused, PIN login, lockout, devices', async (
   assert.equal(page.status, 200);
   assert.match(page.text, /dir="rtl"/);
   assert.match(page.text, /رمز ۶ رقمی/);
-  assert.ok(!page.text.includes('datasave-font'), 'app is not served without a session');
+  assert.ok(!page.text.includes('docloom-font'), 'app is not served without a session');
   assert.equal((await call('GET', '/api/lib/documents', { headers: LAN })).status, 401);
   assert.equal((await call('GET', '/api/health', { headers: LAN })).status, 200);
-  assert.ok(!(await call('GET', '/DataSave.html', { headers: LAN })).text.includes('datasave-font'), 'standalone app is not served without a session');
+  assert.ok(!(await call('GET', '/DocLoom.html', { headers: LAN })).text.includes('docloom-font'), 'standalone app is not served without a session');
   // lockout (other IP so the real login below is unaffected)
   const bad = { 'x-test-remote-addr': '192.168.1.77' };
   const wrong = pin === '000000' ? '000001' : '000000';
@@ -216,7 +216,7 @@ test('SSE: another client sees changes immediately', async () => {
         buf += c;
         if (buf.includes('event: change')) { req.destroy(); resolve(buf); }
       });
-      setTimeout(() => call('PUT', '/api/lib/documents/e1', { headers: { 'X-DataSave-Client': 'abc' }, body: { ts: 1, data: doc('e1') } }), 100);
+      setTimeout(() => call('PUT', '/api/lib/documents/e1', { headers: { 'X-DocLoom-Client': 'abc' }, body: { ts: 1, data: doc('e1') } }), 100);
     });
     req.on('error', (e) => (e.code === 'ECONNRESET' ? null : reject(e)));
     setTimeout(() => reject(new Error('no SSE event')), 4000);
@@ -236,7 +236,7 @@ test('backups API: list, create, restore (pre-restore snapshot first)', async ()
   assert.ok(r.json.preRestore);
   assert.equal((await call('GET', '/api/lib/documents/r1')).json.deleted, undefined, 'document is back');
   assert.equal((await call('POST', '/api/backups/..%2F..%2Fx/restore')).status, 400);
-  assert.equal((await call('POST', '/api/backups/datasave-1999-01-01.json.gz/restore')).status, 404);
+  assert.equal((await call('POST', '/api/backups/docloom-1999-01-01.json.gz/restore')).status, 404);
   const info = await call('GET', '/api/server/info');
   assert.equal(info.json.dataDir, data);
   assert.equal(info.json.local, true);

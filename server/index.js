@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DataSave server: static app + library sync + backups + PIN login. Pure Node, no npm dependencies.
+// DocLoom server: static app + library sync + backups + PIN login. Pure Node, no npm dependencies.
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -25,8 +25,8 @@ export { defaultDataDir };
 
 /**
  * Is the server reachable from the network, or from this Mac only?
- * `DATASAVE_LAN=1|0` (or the old `DATASAVE_LAN`) wins; otherwise the saved choice (`lan` in config.json, set from the server panel
- * or `datasave lan on|off`). A data folder from before the setting existed keeps the network open only
+ * `DOCLOOM_LAN=1|0` (or the old `DOCLOOM_LAN`) wins; otherwise the saved choice (`lan` in config.json, set from the server panel
+ * or `docloom lan on|off`). A data folder from before the setting existed keeps the network open only
  * if a device is already signed in — an upgrade must not cut a phone off without a word — and a fresh
  * one starts closed.
  */
@@ -84,7 +84,7 @@ async function main() {
   const listen = (then) => {
     const host = listenHost(lanEnabled(s.auth));
     s.server.listen(port, host, () => {
-      s.log.info(`DataSave server listening on ${host}:${port} (data: ${s.dataDir})${host === '127.0.0.1' ? ' - this Mac only; open the network with: datasave lan on' : ''}`);
+      s.log.info(`DocLoom server listening on ${host}:${port} (data: ${s.dataDir})${host === '127.0.0.1' ? ' - this Mac only; open the network with: docloom lan on' : ''}`);
       then?.();
     });
   };
@@ -101,10 +101,10 @@ async function main() {
     process.exit(1);
   });
   listen(() => {
-    if (s.firstPin) s.log.info(`FIRST-RUN PIN: ${s.firstPin}  (shown once; change it with: datasave pin)`);
+    if (s.firstPin) s.log.info(`FIRST-RUN PIN: ${s.firstPin}  (shown once; change it with: docloom pin)`);
     s.backups.start();
     s.shares.start();
-    s.log.info(s.render.available() ? `PDF: Chrome found (${s.render.chrome})` : 'PDF: Chrome not found - direct PDF is off (set DATASAVE_CHROME)');
+    s.log.info(s.render.available() ? `PDF: Chrome found (${s.render.chrome})` : 'PDF: Chrome not found - direct PDF is off (set DOCLOOM_CHROME)');
   });
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => s.server.close(() => process.exit(0)) && setTimeout(() => process.exit(0), 500).unref());
 }

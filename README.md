@@ -42,7 +42,7 @@ DocLoom unifies all three into a compact, dependency-minimal codebase backed by 
 ### 5. Security, Accessibility & Embeddable SDK
 - **Strict HTML Sanitizer (`src/js/content/sanitize.js`)**: Verified against 48 XSS attack vectors (`tests/sanitize.test.mjs` and Playwright `tests/e2e/xss.spec.mjs`).
 - **WCAG 2.1 A/AA Audited (`tests/e2e/a11y.spec.mjs`)**: Automated `@axe-core/playwright` audits across editor, command palette, modals, dark mode, and reading views.
-- **Embed Mode (`src/js/core/embed-config.js`, `src/js/embed/embed.js`)**: Opt-in host integration configuration and `postMessage` API (`window.DATASAVE_EMBED`).
+- **Embed Mode (`src/js/core/embed-config.js`, `src/js/embed/embed.js`)**: Opt-in host integration configuration and `postMessage` API (`window.DOCLOOM_EMBED`).
 
 ---
 
@@ -61,7 +61,7 @@ npm run build
 ```
 
 Build outputs:
-- `DocLoom.html` / `dist/DataSave.html` — standalone single-file studio (open directly in any browser)
+- `DocLoom.html` / `dist/DocLoom.html` — standalone single-file studio (open directly in any browser)
 - `dist/pwa/` — installable PWA bundle
 
 ### Run the Companion Server (Optional)

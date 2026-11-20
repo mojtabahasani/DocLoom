@@ -64,35 +64,35 @@ test('store: validation and conditional writes', () => {
 
 test('backup rotation keeps the newest 30 (daily and pre-restore separately)', () => {
   const names = [];
-  for (let i = 1; i <= 35; i++) names.push(`datasave-2026-09-${String(i).padStart(2, '0')}.json.gz`.replace('2026-09-3', '2026-10-0'));
+  for (let i = 1; i <= 35; i++) names.push(`docloom-2026-09-${String(i).padStart(2, '0')}.json.gz`.replace('2026-09-3', '2026-10-0'));
   const uniq = [...new Set(names)];
   const drop = rotation(uniq);
   assert.equal(drop.length, uniq.length - KEEP);
   assert.deepEqual(drop, uniq.slice().sort().slice(0, drop.length));
-  assert.deepEqual(rotation(['datasave-2026-10-01.json.gz', 'notes.txt']), []);
-  const pre = Array.from({ length: 32 }, (_, i) => `datasave-pre-restore-20261001-${String(100000 + i)}.json.gz`);
+  assert.deepEqual(rotation(['docloom-2026-10-01.json.gz', 'notes.txt']), []);
+  const pre = Array.from({ length: 32 }, (_, i) => `docloom-pre-restore-20261001-${String(100000 + i)}.json.gz`);
   assert.equal(rotation(pre).length, 2);
 });
 
 test('rotation and lastDailyDay go by the date, not the filename, once both app names are present', () => {
-  // «datasave-» sorts before «datasave-» whatever the date says, so a plain filename sort would drop
+  // «docloom-» sorts before «docloom-» whatever the date says, so a plain filename sort would drop
   // this month's backup and keep last year's. The date in the name is the only ordering that holds.
   const mixed = [
-    'datasave-2026-11-01.json.gz', 'datasave-2026-11-02.json.gz',
-    'datasave-2026-11-03.json.gz', 'datasave-2026-11-04.json.gz',
+    'docloom-2026-11-01.json.gz', 'docloom-2026-11-02.json.gz',
+    'docloom-2026-11-03.json.gz', 'docloom-2026-11-04.json.gz',
   ];
-  assert.deepEqual(rotation(mixed, 2), ['datasave-2026-11-01.json.gz', 'datasave-2026-11-02.json.gz'], 'the two oldest go, whatever they are called');
-  assert.deepEqual(rotation(mixed, 3), ['datasave-2026-11-01.json.gz']);
+  assert.deepEqual(rotation(mixed, 2), ['docloom-2026-11-01.json.gz', 'docloom-2026-11-02.json.gz'], 'the two oldest go, whatever they are called');
+  assert.deepEqual(rotation(mixed, 3), ['docloom-2026-11-01.json.gz']);
   assert.deepEqual(rotation(mixed, 4), []);
 
   // And the newest day is found across both spellings.
   const dir = tmp();
   const store = new LibraryStore(path.join(dir, 'library'));
   const b = new Backups(path.join(dir, 'backups'), store);
-  b.daily(new Date(2026, 10, 3, 12)); // writes datasave-2026-11-03
-  fs.writeFileSync(path.join(dir, 'backups', 'datasave-2026-11-01.json.gz'), zlib.gzipSync('{}'));
+  b.daily(new Date(2026, 10, 3, 12)); // writes docloom-2026-11-03
+  fs.writeFileSync(path.join(dir, 'backups', 'docloom-2026-11-01.json.gz'), zlib.gzipSync('{}'));
   assert.equal(b.lastDailyDay(), '2026-11-03');
-  fs.writeFileSync(path.join(dir, 'backups', 'datasave-2026-11-09.json.gz'), zlib.gzipSync('{}'));
+  fs.writeFileSync(path.join(dir, 'backups', 'docloom-2026-11-09.json.gz'), zlib.gzipSync('{}'));
   assert.equal(b.lastDailyDay(), '2026-11-09', 'an older-named file with a newer date still wins');
 });
 
@@ -100,10 +100,10 @@ test('a backup written under the old app name is still restorable', () => {
   const dir = tmp();
   const store = new LibraryStore(path.join(dir, 'library'));
   const b = new Backups(path.join(dir, 'backups'), store);
-  const legacy = { format: 'datasave-backup', version: 1, app: 'DataSave', exportedAt: new Date().toISOString(), documents: [doc('old')], versions: [], brands: [], settings: {} };
-  fs.writeFileSync(path.join(dir, 'backups', 'datasave-2026-10-30.json.gz'), zlib.gzipSync(JSON.stringify(legacy)));
-  const r = b.restore('datasave-2026-10-30.json.gz');
-  assert.ok(r.preRestore.startsWith('datasave-pre-restore-'), 'the safety copy it takes carries the new name');
+  const legacy = { format: 'docloom-backup', version: 1, app: 'DocLoom', exportedAt: new Date().toISOString(), documents: [doc('old')], versions: [], brands: [], settings: {} };
+  fs.writeFileSync(path.join(dir, 'backups', 'docloom-2026-10-30.json.gz'), zlib.gzipSync(JSON.stringify(legacy)));
+  const r = b.restore('docloom-2026-10-30.json.gz');
+  assert.ok(r.preRestore.startsWith('docloom-pre-restore-'), 'the safety copy it takes carries the new name');
   assert.deepEqual(store.list('documents').filter((e) => !e.deleted).map((e) => e.id), ['old']);
 });
 
@@ -125,16 +125,16 @@ test('Backups: create gz, list, restore takes a pre-restore backup and replaces 
   store.put('documents', 'a', { ts: 1, data: doc('a') });
   store.put('settings', 'autosave', { ts: 1, data: { key: 'autosave', value: false } });
   b.daily(new Date(2026, 9, 30, 12));
-  const name = 'datasave-2026-10-30.json.gz';
+  const name = 'docloom-2026-10-30.json.gz';
   const saved = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, 'backups', name))));
-  assert.equal(saved.format, 'datasave-backup');
+  assert.equal(saved.format, 'docloom-backup');
   assert.equal(saved.documents.length, 1);
   assert.deepEqual(saved.settings, { autosave: false });
   // change the library, then restore
   store.put('documents', 'b', { ts: 5, data: doc('b') });
   store.del('documents', 'a', { ts: 6 });
   const r = b.restore(name);
-  assert.match(r.preRestore, /^datasave-pre-restore-\d{8}-\d{6}\.json\.gz$/);
+  assert.match(r.preRestore, /^docloom-pre-restore-\d{8}-\d{6}\.json\.gz$/);
   assert.ok(b.list().some((x) => x.name === r.preRestore));
   const live = store.list('documents').filter((e) => !e.deleted).map((e) => e.id);
   assert.deepEqual(live, ['a'], 'b removed, a back');
@@ -143,7 +143,7 @@ test('Backups: create gz, list, restore takes a pre-restore backup and replaces 
   const pre = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, 'backups', r.preRestore))));
   assert.deepEqual(pre.documents.map((x) => x.id).sort(), ['b']);
   assert.throws(() => b.restore('../etc/passwd'), (e) => e.status === 400);
-  assert.throws(() => b.restore('datasave-2020-01-01.json.gz'), (e) => e.status === 404);
+  assert.throws(() => b.restore('docloom-2020-01-01.json.gz'), (e) => e.status === 404);
   assert.equal(b.runIfDue(new Date(2026, 9, 30, 13)), false);
   assert.equal(b.runIfDue(new Date(2026, 9, 31, 13)), true);
 });

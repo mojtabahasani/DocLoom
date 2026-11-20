@@ -99,7 +99,7 @@ test('tatweel is stripped so stretched headings read normally', () => {
   assert.equal(cleanText('جـــمـــع :'), 'جمع :');
 });
 
-test('the report is DataSave Markdown with Persian amounts and an unlabelled side column named', () => {
+test('the report is DocLoom Markdown with Persian amounts and an unlabelled side column named', () => {
   const rep = buildSabaReport({ xml: LEDGER });
   assert.match(rep.markdown, /^# نمایش دفتر حساب$/m);
   assert.match(rep.markdown, /\*\*تاریخ:\*\* ۱۴۰۵\/۰۸\/۱۳/);

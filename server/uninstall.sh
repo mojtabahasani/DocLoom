@@ -1,15 +1,15 @@
 #!/bin/bash
-# Reverses install.sh: stops the LaunchAgent, removes the plist and the datasave command. Your data folder is NOT touched.
+# Reverses install.sh: stops the LaunchAgent, removes the plist and the docloom command. Your data folder is NOT touched.
 #   --dry-run   only print what would happen.
 set -euo pipefail
-LABEL="ir.computer123.datasave"
+LABEL="ir.computer123.docloom"
 LEGACY_LABEL="ir.computer123.md2html"   # the agent installed before the app was renamed
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-LINK="$HOME/.local/bin/datasave"
+LINK="$HOME/.local/bin/docloom"
 SERVICES_DIR="$HOME/Library/Services"
-WORKFLOWS=("DataSave Open.workflow" "DataSave PDF.workflow")
-DATA="${DATASAVE_DATA:-${MD2HTML_DATA:-$HOME/Documents/DataSave}}"
+WORKFLOWS=("DocLoom Open.workflow" "DocLoom PDF.workflow")
+DATA="${DOCLOOM_DATA:-${MD2HTML_DATA:-$HOME/Documents/DocLoom}}"
 [ -d "$DATA" ] || [ ! -d "$HOME/Documents/MD2Html" ] || DATA="$HOME/Documents/MD2Html"
 
 if [ "${1:-}" = "--dry-run" ]; then
@@ -26,6 +26,6 @@ launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootout "gui/$(id -u)/$LEGACY_LABEL" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/$LEGACY_LABEL.plist"
 rm -f "$PLIST"
-if [ -L "$LINK" ] && [ "$(readlink "$LINK")" = "$HERE/cli/datasave" ]; then rm -f "$LINK"; fi
+if [ -L "$LINK" ] && [ "$(readlink "$LINK")" = "$HERE/cli/docloom" ]; then rm -f "$LINK"; fi
 for w in "${WORKFLOWS[@]}"; do rm -rf "${SERVICES_DIR:?}/$w"; done
-echo "DataSave server removed. Your data is still in: $DATA"
+echo "DocLoom server removed. Your data is still in: $DATA"

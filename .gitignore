@@ -2,8 +2,7 @@ node_modules/
 .DS_Store
 .playwright-mcp/
 *.log
-dist/DataSave.html
-DocLoom.html
+dist/DocLoom.html
 test-results/
 playwright-report/
 .playwright/

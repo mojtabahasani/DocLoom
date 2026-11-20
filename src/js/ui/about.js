@@ -41,7 +41,7 @@ export function storageState(database = db, storage = () => globalThis.localStor
 
 export function openAbout() {
   const store = storageState();
-  const mode = syncActive() ? 'متصل به سرور دیتاسیو' : location.protocol === 'file:' ? 'فایل تکی روی همین دستگاه' : 'بدون سرور';
+  const mode = syncActive() ? 'متصل به سرور DocLoom' : location.protocol === 'file:' ? 'فایل تکی روی همین دستگاه' : 'بدون سرور';
 
   const table = el(
     'table',
@@ -73,5 +73,5 @@ export function openAbout() {
   );
   if (!store.ok) body.insertBefore(el('p', { class: 'form-error', role: 'alert', text: store.text + '. پیش از بستن صفحه از کتابخانه پشتیبان بگیرید.' }), table);
 
-  openModal({ title: 'دربارهٔ دیتاسیو', body });
+  openModal({ title: 'دربارهٔ DocLoom', body });
 }

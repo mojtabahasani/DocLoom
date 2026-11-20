@@ -1,7 +1,7 @@
 // Shared helpers for the browser suite.
 import { expect } from '@playwright/test';
 
-export const APP = '/DataSave.html';
+export const APP = '/DocLoom.html';
 
 /** The app's one allowed request: the offline-mode health probe, which 404s here. */
 const EXPECTED_404 = '/api/health';

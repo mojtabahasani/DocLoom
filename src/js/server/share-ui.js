@@ -15,7 +15,7 @@ import { syncActive } from './sync.js';
 const EXPIRIES = [['1d', 'یک روز'], ['7d', 'هفت روز'], ['none', 'بدون انقضا']];
 
 async function sapi(method, url, body) {
-  const r = await fetch(url, { method, headers: { 'X-DataSave': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const r = await fetch(url, { method, headers: { 'X-DocLoom': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || 'http ' + r.status);
   return j;
@@ -46,7 +46,7 @@ export async function shareLinkView(path) {
 
 export function openShare() {
   if (isEmpty()) return void notify('ابتدا متن یا فایل خود را وارد کنید.');
-  if (!syncActive()) return void notify('اشتراک لینک به سرور DataSave نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
+  if (!syncActive()) return void notify('اشتراک لینک به سرور DocLoom نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
   let expires = '7d';
   const body = el('div', { class: 'bt' });
   const err = el('p', { class: 'form-error', role: 'alert', hidden: true });

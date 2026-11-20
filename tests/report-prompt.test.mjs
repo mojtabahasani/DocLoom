@@ -35,7 +35,7 @@ test('the prompt itself obeys the Persian rules it preaches', () => {
   assert.ok(!/‌\s|\s‌/.test(both), 'no ZWNJ next to a space');
 });
 
-test('the prompt names every callout DataSave understands', () => {
+test('the prompt names every callout DocLoom understands', () => {
   for (const fa of Object.values(CALLOUTS)) assert.ok(REPORT_PROMPT.includes(`[!${fa}]`), `missing callout [!${fa}]`);
 });
 

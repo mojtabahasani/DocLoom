@@ -8,7 +8,7 @@ import { preview, plainText, isEmpty } from '../editor/preview.js';
 import { store } from '../core/store.js';
 import { readStored, writeStored } from '../core/naming.js';
 
-const READER_KEY = 'datasave.reader';
+const READER_KEY = 'docloom.reader';
 const SIZES = [15, 17, 19, 21, 24, 28];
 const BGS = [['light', 'روشن'], ['sepia', 'کرم'], ['dark', 'تیره']];
 let root = null;

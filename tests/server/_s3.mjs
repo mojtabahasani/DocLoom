@@ -8,7 +8,7 @@ import { createServer } from '../../server/index.js';
 export const LAN = { 'x-test-remote-addr': '192.168.1.50' };
 
 export async function startServer({ chrome = '/fake/chrome', roots = [], renderTimeoutMs } = {}) {
-  process.env.DATASAVE_TEST = '1';
+  process.env.DOCLOOM_TEST = '1';
   const base = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'md2h-s3-'));
   const data = path.join(base, 'data');
   const rootDir = path.join(base, 'root');
@@ -20,8 +20,8 @@ export async function startServer({ chrome = '/fake/chrome', roots = [], renderT
     new Promise((resolve, reject) => {
       const payload = raw ?? (body === undefined ? null : JSON.stringify(body));
       const h = { Host: `127.0.0.1:${port}`, ...headers };
-      if (method !== 'GET' && method !== 'HEAD' && p.startsWith('/api/') && h['X-DataSave'] === undefined) {
-        h['X-DataSave'] = '1';
+      if (method !== 'GET' && method !== 'HEAD' && p.startsWith('/api/') && h['X-DocLoom'] === undefined) {
+        h['X-DocLoom'] = '1';
         h.Origin ??= `http://127.0.0.1:${port}`;
       }
       if (payload) h['Content-Length'] = Buffer.byteLength(payload);
@@ -41,7 +41,7 @@ export async function startServer({ chrome = '/fake/chrome', roots = [], renderT
       req.end();
     });
   const stop = () => {
-    delete process.env.DATASAVE_TEST;
+    delete process.env.DOCLOOM_TEST;
     srv.server.closeAllConnections?.();
     srv.server.close();
     fs.rmSync(base, { recursive: true, force: true });

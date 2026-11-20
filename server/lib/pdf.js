@@ -10,7 +10,7 @@ import { envVar } from './env.js';
 export const CHROME_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 export const JOB_TIMEOUT_MS = 60000;
 
-/** Path of a usable Chrome, or null. DATASAVE_CHROME overrides; an override that does not exist is NOT replaced by the default. */
+/** Path of a usable Chrome, or null. DOCLOOM_CHROME overrides; an override that does not exist is NOT replaced by the default. */
 export function findChrome({ env = process.env, exists = fs.existsSync } = {}) {
   const override = envVar('CHROME', env);
   if (override) return exists(override) ? override : null;
@@ -79,12 +79,12 @@ export const FOOTER_TEMPLATE =
   '<div style="width:100%;font-size:9px;color:#666;text-align:center;font-family:Tahoma,Arial,sans-serif;direction:ltr"><span class="pageNumber"></span> / <span class="totalPages"></span></div>';
 
 /**
- * Open `url` in a fresh headless Chrome, wait until the page sets window.__datasaveReady, then produce what was asked.
+ * Open `url` in a fresh headless Chrome, wait until the page sets window.__docloomReady, then produce what was asked.
  * @returns {Promise<{pdf?:Buffer, html?:string}>}
  */
 export async function chromeRender({ chrome, url, want = { pdf: true }, pageNumbers = false, signal, staticPage = false, spawn = nodeSpawn, tmpBase = os.tmpdir(), readyTimeoutMs = 45000 }) {
   if (!chrome) throw new RenderError('chrome-unavailable');
-  const profile = fs.mkdtempSync(path.join(tmpBase, 'datasave-chrome-'));
+  const profile = fs.mkdtempSync(path.join(tmpBase, 'docloom-chrome-'));
   let child;
   let cdp;
   let exited = null;
@@ -135,7 +135,7 @@ export async function chromeRender({ chrome, url, want = { pdf: true }, pageNumb
       if (r.result?.value !== 'ok') throw new RenderError('render-failed', 'page did not load');
     } else for (;;) {
       if (signal?.aborted) throw new RenderError('aborted');
-      const r = await s('Runtime.evaluate', { expression: 'window.__datasaveError ? "E:" + window.__datasaveError : window.__datasaveReady === true ? "ok" : ""', returnByValue: true });
+      const r = await s('Runtime.evaluate', { expression: 'window.__docloomError ? "E:" + window.__docloomError : window.__docloomReady === true ? "ok" : ""', returnByValue: true });
       const v = r.result?.value;
       if (v === 'ok') break;
       if (v) throw new RenderError('render-failed', String(v).slice(2));
@@ -144,7 +144,7 @@ export async function chromeRender({ chrome, url, want = { pdf: true }, pageNumb
     }
     const out = {};
     if (want.html) {
-      const r = await s('Runtime.evaluate', { expression: 'window.__datasaveHTML || ""', returnByValue: true });
+      const r = await s('Runtime.evaluate', { expression: 'window.__docloomHTML || ""', returnByValue: true });
       out.html = String(r.result?.value || '');
     }
     if (want.pdf) {

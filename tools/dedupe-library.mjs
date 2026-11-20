@@ -35,9 +35,9 @@ const DIR = (() => {
   if (i >= 0 && argv[i + 1]) return argv[i + 1];
   // Same rule as server/lib/env.js: an explicit setting wins, then the new name, then the
   // library that is actually on disk under the old one.
-  const explicit = process.env.DATASAVE_DATA || process.env.MD2HTML_DATA;
+  const explicit = process.env.DOCLOOM_DATA || process.env.MD2HTML_DATA;
   if (explicit) return explicit;
-  const now = path.join(os.homedir(), 'Documents', 'DataSave');
+  const now = path.join(os.homedir(), 'Documents', 'DocLoom');
   const legacy = path.join(os.homedir(), 'Documents', 'MD2Html');
   return !fs.existsSync(now) && fs.existsSync(legacy) ? legacy : now;
 })();

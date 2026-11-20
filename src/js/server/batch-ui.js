@@ -22,14 +22,14 @@ const REASONS = {
 const reason = (c) => REASONS[c] || 'خطا: ' + c;
 
 async function bapi(method, url, body) {
-  const r = await fetch(url, { method, headers: { 'X-DataSave': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const r = await fetch(url, { method, headers: { 'X-DocLoom': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.error || 'http ' + r.status), { status: r.status });
   return j;
 }
 
 export function openBatch() {
-  if (!syncActive()) return void notify('تبدیل گروهی به سرور DataSave نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
+  if (!syncActive()) return void notify('تبدیل گروهی به سرور DocLoom نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.');
   const st = { sel: new Map(), pdf: true, html: false, brand: '', cleanup: false, pageNumbers: false, dest: 'beside', destDir: '' };
   const body = el('div', { class: 'bt' });
   const modal = openModal({ title: 'تبدیل گروهی', body, wide: true });

@@ -275,7 +275,7 @@ test('writes: agent instruction files and read-only roots are refused; reading s
 
 // ---- HTTP layer ----
 test('HTTP: auth, CSRF, 409 payload, SSE watch', async () => {
-  process.env.DATASAVE_TEST = '1';
+  process.env.DOCLOOM_TEST = '1';
   const dd = path.join(tmp, 'data2');
   const srv = await createServer({ dataDir: dd, echo: false, roots: [rootA] });
   await new Promise((r) => srv.server.listen(0, '127.0.0.1', r));
@@ -283,7 +283,7 @@ test('HTTP: auth, CSRF, 409 payload, SSE watch', async () => {
   const call = (method, p, { body, headers = {} } = {}) =>
     new Promise((resolve, reject) => {
       const payload = body === undefined ? null : JSON.stringify(body);
-      const h = { Host: `127.0.0.1:${port}`, ...(method !== 'GET' ? { 'X-DataSave': '1', Origin: `http://127.0.0.1:${port}` } : {}), ...headers };
+      const h = { Host: `127.0.0.1:${port}`, ...(method !== 'GET' ? { 'X-DocLoom': '1', Origin: `http://127.0.0.1:${port}` } : {}), ...headers };
       if (payload) h['Content-Length'] = Buffer.byteLength(payload);
       const req = http.request({ host: '127.0.0.1', port, method, path: p, headers: h }, (res) => {
         const chunks = [];
@@ -329,7 +329,7 @@ test('HTTP: auth, CSRF, 409 payload, SSE watch', async () => {
     assert.ok(await until(() => got.join('').includes('event: change')));
     sse.destroy();
   } finally {
-    delete process.env.DATASAVE_TEST;
+    delete process.env.DOCLOOM_TEST;
     srv.server.closeAllConnections?.();
     srv.server.close();
   }
