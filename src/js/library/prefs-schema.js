@@ -1,13 +1,14 @@
 // App preferences stored in the IndexedDB `settings` store. Pure validation.
 export const PREF_KEYS = [
-  'appTheme', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab',
+  'appTheme', 'lang', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab',
   'defaultBrandId', 'lastDocId', 'recentCommands', 'brandsSeeded', 'groupGlyph', 'panelGroups',
 ];
 // Keys that mirror a live store key (the rest are library-internal).
-export const STORE_PREF_KEYS = ['appTheme', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab', 'groupGlyph'];
+export const STORE_PREF_KEYS = ['appTheme', 'lang', 'autosave', 'uploadEndpoint', 'uploadField', 'embedFontInExport', 'openLinksInNewTab', 'groupGlyph'];
 
 const rules = {
   appTheme: (v) => ['light', 'dark', 'system'].includes(v),
+  lang: (v) => v === 'en' || v === 'fa',
   autosave: (v) => typeof v === 'boolean',
   uploadEndpoint: (v) => typeof v === 'string' && v.length <= 300 && (v === '' || /^https:\/\//i.test(v)),
   uploadField: (v) => v === 'file',

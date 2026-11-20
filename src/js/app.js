@@ -34,6 +34,7 @@ import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
 import { initToc } from './ui/toc-panel.js';
 import { initDrawers } from './ui/drawer.js';
+import { initLang } from './ui/lang.js';
 import { initSuggest } from './ui/suggest.js';
 import { initBrands } from './brand/brands.js';
 import { initBrandUI } from './brand/brand-ui.js';
@@ -93,6 +94,7 @@ async function main() {
   }
   if (EMBED.active) initEmbed();
   initDrawers(); // after embed: a group's count must not include a tool embed mode just hid
+  initLang();
   if (await initSync()) {
     activateLinked();
     await openFromUrl();

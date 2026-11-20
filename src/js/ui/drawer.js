@@ -224,3 +224,18 @@ export function initDrawers() {
 
 /** Which group a panel is showing — used by the tests and the palette. */
 export const activeGroup = (panel) => panels.get(panel)?.active || null;
+
+/** Refresh visible drawer tab labels and active header after a language switch. */
+export function refreshDrawers() {
+  for (const [panel, p] of panels.entries()) {
+    const nav = $('.dnav', p.root);
+    if (nav && p.root.dataset.navLabel) nav.setAttribute('aria-label', p.root.dataset.navLabel);
+    for (const g of p.groups) {
+      g.name = g.section.dataset.name;
+      g.tab.title = g.name;
+      const lbl = $('.g-name', g.tab);
+      if (lbl) lbl.textContent = shortOf(g.section);
+    }
+    paint(panel);
+  }
+}
