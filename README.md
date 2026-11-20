@@ -1,6 +1,13 @@
+<p align="center">
+  <img src="./docs/assets/docloom-banner.png" alt="DocLoom — Convert Markdown to Any Format" width="640">
+</p>
+
 # DocLoom
 
-**Offline-first Markdown & bidirectional document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency legacy spreadsheet (`OLE2/CFB`, `BIFF8 .xls`, `.xlsx`, `CSV`) & FastReport (`.fp3`) spatial table engine.**
+[![CI](https://github.com/mojtabahasani/DocLoom/actions/workflows/ci.yml/badge.svg)](https://github.com/mojtabahasani/DocLoom/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+**Offline-first Markdown & bidirectional (`EN` / `FA`, `LTR` / `RTL`) document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency legacy spreadsheet (`OLE2/CFB`, `BIFF8 .xls`, `.xlsx`, `CSV`) & FastReport (`.fp3`) spatial table engine.**
 
 DocLoom compiles a modular vanilla ES module & CSS workspace into a completely self-contained, zero-CDN single HTML artifact (under 900 KB with inlined fonts) alongside an installable Progressive Web App (`dist/pwa/`) and an optional pure-Node companion server (`server/`).
 
@@ -10,23 +17,24 @@ DocLoom compiles a modular vanilla ES module & CSS workspace into a completely s
 
 Most browser-based document studios break down when dealing with three real-world engineering challenges:
 
-1. **Bidirectional & RTL/LTR Mixed Typography:** Standard Markdown pipelines frequently corrupt mixed bidirectional text, inline code runs, numeral alignment, and table layout across HTML, print, `.docx`, and PDF targets.
+1. **Bilingual & Bidirectional (`LTR`/`RTL`) Typography:** Switching smoothly between English (`LTR`) and Persian (`RTL`) workspaces—while keeping inline code runs, numeral scripts, and table layouts aligned across HTML, print, `.docx`, and PDF targets—often breaks in standard Markdown renderers.
 2. **Legacy Binary & Coordinate-Based Reports:** Importing older binary `.xls` (OLE2 Compound File / BIFF8 records), messy SpreadsheetML exports, or FastReport `.fp3` prepared XML reports (which encode no explicit `<table>` structure—only raw `Left`/`Top`/`Width` memo coordinates) normally requires heavy server runtimes or proprietary desktop suites.
 3. **Zero-Telemetry, Non-Destructive Local Workflows:** Sensitive financial, technical, and administrative documents require a deterministic, archive-first local studio that runs 100% offline from `file://` or `127.0.0.1` and **never silently destroys user history**.
 
-DocLoom unifies all three into a compact, dependency-minimal codebase backed by 390 Node unit & integration tests, 59 Playwright browser/WCAG 2.1 AA accessibility checks, and 48 XSS sanitizer vectors.
+DocLoom unifies all three into a compact, dependency-minimal codebase backed by 397 Node unit & integration tests, 59 Playwright browser/WCAG 2.1 AA accessibility checks, and 48 XSS sanitizer vectors.
 
 ---
 
 ## Key Engineering Highlights
 
-### 1. Single-File Compiler & Offline-First PWA
+### 1. Single-File Compiler, Live Bilingual UI (`EN`/`FA`) & Offline PWA
 - **`build.mjs`** bundles `src/js/app.js`, ordered CSS layers (`src/styles/`), and base64-inlined WOFF2 fonts via `esbuild` into a single standalone HTML file (`< 900 KB` build-time size budget).
+- **Live Bilingual Localization Engine (`src/js/core/i18n.js`, `src/js/ui/lang.js`)**: Defaults to English (`LTR`) with a one-click topbar `EN / FA` toggle and command palette shortcuts that dynamically localize panels, modals, AI prompts (`REPORT_PROMPT_EN`), layout direction, and digit formatting.
 - Generates `dist/pwa/` with a content-hashed Service Worker (`pwa/sw.js`) that safely bypasses dynamic `/api/*` and revocable `/s/*` routes.
 
 ### 2. Zero-Dependency Binary Spreadsheet & Spatial Table Parsers
 - **Pure-JS OLE2/CFB & BIFF8 `.xls` Decoder (`src/js/bank/cfb.js`, `src/js/bank/biff.js`)**: Implements Compound File Binary sector/FAT/DIFAT/mini-stream traversal and BIFF8 record parsing (`RK` 4-mode number unpacking, `SST` `CONTINUE` string blocks, and rich-text/phonetic block skipping) from scratch with zero third-party Excel libraries.
-- **Multi-Format Ledger Pipeline (`src/js/bank/sheet-read.js`, `bank-table.js`, `kinds.js`, `statement-html.js`)**: Supports `.xlsx` (via `fflate`), SpreadsheetML, CSV, heuristic header scoring across multi-row preambles, reverse-chronological balance reordering, and print-calibrated tabular rendering.
+- **International & Regional Multi-Format Ledger Pipeline (`src/js/bank/sheet-read.js`, `bank-table.js`, `normalize.js`, `kinds.js`)**: Supports `.xlsx` (via `fflate`), SpreadsheetML, CSV, international English ledger headers (`Transaction Date`, `Credit`, `Debit`, `Running Balance`, `Narrative`), ISO Gregorian (`YYYY-MM-DD`) and Jalali dates, heuristic header scoring across multi-row preambles, and reverse-chronological balance reordering.
 - **FastReport `.fp3` Geometric Table Reconstructor (`src/js/saba/fp3.js`, `fp3-table.js`, `saba-report.js`)**: Reconstructs semantic tables and key-value metadata directly from absolute memo coordinates in prepared FastReport XML files.
 
 ### 3. Multi-Format Export & Headless Chrome CDP PDF Engine
@@ -72,7 +80,7 @@ Starts the pure-Node companion server on `http://127.0.0.1:7123`.
 
 ### Run Tests & Static Guards
 ```bash
-# Run all 390 unit and server integration tests
+# Run all 397 unit and server integration tests
 npm test
 
 # Run static code quality and guardrail checks
@@ -108,7 +116,7 @@ DocLoom/
 ├── pwa/                      # Service worker & manifest templates
 ├── scripts/guardian/         # Static rule scanner & baseline ratchet
 ├── tools/                    # Ledger reconciliation verifier & library deduplication tool
-└── tests/                    # 390 unit/server tests + Playwright E2E, XSS & axe-core suites
+└── tests/                    # 397 unit/server tests + Playwright E2E, XSS & axe-core suites
 ```
 
 ---
