@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { REPORT_PROMPT, LETTER_ADDON, reportPrompt } from '../src/js/content/report-prompt.js';
+import { REPORT_PROMPT, LETTER_ADDON, REPORT_PROMPT_EN, LETTER_ADDON_EN, reportPrompt } from '../src/js/content/report-prompt.js';
 import { markdownToHTML, CALLOUTS } from '../src/js/content/markdown.js';
 import { extractChartData } from '../src/js/content/chart.js';
 
@@ -67,4 +67,19 @@ test('the prompt body renders without leaking raw markers', () => {
   const html = markdownToHTML('# عنوان\n\nیک پاراگراف.\n\n> [!مهم] نکته\n');
   assert.match(html, /<aside class="callout callout-important">/);
   assert.ok(!html.includes('[!مهم]'));
+});
+
+test('English reportPrompt supports base and letter addon with chartable numeric table', () => {
+  assert.equal(reportPrompt({ lang: 'en' }), REPORT_PROMPT_EN);
+  assert.equal(reportPrompt({ lang: 'en', letter: true }), REPORT_PROMPT_EN + '\n\n' + LETTER_ADDON_EN);
+  for (const marker of ['NOTE', 'TIP', 'IMPORTANT', 'WARNING', 'CAUTION']) {
+    assert.ok(REPORT_PROMPT_EN.includes(`[!${marker}]`), `missing English callout [!${marker}]`);
+  }
+  const rows = REPORT_PROMPT_EN.split('\n')
+    .filter((l) => l.trim().startsWith('|') && !/^\s*\|[\s:|-]+\|\s*$/.test(l))
+    .map((l) => l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim()));
+  const data = extractChartData(rows);
+  assert.ok(data, 'English example table must produce chart data');
+  assert.deepEqual(data.labels, ['Q1', 'Q2']);
+  assert.deepEqual(data.series.map((s) => s.values), [[120, 145], [18, 24]]);
 });
