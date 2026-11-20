@@ -3,6 +3,7 @@ node_modules/
 .playwright-mcp/
 *.log
 dist/DataSave.html
+DocLoom.html
 test-results/
 playwright-report/
 .playwright/

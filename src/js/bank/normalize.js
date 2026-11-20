@@ -67,7 +67,7 @@ export function excelSerialToJalali(serial) {
 /**
  * Jalali date out of whatever the bank wrote: "1405/07/13", "05/05/11", "1405-07-13",
  * Persian digits, or an Excel serial. Returns { y, m, d, key, text } or null.
- * A two-digit year is read as 14xx — every Iranian bank export in circulation is 14xx.
+ * A two-digit year is read as 14xx — regional ledger exports in circulation use 14xx.
  */
 export function parseBankDate(v) {
   if (typeof v === 'number') {

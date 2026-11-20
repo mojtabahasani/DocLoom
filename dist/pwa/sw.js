@@ -1,5 +1,5 @@
 // DataSave service worker: versioned cache-first app shell. The version placeholder below is replaced at build time.
-const VERSION = 'ef7c36de06';
+const VERSION = '731ab0d224';
 const CACHE = 'datasave-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 

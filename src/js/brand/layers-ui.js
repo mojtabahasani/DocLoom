@@ -10,7 +10,7 @@ import { QR_KINDS, QR_POSITIONS, normalizeQr, qrContent, MAX_QR_CHARS } from './
 import { brands } from './brands.js';
 
 const PAGE_PX = 1000; // preview watermark repeats about once per printed page
-const KIND_LABEL = { url: 'نشانی وب (مثلاً computer123.ir)', tel: 'شمارهٔ تلفن', text: 'متن دلخواه' };
+const KIND_LABEL = { url: 'نشانی وب (مثلاً example.com)', tel: 'شمارهٔ تلفن', text: 'متن دلخواه' };
 
 export function setWatermark(patch) {
   store.set('watermark', normalizeWatermark({ ...store.get('watermark'), ...patch }));

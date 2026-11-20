@@ -1,27 +1,27 @@
 {
-  "name": "datasave",
+  "name": "docloom",
   "version": "1.3.0",
   "private": false,
   "license": "MIT",
   "type": "module",
-  "description": "DataSave — Offline-first Persian/RTL Markdown document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency BIFF8/XLSX/FastReport engine",
-  "homepage": "https://github.com/mojtabahasani/DataSave",
+  "description": "DocLoom — Offline-first Markdown & bidirectional document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency OLE2/BIFF8/XLSX/FastReport engine",
+  "homepage": "https://github.com/mojtabahasani/DocLoom",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mojtabahasani/DataSave.git"
+    "url": "https://github.com/mojtabahasani/DocLoom.git"
   },
   "keywords": [
     "markdown",
-    "rtl",
-    "persian",
     "document-studio",
     "single-file",
+    "offline-first",
     "docx",
     "pdf",
     "biff8",
     "ole2",
     "fastreport",
-    "pwa"
+    "pwa",
+    "bidirectional"
   ],
   "scripts": {
     "build": "node build.mjs",

@@ -1,83 +1,84 @@
-# DataSave (دیتاسیو)
+# DocLoom
 
-**Offline-first Persian/RTL Markdown document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency legacy spreadsheet & FastReport parsing engine.**
+**Offline-first Markdown & bidirectional document studio, single-file HTML/PWA/DOCX/PDF compiler, and zero-dependency legacy spreadsheet (`OLE2/CFB`, `BIFF8 .xls`, `.xlsx`, `CSV`) & FastReport (`.fp3`) spatial table engine.**
 
-DataSave compiles a modular vanilla JavaScript and CSS workspace into a completely self-contained, zero-CDN single HTML artifact (`DataSave.html`, under 900 KB with inlined Vazirmatn fonts) alongside an installable PWA (`dist/pwa/`) and an optional pure-Node companion server (`server/`).
+DocLoom compiles a modular vanilla ES module & CSS workspace into a completely self-contained, zero-CDN single HTML artifact (under 900 KB with inlined fonts) alongside an installable Progressive Web App (`dist/pwa/`) and an optional pure-Node companion server (`server/`).
 
 ---
 
-## Why DataSave Exists
+## Why DocLoom?
 
-Publishing polished RTL (Persian/Arabic) and bidirectional technical, administrative, and financial documents in the browser is still surprisingly brittle:
+Most browser-based document studios break down when dealing with three real-world engineering challenges:
 
-- Standard Markdown renderers break RTL typography, ZWNJ spacing, Arabic-to-Persian character normalization, and mixed Latin/Persian code/digit runs.
-- Legacy Iranian banking exports (`.xls` BIFF8/OLE2, SpreadsheetML, reversed columns, merged headers) and desktop accounting exports (FastReport `.fp3` coordinate XML) require heavy server stacks or proprietary Windows tools to render cleanly.
-- Teams working in sensitive or air-gapped environments need an archive-first studio that **never silently destroys documents** and works 100% locally from `file://` or `127.0.0.1` without sending document text to external servers.
+1. **Bidirectional & RTL/LTR Mixed Typography:** Standard Markdown pipelines frequently corrupt mixed bidirectional text, inline code runs, numeral alignment, and table layout across HTML, print, `.docx`, and PDF targets.
+2. **Legacy Binary & Coordinate-Based Reports:** Importing older binary `.xls` (OLE2 Compound File / BIFF8 records), messy SpreadsheetML exports, or FastReport `.fp3` prepared XML reports (which encode no explicit `<table>` structure—only raw `Left`/`Top`/`Width` memo coordinates) normally requires heavy server runtimes or proprietary desktop suites.
+3. **Zero-Telemetry, Non-Destructive Local Workflows:** Sensitive financial, technical, and administrative documents require a deterministic, archive-first local studio that runs 100% offline from `file://` or `127.0.0.1` and **never silently destroys user history**.
 
-DataSave solves all three in a pure, dependency-minimal codebase backed by 390+ unit tests and 59+ Playwright browser/accessibility checks.
+DocLoom unifies all three into a compact, dependency-minimal codebase backed by 390 Node unit & integration tests, 59 Playwright browser/WCAG 2.1 AA accessibility checks, and 48 XSS sanitizer vectors.
 
 ---
 
 ## Key Engineering Highlights
 
 ### 1. Single-File Compiler & Offline-First PWA
-- **`build.mjs`** bundles `src/js/app.js`, ordered CSS layers (`src/styles/`), and base64-inlined subset `Vazirmatn` WOFF2 fonts via `esbuild` into a single portable `DataSave.html` (`< 900 KB` budget enforced at build time).
-- Also emits `dist/pwa/` with a version-hashed Service Worker (`pwa/sw.js`) that explicitly excludes revocable server routes (`/s/*`, `/render`, `/api/*`).
+- **`build.mjs`** bundles `src/js/app.js`, ordered CSS layers (`src/styles/`), and base64-inlined WOFF2 fonts via `esbuild` into a single standalone HTML file (`< 900 KB` build-time size budget).
+- Generates `dist/pwa/` with a content-hashed Service Worker (`pwa/sw.js`) that safely bypasses dynamic `/api/*` and revocable `/s/*` routes.
 
-### 2. Zero-Dependency Binary & Financial Parsers
-- **OLE2 & BIFF8 Binary `.xls` Reader (`src/js/bank/cfb.js`, `src/js/bank/biff.js`)**: Pure JavaScript Compound File Binary (CFB/FAT/DIFAT/mini-stream) container and BIFF8 record decoder (`RK` 4-mode unpacking, `SST` `CONTINUE` boundaries, rich-text/phonetic skipping) written from scratch with zero external Excel dependencies.
-- **Multi-Format Statement Pipeline (`src/js/bank/sheet-read.js`, `bank-table.js`, `kinds.js`, `statement-html.js`)**: Handles `.xlsx` (via `fflate`), SpreadsheetML, CSV, heuristic header scoring under multi-row preambles, chronological balance reordering, fee folding, and fixed-column color-coded print layout.
-- **FastReport `.fp3` Reconstructor (`src/js/saba/fp3.js`, `fp3-table.js`, `saba-report.js`)**: Rebuilds semantic tables from absolute `Left`/`Width`/`Top` geometry in prepared FastReport XML streams.
+### 2. Zero-Dependency Binary Spreadsheet & Spatial Table Parsers
+- **Pure-JS OLE2/CFB & BIFF8 `.xls` Decoder (`src/js/bank/cfb.js`, `src/js/bank/biff.js`)**: Implements Compound File Binary sector/FAT/DIFAT/mini-stream traversal and BIFF8 record parsing (`RK` 4-mode number unpacking, `SST` `CONTINUE` string blocks, and rich-text/phonetic block skipping) from scratch with zero third-party Excel libraries.
+- **Multi-Format Ledger Pipeline (`src/js/bank/sheet-read.js`, `bank-table.js`, `kinds.js`, `statement-html.js`)**: Supports `.xlsx` (via `fflate`), SpreadsheetML, CSV, heuristic header scoring across multi-row preambles, reverse-chronological balance reordering, and print-calibrated tabular rendering.
+- **FastReport `.fp3` Geometric Table Reconstructor (`src/js/saba/fp3.js`, `fp3-table.js`, `saba-report.js`)**: Reconstructs semantic tables and key-value metadata directly from absolute memo coordinates in prepared FastReport XML files.
 
-### 3. Multi-Format Export & Headless Chrome PDF
-- **Client-side OOXML `.docx` Builder (`src/js/export/docx.js`, `docx-dom.js`)**: Generates Word documents directly in the browser (`fflate` ZIP assembly, bidirectional RTL/LTR runs, headings, tables, callouts, and embedded images).
-- **Rich Output Targets (`src/js/export/`)**: Interactive searchable HTML (`interactive.js`), slide presentation mode (`present.js`), PNG snapshot (`png.js`), print stylesheets (`print.css`), and 9 curated document color themes (`src/js/export/theme.js`, including lined notebook paper `"دفترچه"`).
-- **Pure-Node Companion Server (`server/`)**: Zero third-party npm dependencies at runtime. Uses headless Chrome over `--remote-debugging-pipe` CDP (`server/lib/pdf.js`) for deterministic batch and single-document PDF generation, plus local file-linking (`server/lib/files.js`), SSE file watching, PIN auth, and revocable local share links (`/s/<id>`).
+### 3. Multi-Format Export & Headless Chrome CDP PDF Engine
+- **Client-Side OOXML `.docx` Builder (`src/js/export/docx.js`, `docx-dom.js`)**: Assembles standards-compliant Word documents in the browser via `fflate` with bidirectional runs, tables, callouts, headings, and embedded assets.
+- **Rich Export Targets (`src/js/export/`)**: Standalone searchable HTML (`interactive.js`), slide presentation mode (`present.js`), PNG snapshot (`png.js`), print stylesheets (`print.css`), and 9 unified document color themes (`src/js/export/theme.js`).
+- **Zero-Dependency Companion Server (`server/`)**: Pure Node.js HTTP server (`server/index.js`) with headless Chrome over `--remote-debugging-pipe` CDP (`server/lib/pdf.js`) for single-document and batch PDF generation, realpath-confined file linking (`server/lib/files.js`), SSE live reload, PIN auth, and revocable share links (`/s/<id>`).
 
-### 4. Archive-Instead-of-Delete & Multi-Device Sync
-- **Non-Destructive Guarantee (`tests/no-destroy.test.mjs`)**: Deleting a document or brand only sets `archivedAt`; server-side deletes gzip snapshots into `library/_retired/` before writing tombstones. A dedicated test scans the codebase so any new destructive call breaks CI unless explicitly justified.
-- **Conflict-Safe Sync (`src/js/server/sync-core.js`)**: Distinguishes missing local `base` state from true dual edits by resolving inherited brand assets (`docToPatch`) and comparing normalized content (`sameDocContent`) before creating conflict copies.
-- **Brand Asset Deduplication (`src/js/library/doc-model.js`, `tools/dedupe-library.mjs`)**: Documents inherit large base64 letterhead, footer, signature, and stamp images from their brand record instead of duplicating ~5 MB across every document revision.
+### 4. Non-Destructive Archive & Conflict-Safe Multi-Device Sync
+- **Archive-Instead-of-Delete (`tests/no-destroy.test.mjs`)**: Document and brand removals set `archivedAt` while preserving all versions; server-side deletion writes gzipped snapshots into `library/_retired/` before writing tombstones. A static enforcement test prevents unapproved destructive database or filesystem calls.
+- **Content-Aware Sync (`src/js/server/sync-core.js`)**: Avoids false-positive conflict duplicates when local `base` state is missing by resolving inherited brand assets (`docToPatch`) and comparing normalized content (`sameDocContent`).
+- **Asset Deduplication (`src/js/library/doc-model.js`, `tools/dedupe-library.mjs`)**: Deduplicates ~5 MB per-revision base64 letterhead/signature payloads by referencing parent brand assets.
 
-### 5. Embeddable SDK & Persian Typographic Engine
-- **Embed Mode (`src/js/core/embed-config.js`, `src/js/embed/embed.js`)**: Host web apps can embed DataSave via `window.DATASAVE_EMBED` and `window.DataSave` with configurable digit mode (`fa`/`en`) and feature flags.
-- **RTL Normalization & Sanitization (`src/js/content/`)**: Arabic-to-Persian letter normalization (`ي`/`ك`), automatic ZWNJ placement, interactive SVG bar/line/pie chart extraction (`chart.js`), syntax highlighting (`highlight.js`), and a strict HTML allowlist sanitizer verified against 48 XSS test vectors (`tests/sanitize.test.mjs`).
+### 5. Security, Accessibility & Embeddable SDK
+- **Strict HTML Sanitizer (`src/js/content/sanitize.js`)**: Verified against 48 XSS attack vectors (`tests/sanitize.test.mjs` and Playwright `tests/e2e/xss.spec.mjs`).
+- **WCAG 2.1 A/AA Audited (`tests/e2e/a11y.spec.mjs`)**: Automated `@axe-core/playwright` audits across editor, command palette, modals, dark mode, and reading views.
+- **Embed Mode (`src/js/core/embed-config.js`, `src/js/embed/embed.js`)**: Opt-in host integration configuration and `postMessage` API (`window.DATASAVE_EMBED`).
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
-- **Node.js** `>= 20` (uses built-in `node:test`)
-- **Chromium / Google Chrome** (optional, required only for Playwright E2E tests and server-side PDF rendering)
+- **Node.js** `>= 20`
+- **Chromium / Google Chrome** (optional, required only for Playwright E2E tests and server-side CDP PDF rendering)
 
 ### Install & Build
 ```bash
-git clone https://github.com/mojtabahasani/DataSave.git
-cd DataSave
+git clone https://github.com/mojtabahasani/DocLoom.git
+cd DocLoom
 npm install
 npm run build
 ```
 
-This generates:
-- `DataSave.html` (standalone single-file studio — open directly in any modern browser)
-- `dist/pwa/` (installable PWA bundle)
+Build outputs:
+- `DocLoom.html` / `dist/DataSave.html` — standalone single-file studio (open directly in any browser)
+- `dist/pwa/` — installable PWA bundle
 
 ### Run the Companion Server (Optional)
 ```bash
 npm run server
 ```
-Starts the pure-Node server on `http://127.0.0.1:7123` (configurable via `DATASAVE_PORT`, `DATASAVE_DATA`, and `DATASAVE_LAN`).
+Starts the pure-Node companion server on `http://127.0.0.1:7123`.
 
 ### Run Tests & Static Guards
 ```bash
-# Unit & server integration tests (390 tests via node --test)
+# Run all 390 unit and server integration tests
 npm test
 
-# Static code rules & secret/RTL/non-destructive ratchet checks
+# Run static code quality and guardrail checks
 npm run guard:ratchet
 
-# Playwright end-to-end & WCAG 2.1 A/AA accessibility suite
+# Run Playwright browser E2E & WCAG 2.1 accessibility tests
 npm run test:e2e
 ```
 
@@ -86,29 +87,28 @@ npm run test:e2e
 ## Repository Structure
 
 ```text
-DataSave/
+DocLoom/
 ├── build.mjs                 # Single-file HTML + PWA compiler (esbuild + inlined WOFF2)
-├── DataSave.html             # Compiled standalone distribution artifact (< 900 KB)
 ├── src/
-│   ├── index.html            # Application shell & icon-rail panel groups
-│   ├── styles/               # Layered CSS tokens, layout, drawer, print & statement styles
+│   ├── index.html            # Application shell & icon-rail panel drawers
+│   ├── styles/               # Layered CSS design tokens, layout, drawer, print & table styles
 │   ├── fonts/                # Subset Vazirmatn WOFF2 fonts (OFL)
 │   └── js/
-│       ├── core/             # Versioning, storage naming compatibility, digits, XML, guard
-│       ├── content/          # Markdown parser, RTL Persian rules, charts, TOC, HTML sanitizer
-│       ├── bank/             # Zero-dep OLE2/CFB, BIFF8 .xls, XLSX, CSV, statement renderer
+│       ├── core/             # Versioning, storage compatibility, digits, XML, runtime guard
+│       ├── content/          # Markdown parser, typography normalization, SVG charts, TOC, sanitizer
+│       ├── bank/             # Zero-dep OLE2/CFB, BIFF8 .xls, XLSX, CSV, tabular formatter
 │       ├── saba/             # FastReport .fp3 XML geometric table reconstructor
-│       ├── brand/            # Brand letterheads, Jalali dates, QR footer, watermark, positioning
+│       ├── brand/            # Document mastheads, footers, QR blocks, watermarks, signatures
 │       ├── export/           # Client-side DOCX, interactive HTML, slides, PNG, themes
 │       ├── library/          # IndexedDB store, version history, backups, fuzzy search
 │       ├── server/           # Conflict-safe sync client, linked files, PDF & batch client
 │       ├── embed/            # Opt-in host page integration API
 │       └── ui/               # Command palette (Cmd/Ctrl+K), rail drawer, modals, reading mode
-├── server/                   # Zero-dep Node HTTP server, CDP PDF renderer, file API, macOS CLI
+├── server/                   # Zero-dep Node HTTP server, CDP PDF renderer, file API, CLI
 ├── pwa/                      # Service worker & manifest templates
 ├── scripts/guardian/         # Static rule scanner & baseline ratchet
-├── tools/                    # Bank reconciliation verifier & library deduplication utility
-└── tests/                    # Unit, server integration, XSS, accessibility & Playwright E2E tests
+├── tools/                    # Ledger reconciliation verifier & library deduplication tool
+└── tests/                    # 390 unit/server tests + Playwright E2E, XSS & axe-core suites
 ```
 
 ---
@@ -116,12 +116,3 @@ DataSave/
 ## License
 
 Released under the [MIT License](./LICENSE).
-
----
-
-## معرفی کوتاه (فارسی)
-
-**دیتاسیو (DataSave)** یک استودیوی متن‌باز و آفلاین برای نگارش، زیباسازی و تبدیل اسناد فارسی و دوجهته (RTL/LTR) است:
-- تبدیل **Markdown و HTML** به خروجی تمیز چاپی، فایل **Word (`.docx`)**، **PDF**، اسلاید ارائه و صفحه وب تعاملی.
-- موتور بومی و بدون وابستگی برای خواندن مستقیم صورت‌حساب‌های بانکی (`.xlsx`، `.xls` باینری با پارسر اختصاصی OLE2/BIFF8، CSV) و گزارش‌های `.fp3` صبا و تبدیل آن‌ها به گزارش چاپی استاندارد.
-- معماری **تک‌فایلِ آفلاین (`DataSave.html`)** به‌همراه سرور سبک Node.js، کتابخانه نسخه‌دار غیرمخرب (بایگانی به‌جای حذف)، و بیش از 390 تست خودکار واحد و مرورگر.

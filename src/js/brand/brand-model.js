@@ -54,9 +54,9 @@ export const SEED_ID = 'brand_computer123';
 
 export function seedBrand() {
   return normalizeBrand({
-    id: SEED_ID, name: SEED_NAME, theme: 'navy', mastheadText: SEED_NAME, footerText: 'کرمان، خیابان شهید بهشتی، نبش کوچه ۹ · computer123.ir',
-    website: 'https://www.computer123.ir', letterPrefix: '۱۲۳', letterCounter: 1,
-    qr: { enabled: false, kind: 'url', value: 'https://www.computer123.ir', position: 'footer' },
+    id: SEED_ID, name: SEED_NAME, theme: 'navy', mastheadText: SEED_NAME, footerText: 'DocLoom Studio · example.com',
+    website: 'https://www.example.com', letterPrefix: '۱۲۳', letterCounter: 1,
+    qr: { enabled: false, kind: 'url', value: 'https://www.example.com', position: 'footer' },
   });
 }
 

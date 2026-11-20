@@ -57,7 +57,7 @@ function editor(brand, done) {
     mastheadText: text(draft.mastheadText), footerText: text(draft.footerText),
     signerName: text(draft.signer.name), signerRole: text(draft.signer.role),
     prefix: text(draft.letterPrefix), counter: el('input', { type: 'number', min: 1, max: 999999, value: draft.letterCounter, dir: 'ltr' }),
-    website: text(draft.website, { dir: 'ltr', placeholder: 'https://www.example.ir' }),
+    website: text(draft.website, { dir: 'ltr', placeholder: 'https://www.example.com' }),
     qrOn: el('input', { type: 'checkbox' }), qrKind: select(QR_KINDS, draft.qr.kind), qrValue: text(draft.qr.value, { dir: 'ltr', placeholder: 'خالی = وب‌سایت برند' }),
     qrPos: select(QR_POSITIONS, draft.qr.position),
   };

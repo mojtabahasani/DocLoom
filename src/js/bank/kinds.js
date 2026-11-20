@@ -8,7 +8,7 @@
 //
 // Telling a card purchase at a POS terminal from one on the internet matters most here:
 // Saderat writes «خرید اینترنتی», Keshavarzi and Refah give it away with «پایانه», «POS»
-// or «شاپرک» (the Iranian card switch, which settles POS takings).
+// or «شاپرک» (the regional card switch, which settles POS takings).
 
 /** group -> the colour class used by styles/statement.css */
 export const GROUPS = {

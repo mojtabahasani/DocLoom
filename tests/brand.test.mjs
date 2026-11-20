@@ -12,7 +12,7 @@ test('seed brand: text-only masthead, website and prefix', () => {
   assert.equal(b.name, SEED_NAME);
   assert.equal(b.mastheadText, SEED_NAME);
   assert.equal(b.mastheadImage, '');
-  assert.equal(b.website, 'https://www.computer123.ir');
+  assert.equal(b.website, 'https://www.example.com');
   assert.equal(b.letterPrefix, '۱۲۳');
   assert.equal(b.letterCounter, 1);
   assert.equal(validateBrand(b), null);
@@ -35,7 +35,7 @@ test('normalizeBrand: bad values are reset, images must be data:image', () => {
 test('validateBrand', () => {
   assert.match(validateBrand({ name: '  ' }), /نام/);
   assert.match(validateBrand({ name: 'a', website: 'not a site' }), /وب‌سایت/);
-  assert.equal(validateBrand({ name: 'a', website: 'computer123.ir' }), null);
+  assert.equal(validateBrand({ name: 'a', website: 'example.com' }), null);
   assert.match(validateBrand({ name: 'a', colors: { primary: 'blue' } }), /رنگ/);
 });
 

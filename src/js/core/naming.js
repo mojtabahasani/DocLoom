@@ -1,4 +1,4 @@
-// The app was «MD2Html» before it became دیتاسیو / DataSave (datasave.ir).
+// The app was «MD2Html» before it became DocLoom / DataSave (docloom).
 //
 // Everything written from here on carries the new name. Everything the old name wrote is still the
 // user's own data, so it is adopted, never abandoned: each helper below reads the new name first and
