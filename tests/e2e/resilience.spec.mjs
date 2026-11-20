@@ -1,7 +1,7 @@
 // The app in a browser that refuses to store anything — a private window, or site data blocked.
 // It has to keep working, say so, and never imply the document is safe.
 import { test, expect } from '@playwright/test';
-import { openApp, runCommand } from './helpers.mjs';
+import { openApp, runCommand, openLibrary } from './helpers.mjs';
 
 /** indexedDB gone and even touching localStorage throws, the way a locked-down context behaves. */
 const blockStorage = (page) =>
@@ -32,7 +32,7 @@ test('the library drawer repeats the warning and the document stays unsaved', as
   await page.fill('#source', '# مهم\n\nاین نباید ذخیره‌شده به نظر برسد.\n');
   await page.waitForTimeout(2000); // well past the 1.5s autosave
 
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   await expect(page.locator('.lib-drawer .lib-notice')).toBeVisible();
   await expect(page.locator('.lib-drawer .lib-notice')).toContainText('پشتیبان');
   await page.keyboard.press('Escape');

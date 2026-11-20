@@ -1,4 +1,4 @@
-// IndexedDB wrapper (database `md2html`). Falls back to an in-memory store when IndexedDB is unavailable.
+// IndexedDB wrapper (database `datasave`). Falls back to an in-memory store when IndexedDB is unavailable.
 export const STORES = {
   documents: { keyPath: 'id' },
   versions: { keyPath: 'id', indexes: [['docId', 'docId']] },
@@ -68,6 +68,10 @@ function idbBackend(idb) {
 }
 
 /** @param factory an IDBFactory (defaults to the global one; tests pass fake-indexeddb). */
+// The physical database name stays «md2html» although the app is now DataSave: it is the address of
+// the user's library, not a label anyone sees. IndexedDB cannot rename a database, so changing it
+// would mean copying every document into a second one — under a quota this app already hits — and
+// silently emptying the library of anyone offline while the copy had not run. See core/naming.js.
 export function createDb(factory = globalThis.indexedDB, name = 'md2html') {
   let backend = null;
   let opening = null;

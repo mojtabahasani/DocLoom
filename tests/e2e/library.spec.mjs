@@ -1,7 +1,7 @@
 // The IndexedDB library: autosave, survive a reload, search, versions.
 // This is the "save and reopen after refresh" smoke the design spec asks for (§۸).
 import { test, expect } from '@playwright/test';
-import { openApp, setSource, runCommand, newDocument } from './helpers.mjs';
+import { openApp, setSource, runCommand, newDocument, openLibrary, setTitle } from './helpers.mjs';
 
 const title = (n) => `گزارش ${n}`;
 
@@ -23,7 +23,7 @@ function storedTitles(page) {
 async function newDocWith(page, name, body) {
   await newDocument(page);
   await setSource(page, body); // content first: the title cover is not built onto an empty document
-  await page.fill('#title', name);
+  await setTitle(page, name);
   // Wait for the title to reach the document furniture, not just the input: the autosave
   // snapshot reads the store, so continuing too early can persist an empty title.
   await expect(page.locator('#preview [data-md2-furniture="title"] h1')).toHaveText(name);
@@ -46,7 +46,7 @@ test('the library drawer lists documents and searches their text', async ({ page
   await newDocWith(page, title('آبی'), '# آبی\n\nواژهٔ یکتا: زیتون‌پلو.\n');
   await newDocWith(page, title('سبز'), '# سبز\n\nواژهٔ یکتا: قورمه‌سبزی.\n');
 
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   const drawer = page.locator('.lib-drawer');
   await expect(drawer).toBeVisible();
   await expect(drawer.locator('.lib-item')).toHaveCount(2);
@@ -68,7 +68,7 @@ test('opening another document from the library swaps the editor', async ({ page
   await newDocWith(page, title('دوم'), '# دوم\n\nمتن دوم.\n');
   await expect(page.locator('#preview')).toContainText('متن دوم');
 
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   await page.locator('.lib-drawer .lib-item', { hasText: title('اول') }).locator('.lib-open').click();
   await expect(page.locator('#preview')).toContainText('متن اول');
   await expect(page.locator('#title')).toHaveValue(title('اول'));
@@ -110,7 +110,7 @@ test('«بایگانی» keeps the document and its versions; the archive view b
   await newDocWith(page, title('ماندگار'), '# ماندگار\n\nواژهٔ یکتا: کشک‌بادمجان.\n');
   await newDocWith(page, title('رفتنی'), '# رفتنی\n\nواژهٔ یکتا: میرزاقاسمی.\n');
 
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   const drawer = page.locator('.lib-drawer');
   await expect(drawer.locator('.lib-item')).toHaveCount(2);
   await expect(drawer.locator('.lib-archive')).toBeHidden(); // no archive, no button
@@ -136,7 +136,7 @@ test('«بایگانی» keeps the document and its versions; the archive view b
   // It survives a reload, and does not come back as the open document.
   await page.reload();
   await expect(page.locator('#title')).toHaveValue(title('ماندگار'));
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   await expect(drawer.locator('.lib-item')).toHaveCount(1);
   await drawer.locator('.lib-archive').click();
   await expect(drawer.locator('.lib-archive')).toHaveText('بایگانی (۱)');
@@ -153,7 +153,7 @@ test('archiving has an undo, and the palette does not list archived documents', 
   await newDocWith(page, title('الف'), '# الف\n\nمتن الف.\n');
   await newDocWith(page, title('ب'), '# ب\n\nمتن ب.\n');
 
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   const drawer = page.locator('.lib-drawer');
   await drawer.locator('.lib-item', { hasText: title('الف') }).getByRole('button', { name: 'بایگانی سند' }).click();
   await expect(drawer.locator('.lib-item')).toHaveCount(1);

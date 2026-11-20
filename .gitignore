@@ -2,7 +2,7 @@ node_modules/
 .DS_Store
 .playwright-mcp/
 *.log
-dist/MD2Html.html
+dist/DataSave.html
 test-results/
 playwright-report/
 .playwright/

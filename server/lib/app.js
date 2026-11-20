@@ -14,6 +14,7 @@ import { FileError } from './files.js';
 import { RenderError } from './pdf.js';
 import { BatchError } from './batch.js';
 import { SHARE_ID_RE, SHARE_CSP, gonePage } from './shares.js';
+import { envVar } from './env.js';
 
 // One source of truth for the version: package.json, the same file the client build reads.
 export const VERSION = (() => {
@@ -24,15 +25,15 @@ export const VERSION = (() => {
   }
 })();
 
-/** The client address. A test-only override header is honoured ONLY when MD2HTML_TEST=1. */
+/** The client address. A test-only override header is honoured ONLY when DATASAVE_TEST=1. */
 export function clientIp(req, env = process.env) {
-  if (env.MD2HTML_TEST === '1' && req.headers['x-test-remote-addr']) return normalizeIp(req.headers['x-test-remote-addr']);
+  if (envVar('TEST', env) === '1' && req.headers['x-test-remote-addr']) return normalizeIp(req.headers['x-test-remote-addr']);
   return normalizeIp(req.socket.remoteAddress);
 }
 
 export function createApp({ auth, store, backups, log, files, render, batch, shares, webRoot, dataDir, port, lanIps = lanAddresses, netIfaces = () => os.networkInterfaces(), limiter = new LoginLimiter(), lan = { enabled: () => true, canChange: () => false, set() {} } }) {
   // The repo root copy, not dist/: it is the tracked deliverable, so it exists in a fresh clone before any build.
-  const serve = createStatic(webRoot, { '/MD2Html.html': new URL('../../MD2Html.html', import.meta.url).pathname });
+  const serve = createStatic(webRoot, { '/DataSave.html': new URL('../../DataSave.html', import.meta.url).pathname });
   const sse = new Set(); // {res, sid}
   const H = securityHeaders();
   store.on('change', (e) => {
@@ -51,8 +52,8 @@ export function createApp({ auth, store, backups, log, files, render, batch, sha
     const { method } = req;
     const p = url.pathname;
     const parts = p.split('/').slice(2); // after /api
-    const client = String(req.headers['x-md2html-client'] || '').slice(0, 40);
-    if (p === '/api/health') return sendJson(res, 200, { ok: true, app: 'md2html', version: VERSION, time: Date.now() }, H);
+    const client = String(req.headers['x-datasave-client'] || '').slice(0, 40);
+    if (p === '/api/health') return sendJson(res, 200, { ok: true, app: 'datasave', version: VERSION, time: Date.now() }, H);
 
     if (p === '/api/login' && method === 'POST') {
       const wait = limiter.lockedFor(ctx.ip);

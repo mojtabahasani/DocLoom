@@ -1,8 +1,12 @@
 #!/bin/bash
-# md2html — control the local MD2Html server.
-LABEL="ir.computer123.md2html"
-PORT="${MD2HTML_PORT:-7123}"
-DATA="${MD2HTML_DATA:-$HOME/Documents/MD2Html}"
+# datasave — control the local DataSave server.
+LABEL="ir.computer123.datasave"
+PORT="${DATASAVE_PORT:-${MD2HTML_PORT:-7123}}"
+# Mirrors defaultDataDir() in server/lib/env.js: an existing library is never left behind.
+DATA="${DATASAVE_DATA:-${MD2HTML_DATA:-}}"
+if [ -z "$DATA" ]; then
+  if [ ! -d "$HOME/Documents/DataSave" ] && [ -d "$HOME/Documents/MD2Html" ]; then DATA="$HOME/Documents/MD2Html"; else DATA="$HOME/Documents/DataSave"; fi
+fi
 BASE="http://localhost:$PORT"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 UIDN="$(id -u)"
@@ -27,7 +31,7 @@ abspath() {
   case "$1" in /*) printf '%s' "$1" ;; *) printf '%s/%s' "$(pwd)" "${1#./}" ;; esac
 }
 
-# convert FORMATS_JSON args...   (md2html pdf|html <file|dir>... [--brand X] [--out DIR])
+# convert FORMATS_JSON args...   (datasave pdf|html <file|dir>... [--brand X] [--out DIR])
 convert() {
   local formats="$1"; shift
   local brand="" out="" paths="" n=0 a
@@ -41,16 +45,16 @@ convert() {
       *) a="$(abspath "$1")"; paths="$paths${paths:+,}$(json_str "$a")"; n=$((n + 1)); shift ;;
     esac
   done
-  [ "$n" -gt 0 ] || { echo "usage: md2html pdf|html <file|dir>... [--brand X] [--out DIR]" >&2; return 2; }
+  [ "$n" -gt 0 ] || { echo "usage: datasave pdf|html <file|dir>... [--brand X] [--out DIR]" >&2; return 2; }
   local body="{\"paths\":[$paths],\"formats\":$formats"
   [ -n "$brand" ] && body="$body,\"brand\":$(json_str "$brand")"
   [ "${pages:-}" = true ] && body="$body,\"pageNumbers\":true"
   [ "${cleanup:-}" = true ] && body="$body,\"cleanup\":true"
   if [ -n "$out" ]; then body="$body,\"dest\":{\"mode\":\"folder\",\"dir\":$(json_str "$(abspath "$out")")}"; else body="$body,\"dest\":{\"mode\":\"beside\"}"; fi
   body="$body}"
-  if [ -n "${MD2HTML_DRY:-}" ]; then printf '%s\n' "$body"; return 0; fi
+  if [ -n "${DATASAVE_DRY:-}" ]; then printf '%s\n' "$body"; return 0; fi
   local resp id txt head
-  resp="$(curl -sS -m 15 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "$body" "$BASE/api/batch")" || { echo "Could not reach the server on port $PORT." >&2; return 1; }
+  resp="$(curl -sS -m 15 -X POST -H 'X-DataSave: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "$body" "$BASE/api/batch")" || { echo "Could not reach the server on port $PORT." >&2; return 1; }
   id="$(printf '%s' "$resp" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
   [ -n "$id" ] || { echo "Server refused: $resp" >&2; return 1; }
   while :; do
@@ -65,17 +69,17 @@ convert() {
 
 usage() {
   cat <<USAGE
-md2html — MD2Html local server
+datasave — DataSave local server
 
-  md2html status         is the server up? (port $PORT, data dir, LaunchAgent state)
-  md2html open [file]    open the app in the browser (a file path is passed as ?open=<path>)
-  md2html lan on|off     open the server to the local network (phone), or keep it to this Mac only
-  md2html pin            RESET the LAN PIN and print the new one (only a hash is stored, so the old PIN cannot be shown)
-  md2html pdf <file|dir>...   convert to PDF beside each file   [--brand NAME|ID] [--out DIR] [--pages] [--cleanup]
-  md2html html <file|dir>...  convert to standalone HTML      [--brand NAME|ID] [--out DIR] [--cleanup]
-  md2html logs           follow the server log
-  md2html restart        restart the LaunchAgent
-  md2html start | stop   load / unload the LaunchAgent
+  datasave status         is the server up? (port $PORT, data dir, LaunchAgent state)
+  datasave open [file]    open the app in the browser (a file path is passed as ?open=<path>)
+  datasave lan on|off     open the server to the local network (phone), or keep it to this Mac only
+  datasave pin            RESET the LAN PIN and print the new one (only a hash is stored, so the old PIN cannot be shown)
+  datasave pdf <file|dir>...   convert to PDF beside each file   [--brand NAME|ID] [--out DIR] [--pages] [--cleanup]
+  datasave html <file|dir>...  convert to standalone HTML      [--brand NAME|ID] [--out DIR] [--cleanup]
+  datasave logs           follow the server log
+  datasave restart        restart the LaunchAgent
+  datasave start | stop   load / unload the LaunchAgent
 USAGE
 }
 
@@ -95,13 +99,13 @@ case "${1:-}" in
     open "$url"
     ;;
   pin)
-    out="$(curl -fsS -m 5 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" "$BASE/api/pin/reset")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
+    out="$(curl -fsS -m 5 -X POST -H 'X-DataSave: 1' -H "Origin: $BASE" "$BASE/api/pin/reset")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
     pin="$(printf '%s' "$out" | sed -n 's/.*"pin":"\([0-9]*\)".*/\1/p')"
     echo "New PIN: $pin   (all signed-in devices were signed out)"
     ;;
   lan)
-    case "${2:-}" in on) v=true ;; off) v=false ;; *) echo "usage: md2html lan on|off" >&2; exit 2 ;; esac
-    out="$(curl -sS -m 5 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "{\"on\":$v}" "$BASE/api/server/lan")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
+    case "${2:-}" in on) v=true ;; off) v=false ;; *) echo "usage: datasave lan on|off" >&2; exit 2 ;; esac
+    out="$(curl -sS -m 5 -X POST -H 'X-DataSave: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "{\"on\":$v}" "$BASE/api/server/lan")" || { echo "Could not reach the server on port $PORT." >&2; exit 1; }
     case "$out" in
       *'"lan":true'*) echo "Network access is ON: phones on the same Wi-Fi can open the app (PIN required)." ;;
       *'"lan":false'*) echo "Network access is OFF: only this Mac can open the app." ;;

@@ -3,6 +3,7 @@ import { store } from '../core/store.js';
 import { $, el, debounce } from '../core/dom.js';
 import { notify } from '../core/notify.js';
 import { palette } from '../ui/palette.js';
+import { reveal } from '../ui/drawer.js';
 import { preview, refreshFurniture } from '../editor/preview.js';
 import { WATERMARK_PRESETS, WORD_NOTE, normalizeWatermark, watermarkText } from './watermark.js';
 import { QR_KINDS, QR_POSITIONS, normalizeQr, qrContent, MAX_QR_CHARS } from './qr.js';
@@ -83,7 +84,7 @@ export function initLayers() {
       run: () => {
         setWatermark({ preset: id });
         if (id === 'custom') {
-          $('#layersAcc').open = true;
+          reveal('#wmPreset');
           $('#wmText').focus();
         } else notify(id === 'none' ? 'واترمارک حذف شد.' : `واترمارک «${text}» روی سند قرار گرفت.`);
       },

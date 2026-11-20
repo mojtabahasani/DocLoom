@@ -1,4 +1,4 @@
-// Static server for the E2E suite. Serves the repo root so http://127.0.0.1:<port>/MD2Html.html
+// Static server for the E2E suite. Serves the repo root so http://127.0.0.1:<port>/DataSave.html
 // is the exact build output the user double-clicks. It deliberately has NO /api/* routes, so the
 // app's one health probe 404s and it stays in offline mode — the same as opening the file directly.
 // (Playwright MCP and the browser pane block file://, which is why the suite goes over http.)
@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(405).end('method not allowed');
     return;
   }
-  if (url.pathname === '/') url.pathname = '/MD2Html.html';
+  if (url.pathname === '/') url.pathname = '/DataSave.html';
   if (!serve(req, res, url.pathname, { 'Cache-Control': 'no-store' })) res.writeHead(404).end('not found');
 });
 

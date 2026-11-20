@@ -10,8 +10,8 @@ import { findChrome, CHROME_MAC, RenderQueue, RenderError, chromeRender, RenderS
 test('findChrome: default path, env override, graceful null', () => {
   assert.equal(findChrome({ env: {}, exists: (p) => p === CHROME_MAC }), CHROME_MAC);
   assert.equal(findChrome({ env: {}, exists: () => false }), null);
-  assert.equal(findChrome({ env: { MD2HTML_CHROME: '/opt/c' }, exists: (p) => p === '/opt/c' }), '/opt/c');
-  assert.equal(findChrome({ env: { MD2HTML_CHROME: '/nope' }, exists: (p) => p === CHROME_MAC }), null, 'a bad override is not silently replaced');
+  assert.equal(findChrome({ env: { DATASAVE_CHROME: '/opt/c' }, exists: (p) => p === '/opt/c' }), '/opt/c');
+  assert.equal(findChrome({ env: { DATASAVE_CHROME: '/nope' }, exists: (p) => p === CHROME_MAC }), null, 'a bad override is not silently replaced');
 });
 
 test('RenderQueue: one job at a time, in order', async () => {
@@ -72,7 +72,7 @@ function fakeSpawn({ readyAfter = 1, error = '' } = {}) {
         if (m.method === 'Runtime.evaluate') {
           const ex = m.params.expression;
           if (ex.includes('document.fonts')) result = { result: { value: 'ok' } };
-          else if (ex.includes('__md2htmlReady')) result = { result: { value: error ? 'E:' + error : ++polls >= readyAfter ? 'ok' : '' } };
+          else if (ex.includes('__datasaveReady')) result = { result: { value: error ? 'E:' + error : ++polls >= readyAfter ? 'ok' : '' } };
           else result = { result: { value: '<html>x</html>' } };
         }
         if (m.method === 'Page.printToPDF') result = { data: Buffer.from('%PDF-fake').toString('base64'), _params: m.params };

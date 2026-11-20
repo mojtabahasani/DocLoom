@@ -1,8 +1,8 @@
-# MD2Html Editor Upgrade Implementation Plan
+# DataSave Editor Upgrade Implementation Plan
 
 > **For agentic workers:** Execute the tasks in order and preserve the single-file offline-first product model. Automated tests are not in scope unless the user requests them.
 
-**Goal:** Upgrade MD2Html into a Persian rich document editor with fixed side panels, contextual formatting, clipboard import, A4 page furniture, analytics, flexible export, and optional uploads to the user’s zi2.ir API.
+**Goal:** Upgrade DataSave into a Persian rich document editor with fixed side panels, contextual formatting, clipboard import, A4 page furniture, analytics, flexible export, and optional uploads to the user’s zi2.ir API.
 
 **Architecture:** Keep the deliverable as one standalone HTML file and make its embedded JavaScript responsibilities explicit. Extend the settings JSON with a versioned, backward-compatible upload endpoint configuration. The PHP backend remains a separate existing project; do not alter it from this workspace.
 
@@ -22,16 +22,16 @@
 
 ## File Structure
 
-- Modify `/Users/macminim4/MyApp/Vpn-Project/MD2Html/MD2Html.html`: all editor markup, styles, application state, paste/import handling, upload client, analytics, and exports.
+- Modify `/Users/macminim4/MyApp/Vpn-Project/DataSave/DataSave.html`: all editor markup, styles, application state, paste/import handling, upload client, analytics, and exports.
 - The same HTML file also owns the HTML-source editing mode; no executable source editor or third-party code editor is added.
-- Modify `/Users/macminim4/MyApp/Vpn-Project/MD2Html/md2html-settings.example.json`: document the configurable upload endpoint and request field while keeping secrets out of the example.
-- Create `/Users/macminim4/MyApp/Vpn-Project/MD2Html/docs/superpowers/docs/zi2-upload-setup.md`: explain how to locate the deployed API URL, configure CORS for local-file origins or serve the app from an allowed origin, and verify the response shape without exposing credentials.
+- Modify `/Users/macminim4/MyApp/Vpn-Project/DataSave/datasave-settings.example.json`: document the configurable upload endpoint and request field while keeping secrets out of the example.
+- Create `/Users/macminim4/MyApp/Vpn-Project/DataSave/docs/superpowers/docs/zi2-upload-setup.md`: explain how to locate the deployed API URL, configure CORS for local-file origins or serve the app from an allowed origin, and verify the response shape without exposing credentials.
 
 ## Task 1: Make the workspace fixed and center independently scrollable
 
 **Files:**
-- Modify `MD2Html.html` CSS for `.top`, `.layout`, `.left`, `.right`, `.center`, and `.stage`.
-- Modify `MD2Html.html` markup to group long side-panel controls into collapsible sections.
+- Modify `DataSave.html` CSS for `.top`, `.layout`, `.left`, `.right`, `.center`, and `.stage`.
+- Modify `DataSave.html` markup to group long side-panel controls into collapsible sections.
 
 **Interfaces:**
 - The app shell occupies the viewport below the top bar.
@@ -45,7 +45,7 @@
 ## Task 2: Add contextual text formatting and undo/redo
 
 **Files:**
-- Modify `MD2Html.html` toolbar markup, styles, and embedded editor script.
+- Modify `DataSave.html` toolbar markup, styles, and embedded editor script.
 
 **Interfaces:**
 - `History.push(label)`, `History.undo()`, and `History.redo()` manage editor DOM snapshots and selection restoration.
@@ -62,7 +62,7 @@
 ## Task 3: Import rich HTML and clipboard images safely
 
 **Files:**
-- Modify `MD2Html.html` paste/drop handlers, sanitizer, and image target controls.
+- Modify `DataSave.html` paste/drop handlers, sanitizer, and image target controls.
 
 **Interfaces:**
 - `ClipboardImporter.read(event)` returns sanitized HTML, plain text, or image `File` data.
@@ -82,7 +82,7 @@
 ## Task 4: Add header/footer layout and A4 repeating page furniture
 
 **Files:**
-- Modify `MD2Html.html` left settings panel, preview markup generation, export HTML CSS, and print CSS.
+- Modify `DataSave.html` left settings panel, preview markup generation, export HTML CSS, and print CSS.
 
 **Interfaces:**
 - `state.pageFurniture.header` and `state.pageFurniture.footer` hold `enabled`, `text`, `image`, `imageMode`, `align`, `width`, `height`, and `repeat` values.
@@ -97,8 +97,8 @@
 ## Task 5: Connect optional image uploads to configurable zi2.ir API
 
 **Files:**
-- Modify `MD2Html.html` media settings and `MediaManager`.
-- Modify `md2html-settings.example.json` with non-secret endpoint fields.
+- Modify `DataSave.html` media settings and `MediaManager`.
+- Modify `datasave-settings.example.json` with non-secret endpoint fields.
 - Create `docs/superpowers/docs/zi2-upload-setup.md`.
 
 **Interfaces:**
@@ -117,7 +117,7 @@
 ## Task 6: Add live document analytics
 
 **Files:**
-- Modify `MD2Html.html` analytics panel and editor update hooks.
+- Modify `DataSave.html` analytics panel and editor update hooks.
 
 **Interfaces:**
 - `DocumentAnalytics.measure(root)` returns `{lines, chars, charsNoSpaces, words, estimatedBytes, links, images, tables, headings}`.
@@ -130,7 +130,7 @@
 ## Task 7: Add named exports and synchronize output paths
 
 **Files:**
-- Modify `MD2Html.html` export manager, dialogs, and output builders.
+- Modify `DataSave.html` export manager, dialogs, and output builders.
 
 **Interfaces:**
 - `ExportManager.save(name, blob)` uses `showSaveFilePicker` when available and falls back to a named browser download.
@@ -147,8 +147,8 @@
 ## Task 8: Consolidate settings and perform requested-scope review
 
 **Files:**
-- Modify `MD2Html.html` settings import/export and user help text.
-- Modify `md2html-settings.example.json`.
+- Modify `DataSave.html` settings import/export and user help text.
+- Modify `datasave-settings.example.json`.
 - Update `docs/superpowers/docs/zi2-upload-setup.md` if live API configuration findings change.
 
 **Interfaces:**

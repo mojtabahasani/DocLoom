@@ -87,7 +87,7 @@ const META = [
 
 /**
  * Account details printed above the table. Saderat spreads them over two merged rows and omits
- * the colons ("شماره حساب 0107863686001"); Refah writes "نام مشتري : مجتبی حسنی شماره حساب : …"
+ * the colons ("شماره حساب 0100000000001"); Refah writes "نام مشتري : مجتبی حسنی شماره حساب : …"
  * all in one cell. Both shapes are read here.
  */
 export function readMeta(rows, headerIndex) {

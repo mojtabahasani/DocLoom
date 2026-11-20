@@ -9,12 +9,18 @@ let list = [];
 // Embed mode: brands the host registered for this page only (never written to IndexedDB) and its default.
 const memory = new Map();
 let memoryDefault = null;
+// Every brand by id, archived ones included. `list` deliberately hides archived brands from the
+// pickers, but a document that references its brand's letterhead must still resolve it — otherwise
+// archiving a brand would blank the letterhead of every document that used it.
+const byId = new Map();
 const changed = () => store.emit('brands:changed');
 const sorted = (a) => a.sort((x, y) => (x.name || '').localeCompare(y.name || '', 'fa'));
 
 export const brands = {
   all: () => list,
   get: (id) => list.find((b) => b.id === id) || null,
+  /** For resolving a document's inherited images: finds archived brands too. */
+  any: (id) => (id ? memory.get(id) || byId.get(id) || null : null),
   current: () => brands.get(store.get('brandId')),
   defaultId: () => (memoryDefault && brands.get(memoryDefault) ? memoryDefault : brands.get(getPref('defaultBrandId')) ? getPref('defaultBrandId') : list[0]?.id || null),
   setDefault: (id) => setPref('defaultBrandId', id),
@@ -32,14 +38,20 @@ export const brands = {
   async reload() {
     // Archived brands stay out of the list; a brand the host handed us lives in memory only,
     // and its in-memory copy wins over anything stored under the same id.
-    const stored = (await db.all('brands')).map(normalizeBrand).filter((b) => !b.archivedAt && !memory.has(b.id));
+    const all = (await db.all('brands')).map(normalizeBrand);
+    byId.clear();
+    for (const b of all) byId.set(b.id, b);
+    const stored = all.filter((b) => !b.archivedAt && !memory.has(b.id));
     list = sorted([...stored, ...memory.values()]);
     changed();
   },
   async save(input) {
     const b = normalizeBrand(input);
     if (memory.has(b.id)) memory.set(b.id, b); // a host brand stays in memory (letter counter included)
-    else await db.put('brands', b);
+    else {
+      await db.put('brands', b);
+      byId.set(b.id, b);
+    }
     const i = list.findIndex((x) => x.id === b.id);
     if (i >= 0) list[i] = b;
     else list.push(b);
@@ -54,7 +66,11 @@ export const brands = {
       if (memoryDefault === id) memoryDefault = null;
     } else {
       const b = brands.get(id);
-      if (b) await db.put('brands', { ...b, archivedAt: Date.now() });
+      if (b) {
+        const archived = { ...b, archivedAt: Date.now() };
+        await db.put('brands', archived);
+        byId.set(id, archived); // still resolvable: documents reference its letterhead
+      }
     }
     list = list.filter((x) => x.id !== id);
     if (getPref('defaultBrandId') === id) setPref('defaultBrandId', null);

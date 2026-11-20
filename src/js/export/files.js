@@ -17,12 +17,12 @@ export function downloadFile(name, body, type) {
 }
 
 export function safeFilename(title, ext) {
-  const base = String(title || 'md2html-document')
+  const base = String(title || 'datasave-document')
     .normalize('NFKC')
     .replace(/[^\p{L}\p{N}._-]+/gu, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 70);
-  return (base || 'md2html-document') + '.' + ext;
+  return (base || 'datasave-document') + '.' + ext;
 }
 
 // The server module registers a sink that can store an export beside the linked file or in a chosen folder.

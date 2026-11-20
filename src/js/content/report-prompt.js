@@ -1,8 +1,8 @@
-// The prompt handed to an outside model (ChatGPT, Gemini, …) so its Markdown lands clean in MD2Html.
+// The prompt handed to an outside model (ChatGPT, Gemini, …) so its Markdown lands clean in DataSave.
 // Canonical text: docs/قالب-گزارش.md quotes it verbatim and tests/report-prompt.test.mjs asserts they match.
 // Pure: no DOM, no state.
 
-export const REPORT_PROMPT = `تو یک گزارش فارسی به زبان Markdown می‌نویسی که در برنامه‌ای به نام MD2Html باز
+export const REPORT_PROMPT = `تو یک گزارش فارسی به زبان Markdown می‌نویسی که در برنامه‌ای به نام DataSave باز
 می‌شود و از آن PDF، Word، تصویر یا سند چاپی ساخته می‌شود. دقیقاً این قواعد را
 رعایت کن:
 

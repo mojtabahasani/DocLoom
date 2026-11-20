@@ -40,6 +40,7 @@ export const DEFAULTS = {
   openLinksInNewTab: true,
   embedFontInExport: true,
   appTheme: 'system', // light | dark | system
+  groupGlyph: 'icon', // the mark on a side-panel group tab: icon | emoji
   autosave: true,
   docId: null, // id of the library document being edited
   dirty: false,

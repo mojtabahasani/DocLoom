@@ -32,7 +32,7 @@ json_str() {
 note() {
   /usr/bin/osascript - "$1" "$2" <<'AS'
 on run argv
-  display notification (item 2 of argv) with title "MD2Html" subtitle (item 1 of argv)
+  display notification (item 2 of argv) with title "DataSave" subtitle (item 1 of argv)
 end run
 AS
 }
@@ -40,7 +40,7 @@ AS
 paths=""
 for f in "$@"; do paths="$paths\${paths:+,}$(json_str "$f")"; done
 body="{\\"paths\\":[$paths],\\"formats\\":[\\"pdf\\"],\\"dest\\":{\\"mode\\":\\"beside\\"}}"
-resp="$(/usr/bin/curl -sS -m 15 -X POST -H 'X-MD2Html: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "$body" "$BASE/api/batch")" || { note "خطا" "سرور MD2Html در دسترس نیست."; exit 1; }
+resp="$(/usr/bin/curl -sS -m 15 -X POST -H 'X-DataSave: 1' -H "Origin: $BASE" -H 'Content-Type: application/json' -d "$body" "$BASE/api/batch")" || { note "خطا" "سرور DataSave در دسترس نیست."; exit 1; }
 id="$(printf '%s' "$resp" | sed -n 's/.*"id":"\\([^"]*\\)".*/\\1/p')"
 [ -n "$id" ] || { note "خطا" "سرور درخواست را نپذیرفت (Chrome یا فایل را بررسی کنید)."; exit 1; }
 txt=""
@@ -55,8 +55,8 @@ if [ "$failed" = "0" ] && [ -n "$ok" ]; then note "PDF ساخته شد" "$ok ف�
 `;
 
 const DEFS = [
-  { dir: 'MD2Html Open.workflow', menu: 'MD2Html: باز کن', script: OPEN_SCRIPT },
-  { dir: 'MD2Html PDF.workflow', menu: 'MD2Html: PDF بساز', script: PDF_SCRIPT },
+  { dir: 'DataSave Open.workflow', menu: 'DataSave: باز کن', script: OPEN_SCRIPT },
+  { dir: 'DataSave PDF.workflow', menu: 'DataSave: PDF بساز', script: PDF_SCRIPT },
 ];
 export const FILE_TYPES = ['public.plain-text', 'public.text', 'public.html', 'net.daringfireball.markdown'];
 const head = '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">';

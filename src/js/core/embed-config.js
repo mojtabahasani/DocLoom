@@ -1,10 +1,13 @@
-// Embed mode configuration. A host page opts in by defining `window.MD2HTML_EMBED` before the app's
+// Embed mode configuration. A host page opts in by defining `window.DATASAVE_EMBED` before the app's
 // <script>; without it every flag keeps its normal value and the app behaves exactly as before.
 // Pure: parseEmbedConfig() is tested in node; embedConfig() reads the global once.
+//
+// `window.MD2HTML_EMBED` is the name host pages used before the app was renamed. Those pages are
+// out there and we do not control them, so it is still accepted.
 
 export const NORMAL = Object.freeze({ active: false, host: '', digits: 'fa', upload: true, library: true, server: true, brand: null });
 
-/** Normalise a raw `MD2HTML_EMBED` value. Anything that is not a plain object means "not embedded". */
+/** Normalise a raw `DATASAVE_EMBED` value. Anything that is not a plain object means "not embedded". */
 export function parseEmbedConfig(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return NORMAL;
   return Object.freeze({
@@ -22,6 +25,6 @@ export function parseEmbedConfig(raw) {
 let current;
 /** The configuration of this page (read from the global on first use). */
 export function embedConfig() {
-  current ??= parseEmbedConfig(typeof window === 'undefined' ? undefined : window.MD2HTML_EMBED);
+  current ??= parseEmbedConfig(typeof window === 'undefined' ? undefined : (window.DATASAVE_EMBED ?? window.MD2HTML_EMBED));
   return current;
 }

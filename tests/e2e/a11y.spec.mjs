@@ -3,7 +3,7 @@
 // mistakes that only show up in RTL: an icon button with no name, a dialog with no label.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { openApp, runCommand, setSource } from './helpers.mjs';
+import { openApp, runCommand, setSource, openLibrary, setTitle } from './helpers.mjs';
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
@@ -72,7 +72,7 @@ test('the command palette is a labelled dialog and keeps focus', async ({ page }
 
 test('the library drawer passes, and Escape gives focus back', async ({ page }) => {
   await openApp(page);
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   await expect(page.locator('.lib-drawer')).toBeVisible();
   const results = await scan(page, '.lib-drawer');
   expect(results.violations, '\n  ' + report(results)).toEqual([]);
@@ -83,9 +83,9 @@ test('the library drawer passes, and Escape gives focus back', async ({ page }) 
 test('the archive view of the library passes in both themes', async ({ page }) => {
   await openApp(page);
   await setSource(page, DOC);
-  await page.fill('#title', 'سند بایگانی');
+  await setTitle(page, 'سند بایگانی');
   await runCommand(page, 'ذخیرهٔ نسخه');
-  await page.click('#libraryBtn');
+  await openLibrary(page);
   const drawer = page.locator('.lib-drawer');
   await drawer.getByRole('button', { name: 'بایگانی سند' }).first().click();
   await drawer.locator('.lib-archive').click();

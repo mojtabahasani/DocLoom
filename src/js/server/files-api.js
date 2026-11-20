@@ -4,7 +4,7 @@ import { bytesToBase64 } from './files-core.js';
 async function call(method, url, body) {
   const r = await fetch(url, {
     method,
-    headers: { 'X-MD2Html': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { 'X-DataSave': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });

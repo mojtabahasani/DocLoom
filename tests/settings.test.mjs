@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { validateSettings, buildSettings } from '../src/js/core/settings-schema.js';
 import { DEFAULTS } from '../src/js/core/store.js';
 
-const v1 = { schemaVersion: 1, app: 'MD2Html', theme: 'green', fontSize: 17, pageMarginMm: 20, mastheadText: 'شرکت' };
-const v2 = JSON.parse(readFileSync(new URL('../md2html-settings.example.json', import.meta.url), 'utf8'));
+const v1 = { schemaVersion: 1, app: 'DataSave', theme: 'green', fontSize: 17, pageMarginMm: 20, mastheadText: 'شرکت' };
+const v2 = JSON.parse(readFileSync(new URL('../datasave-settings.example.json', import.meta.url), 'utf8'));
 const v3 = { ...v2, schemaVersion: 3, appTheme: 'dark', embedFontInExport: false, openLinksInNewTab: true };
 
 test('example file is a valid v2 fixture', () => {

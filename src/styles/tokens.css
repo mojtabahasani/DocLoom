@@ -24,8 +24,11 @@
   --ring: #7fc3a9;
   --danger: #b4443c;
   --danger-soft: #fbeceb;
-  --stage: #e9eeea;
-  --stage-dot: #b9c8c0;
+  /* The desk the paper lies on. Deliberately dark in BOTH themes: a white page on a pale page has no
+     edge, so the document never reads as a document. The paper keeps its own light colours. */
+  --stage: #26332f;
+  --stage-dot: rgba(203, 229, 217, 0.075);
+  --stage-ink: #c6d6d0; /* text that sits directly on the desk, not inside a card */
   --topbar: rgba(255, 255, 255, 0.82);
   --toast: #173d39;
   --toast-text: #ffffff;
@@ -65,8 +68,9 @@
   --ring: #3f8f77;
   --danger: #ef8a81;
   --danger-soft: #3a2220;
-  --stage: #0b1311;
-  --stage-dot: #2a403a;
+  --stage: #080f0d;
+  --stage-dot: rgba(160, 200, 186, 0.07);
+  --stage-ink: #9fb3ac;
   --topbar: rgba(21, 35, 32, 0.82);
   --toast: #e3eeea;
   --toast-text: #0e1815;
@@ -97,8 +101,9 @@
     --ring: #3f8f77;
     --danger: #ef8a81;
     --danger-soft: #3a2220;
-    --stage: #0b1311;
-    --stage-dot: #2a403a;
+    --stage: #080f0d;
+    --stage-dot: rgba(160, 200, 186, 0.07);
+    --stage-ink: #9fb3ac;
     --topbar: rgba(21, 35, 32, 0.82);
     --toast: #e3eeea;
     --toast-text: #0e1815;

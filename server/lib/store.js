@@ -199,12 +199,12 @@ export class LibraryStore extends EventEmitter {
     this.emit('change', { store, id, ts, deleted: true, by });
     return { ts };
   }
-  /** Backup payload in the client's `md2html-backup` format (live items only). */
+  /** Backup payload in the client's `datasave-backup` format (live items only). */
   snapshot(now = Date.now()) {
     const live = (s) => this.list(s).filter((e) => !e.deleted).map((e) => this.get(s, e.id)?.data).filter(Boolean);
     const settings = {};
     for (const r of live('settings')) settings[r.key] = r.value;
-    return { format: 'md2html-backup', version: 1, app: 'MD2Html', exportedAt: new Date(now).toISOString(), documents: live('documents'), versions: live('versions'), brands: live('brands'), settings };
+    return { format: 'datasave-backup', version: 1, app: 'DataSave', exportedAt: new Date(now).toISOString(), documents: live('documents'), versions: live('versions'), brands: live('brands'), settings };
   }
   /** Replace the whole library with a backup payload. Everything gets ts=now so every client adopts it. */
   restore(backup, now = Date.now()) {

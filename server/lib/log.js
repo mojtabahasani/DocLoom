@@ -1,8 +1,9 @@
 // Rotating file logger: logs/server.log, rolled at `maxBytes`, keeping `keep` old files.
 import fs from 'node:fs';
 import path from 'node:path';
+import { envVar } from './env.js';
 
-export function createLogger(dir, { maxBytes = 1024 * 1024, keep = 5, echo = !!process.stdout.isTTY || process.env.MD2HTML_STDOUT === '1' } = {}) {
+export function createLogger(dir, { maxBytes = 1024 * 1024, keep = 5, echo = !!process.stdout.isTTY || envVar('STDOUT') === '1' } = {}) {
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'server.log');
   const rotate = () => {

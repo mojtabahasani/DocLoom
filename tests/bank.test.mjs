@@ -33,7 +33,7 @@ test('parseAmount reads every way a bank writes a number', () => {
   assert.equal(parseAmount('−5,000'), -5000); // U+2212
   assert.equal(parseAmount('۱٬۲۳۴٫۵'), 1234.5);
   assert.equal(parseAmount(''), null);
-  assert.equal(parseAmount('IR540610000001001003005013'), null);
+  assert.equal(parseAmount('IR540610000000100100300501'), null);
   assert.equal(parseAmount('کارمزد'), null);
 });
 
@@ -192,7 +192,7 @@ test('reversed column order is handled, because columns are matched by name', ()
 test('a statement parses: amounts, dates, a dropped total row, and recomputed sums', () => {
   const st = parseStatement(
     sheet(
-      ['نام مشتری : مجتبی حسنی شماره حساب : 80854620'],
+      ['نام مشتری : مجتبی حسنی شماره حساب : 12345678'],
       HEADER,
       ['1', '1405/06/05', '‭06:43‬', 'پایا', '1,000,000', '0', '194,310,958'],
       ['2', '1405/06/06', '08:00', 'کارمزد', '0', '700', '194,310,258'],
@@ -204,7 +204,7 @@ test('a statement parses: amounts, dates, a dropped total row, and recomputed su
   assert.equal(st.records.length, 2);
   assert.equal(st.dropped.total, 1, 'the «جمع کل» line is not a transaction');
   assert.equal(st.meta.holder, 'مجتبی حسنی');
-  assert.equal(st.meta.account, '80854620');
+  assert.equal(st.meta.account, '12345678');
   assert.equal(st.records[0].time, '06:43');
   assert.equal(st.records[0].deposit, 1000000);
   const s = summarize(st.records);
@@ -359,14 +359,14 @@ test('the remaining kinds land where they belong', () => {
 
 test('the description cell joins the parts and never repeats one', () => {
   assert.equal(describeCompact(rec({ desc: 'خرید اینترنتی از ملت', kind: 'خرید اینترنتی' })), 'خرید اینترنتی از ملت');
-  assert.equal(describeCompact(rec({ desc: '- واریزپایا', kind: 'واریز پایا', desc2: '0107863686001', deposit: 8000000 })), 'واریزپایا / واریز پایا / 0107863686001');
+  assert.equal(describeCompact(rec({ desc: '- واریزپایا', kind: 'واریز پایا', desc2: '0100000000001', deposit: 8000000 })), 'واریزپایا / واریز پایا / 0100000000001');
   assert.equal(describeCompact(rec({ desc: 'کارمزد تراکنش شاپرک' })), 'کارمزد تراکنش شاپرک');
 });
 
 const STATEMENT = () =>
   parseStatement(
     sheet(
-      ['نام مشتری : مجتبی حسنی شماره حساب : 0107863686001'],
+      ['نام مشتری : مجتبی حسنی شماره حساب : 0100000000001'],
       ['ردیف', 'تاریخ', 'زمان', 'نوع تراکنش', 'شرح', 'واریز', 'برداشت', 'مانده'],
       ['1', '1405/05/12', '10:00:00', 'شاپرک - تجمیعى', 'مرکزشاپرک', '27,700,000', '0', '27,700,000'],
       ['2', '1405/05/13', '11:30:00', 'خرید اینترنتی', 'خرید اینترنتی از ملت', '0', '771,000', '26,929,000'],

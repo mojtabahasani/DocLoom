@@ -1,5 +1,7 @@
 // Wiring only: initialise modules in dependency order.
 import { initGuard } from './core/guard.js';
+import { placeToolbarControls, initDocCrumb } from './ui/toolbar-move.js';
+import { store } from './core/store.js';
 import { initPrefs } from './library/prefs.js';
 import { initTheme } from './ui/theme.js';
 import { initPreview } from './editor/preview.js';
@@ -31,6 +33,7 @@ import { initShareUI } from './server/share-ui.js';
 import { initTasks } from './editor/tasks.js';
 import { initBlockTools } from './editor/blocktools.js';
 import { initToc } from './ui/toc-panel.js';
+import { initDrawers } from './ui/drawer.js';
 import { initSuggest } from './ui/suggest.js';
 import { initBrands } from './brand/brands.js';
 import { initBrandUI } from './brand/brand-ui.js';
@@ -40,10 +43,11 @@ import { registerSmartCommands, initSmartButtons } from './ui/commands-smart.js'
 import { embedConfig } from './core/embed-config.js';
 import { initEmbed } from './embed/embed.js';
 
-// Embed mode (window.MD2HTML_EMBED): without the global every flag is on and `active` is false.
+// Embed mode (window.DATASAVE_EMBED): without the global every flag is on and `active` is false.
 const EMBED = embedConfig();
 
 async function main() {
+  placeToolbarControls(); // before anything binds by id: the controls start life in a <template>
   initGuard();
   await initPrefs(); // opens IndexedDB, loads settings, migrates the old localStorage theme
   initTheme();
@@ -59,6 +63,7 @@ async function main() {
   initSettings();
   initMetrics();
   initTopbar();
+  initDocCrumb(store);
   initShortcuts({ preview });
   registerCommands();
   registerSmartCommands();
@@ -87,10 +92,11 @@ async function main() {
     initShareUI();
   }
   if (EMBED.active) initEmbed();
+  initDrawers(); // after embed: a group's count must not include a tool embed mode just hid
   if (await initSync()) {
     activateLinked();
     await openFromUrl();
-  } // no-op (and no network) unless served by the MD2Html server
+  } // no-op (and no network) unless served by the DataSave server
 }
 
-main().catch((e) => console.error('MD2Html failed to start', e));
+main().catch((e) => console.error('DataSave failed to start', e));

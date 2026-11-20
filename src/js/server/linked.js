@@ -2,6 +2,7 @@
 import { store } from '../core/store.js';
 import { $ } from '../core/dom.js';
 import { notify } from '../core/notify.js';
+import { readStored, writeStored } from '../core/naming.js';
 import { db } from '../library/db.js';
 import { library } from '../library/library.js';
 import { preview, previewInSync, renderFromSource } from '../editor/preview.js';
@@ -32,14 +33,8 @@ let lastDir = '';
 const warnedHtml = new Set();
 let flashTimer = 0;
 
-const FOLLOW_KEY = 'md2html.followEnd';
-const getFollow = () => {
-  try {
-    return localStorage.getItem(FOLLOW_KEY) === '1';
-  } catch {
-    return false;
-  }
-};
+const FOLLOW_KEY = 'datasave.followEnd';
+const getFollow = () => readStored(FOLLOW_KEY) === '1';
 
 export const getLink = () => store.get('link');
 const setLink = (patch) => store.set('link', patch && { ...store.get('link'), ...patch });
@@ -322,7 +317,7 @@ export async function saveToFile() {
 }
 
 export async function saveAsFile() {
-  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست.');
+  if (!syncActive()) return void notify('سرور DataSave در دسترس نیست.');
   const link = getLink();
   const title = store.get('title');
   const pick = await pickLocation({
@@ -387,16 +382,12 @@ export function initLinked({ openFiles }) {
   if (follow) {
     follow.checked = getFollow();
     follow.addEventListener('change', () => {
-      try {
-        localStorage.setItem(FOLLOW_KEY, follow.checked ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
+      writeStored(FOLLOW_KEY, follow.checked ? '1' : '0');
       if (follow.checked) $('.stage').scrollTop = $('.stage').scrollHeight;
     });
   }
 
-  const need = (fn) => () => (syncActive() ? fn() : notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.'));
+  const need = (fn) => () => (syncActive() ? fn() : notify('سرور DataSave در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.'));
   palette.register({ id: 'file-save', title: 'ذخیره روی فایل (فایل متصل)', group: 'فایل', keywords: 'save file disk write ذخیره فایل دیسک', run: need(saveToFile) });
   palette.register({ id: 'file-save-as', title: 'ذخیره به نام در سرور…', group: 'فایل', keywords: 'save as file folder ذخیره به نام پوشه', run: need(saveAsFile) });
   palette.register({ id: 'file-unlink', title: 'قطع پیوند سند با فایل', group: 'فایل', keywords: 'unlink detach file', run: unlink });

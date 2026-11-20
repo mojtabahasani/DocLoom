@@ -4,7 +4,7 @@
 
 **Goal:** HTML غنی پیست‌شده از وب را با عرض آزاد و قالب‌های امن قابل‌حمل در پیش‌نمایش نشان بده.
 
-**Architecture:** در فایل مستقل MD2Html، نوع محتوای clipboard به تابع درج HTML داده می‌شود. برای HTML غنی، یک وضعیت نمایشی روی پیش‌نمایش فعال می‌شود که محدودیت عرض کاغذ را برمی‌دارد؛ سندهای متنی و Markdown در حالت فعلی می‌مانند. پاک‌سازی HTML موجود حفظ می‌شود.
+**Architecture:** در فایل مستقل DataSave، نوع محتوای clipboard به تابع درج HTML داده می‌شود. برای HTML غنی، یک وضعیت نمایشی روی پیش‌نمایش فعال می‌شود که محدودیت عرض کاغذ را برمی‌دارد؛ سندهای متنی و Markdown در حالت فعلی می‌مانند. پاک‌سازی HTML موجود حفظ می‌شود.
 
 **Tech Stack:** HTML، CSS و JavaScript بومی در فایل مستقل؛ بدون وابستگی یا سرور.
 
@@ -20,7 +20,7 @@
 ### Task 1: افزودن حالت نمایشی وب به پیش‌نمایش
 
 **Files:**
-- Modify: `/Users/macminim4/MyApp/Vpn-Project/MD2Html/MD2Html.html`
+- Modify: `/Users/macminim4/MyApp/Vpn-Project/DataSave/DataSave.html`
 
 **Interfaces:**
 - `insertClipboardHTML(html, wide = true)` درج امن محتوای HTML را انجام می‌دهد و در حالت wide، کلاس `web-layout` را روی `#preview` فعال می‌کند.

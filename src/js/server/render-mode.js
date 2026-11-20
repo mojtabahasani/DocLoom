@@ -1,5 +1,5 @@
 // "Render mode": the app loaded by the server's headless Chrome at /render. No UI work: it fetches the document and brand
-// from the server, rebuilds the exported page and signals readiness (window.__md2htmlReady) so Chrome can print it.
+// from the server, rebuilds the exported page and signals readiness (window.__datasaveReady) so Chrome can print it.
 import { store } from '../core/store.js';
 import { sanitizeToFragment } from '../content/sanitize.js';
 import { cleanMarkdown, defaultRules } from '../content/cleanup.js';
@@ -46,7 +46,9 @@ export async function runRender() {
       if (!doc) throw new Error('doc-not-found');
       const id = brandParam || doc.brandId;
       if (id) await loadBrand(id).catch(() => {});
-      store.patch(docToPatch(doc));
+      // The brand was loaded just above, so images the document references (rather than carries)
+      // resolve here — without this the letterhead would be missing from every rendered PDF.
+      store.patch(docToPatch(doc, brands.any(doc.brandId)));
       preview.replaceChildren(sanitizeToFragment(doc.html || ''));
       applyLook();
       if (brandParam) applyBrand(brandParam, { refresh: true });
@@ -67,14 +69,14 @@ export async function runRender() {
     } else throw new Error('no-document');
 
     const html = buildExportHTML();
-    window.__md2htmlHTML = html;
+    window.__datasaveHTML = html;
     document.open();
     document.write(html);
     document.close();
     await Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 4000))]);
     await Promise.all([...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; }))));
-    window.__md2htmlReady = true;
+    window.__datasaveReady = true;
   } catch (e) {
-    window.__md2htmlError = String(e?.message || e);
+    window.__datasaveError = String(e?.message || e);
   }
 }

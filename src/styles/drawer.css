@@ -1,0 +1,116 @@
+/* Group drawers for the side panels — see src/js/ui/drawer.js for why there are two shapes.
+   Each group owns a hue (--h). The hue is only ever an edge, a dot or a pale wash; text and
+   icons keep the palette's own ink, so a new group can never introduce a contrast failure and
+   colour is never the only thing telling the groups apart (there is a name, an icon and a count). */
+
+.side.has-drawer { padding: 0 }
+.side.has-drawer > .heading { margin: 0; padding: 13px 14px 11px; border-bottom: 1px solid var(--line) }
+.drawer { display: flex; flex-direction: column }
+.dbody { min-width: 0; display: flex; flex-direction: column }
+/* Only the panel's own drawer scrolls — a nested one must not grow a second scrollbar inside the
+   first — and only where the page is a fixed height; below that breakpoint the whole page scrolls
+   and `flex:1` on a container with no height of its own would collapse it. */
+@media (min-width: 1101px) {
+  .side.has-drawer { overflow: hidden; display: flex; flex-direction: column; min-height: 0 }
+  .side.has-drawer > .drawer { flex: 1; min-height: 0 }
+  .side.has-drawer > .drawer > .dbody { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent }
+}
+
+/* A group that holds two or three separate jobs nests its own tab row instead of stacking
+   accordions. It spans the group's full width, so it reads as a divider, not as a control. */
+.dgroup > .drawer { margin: 0 -14px }
+.dgroup .dgroup { padding: 14px 14px 16px }
+.dgroup > .drawer > .dnav { padding-top: 0; background: var(--surface-2) }
+.dgroup > .drawer > .dnav .dtab { flex: 1 1 auto; justify-content: center; min-height: 40px; font-size: var(--fs-xs) }
+.dgroup { padding: 0 14px 18px }
+.dgroup[hidden] { display: none !important }
+.dgroup:focus { outline: none }
+
+/* The group you are in: its name, and — before you go looking — what is inside it. */
+.dhead { display: flex; align-items: flex-start; gap: 8px; padding: 11px 14px 9px; position: sticky; top: 0; z-index: 2; background: var(--surface) }
+.dhead-dot { flex: none; width: 9px; height: 9px; margin-top: 4px; border-radius: 3px; background: hsl(var(--h, 162) 44% 36%) }
+.dhead-name { display: block; font-size: var(--fs-md); line-height: 1.5 }
+.dhead-list { margin: 1px 0 0; font-size: var(--fs-xs); line-height: 1.65; color: var(--muted) }
+
+/* ---- the tabs themselves ---- */
+.dnav { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 10px 0; flex: none; border-bottom: 1px solid var(--line) }
+.dtab {
+  --group-ink: hsl(var(--h) 44% 36%);
+  --group-wash: hsl(var(--h) 46% 95%);
+  /* Content width, not an equal share: the names stay readable and the row wraps into a second
+     row of hanging files when there are more groups than fit — which is the point of the shape. */
+  position: relative; display: flex; align-items: center; gap: 6px; min-height: 44px; min-width: 0; flex: 0 1 auto;
+  padding: 0 8px; border: 1px solid var(--line); border-top: 3px solid var(--group-ink);
+  border-radius: 3px 3px 0 0; background: var(--surface-2); color: var(--muted);
+  font-size: var(--fs-sm); font-weight: 700; text-align: start;
+  transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+}
+.dtab:hover { background: var(--surface-3); color: var(--text-2) }
+.dtab.on { background: var(--group-wash); color: var(--text); border-color: var(--line-strong); border-top-color: var(--group-ink) }
+.g-glyph { flex: none; display: grid; place-items: center; line-height: 1 }
+.dtab.is-emoji .g-glyph { font-size: 15px }
+.g-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+/* The active tab merges into the panel under it, the way a pulled file does. */
+.dtab.on { border-bottom-color: var(--group-wash); margin-bottom: -1px }
+
+/* ---- rail shape: only where there is room for it ---- */
+@media (min-width: 1101px) {
+  /* Each rail hugs its own panel's OUTER edge, against the window rather than against the paper.
+     The content panel sits on the screen's right, so its tabs come first (row); the design panel
+     sits on the left, so its tabs come last (row-reverse). Both read tabs-then-content in RTL. */
+  .drawer[data-shape='rail'] { flex-direction: row }
+  .side.right .drawer[data-shape='rail'] { flex-direction: row-reverse }
+  .drawer[data-shape='rail'] > .dnav {
+    width: 62px; flex: none; flex-direction: column; flex-wrap: nowrap; gap: 4px;
+    padding: 10px 5px; margin: 0; overflow: auto; scrollbar-width: none;
+    border-bottom: 0; background: var(--surface-2);
+  }
+  .side.left .drawer[data-shape='rail'] > .dnav { border-inline-end: 1px solid var(--line) }
+  .side.right .drawer[data-shape='rail'] > .dnav { border-inline-start: 1px solid var(--line) }
+  .drawer[data-shape='rail'] > .dnav::-webkit-scrollbar { display: none }
+  /* A square, not a pill: equal sides, square corners, the icon over its name inside the box. */
+  .drawer[data-shape='rail'] .dtab {
+    flex: none; width: 100%; aspect-ratio: 1; min-height: 0;
+    display: grid; justify-items: center; align-content: center; gap: 3px; padding: 2px; margin: 0;
+    border: 1px solid transparent; border-radius: 3px; background: transparent; font-size: 9.5px; letter-spacing: -0.01em; text-align: center;
+  }
+  .drawer[data-shape='rail'] .dtab::before {
+    content: ''; position: absolute; inset-inline-start: 0; top: 7px; bottom: 7px;
+    width: 3px; border-radius: 0; background: var(--group-ink); opacity: .4; transition: opacity .16s var(--ease);
+  }
+  .drawer[data-shape='rail'] .dtab:hover { background: var(--surface-3) }
+  .drawer[data-shape='rail'] .dtab.on { background: var(--group-wash); border-color: var(--line-strong) }
+  .drawer[data-shape='rail'] .dtab.on::before { opacity: 1 }
+  .drawer[data-shape='rail'] .g-name { max-width: 100% }
+  .drawer[data-shape='rail'] .dbody { background: var(--surface) }
+}
+
+/* Controls that came down from the toolbar: in a panel they are rows, not toolbar chips. */
+.dgroup .btn.block { width: 100%; justify-content: flex-start }
+.dgroup .menu-wrap { display: block }
+.dgroup .seg { width: 100% }
+.dgroup .seg button { flex: 1 }
+.dgroup .srv-dot { margin-inline-start: auto }
+
+/* A segmented control with words in it, not icons. */
+.seg.text { direction: rtl; width: 100% }
+.seg.text button { width: auto; flex: 1; padding: 0 10px; font-size: var(--fs-sm); font-weight: 700 }
+
+/* A control that something else just brought into view says so for a moment. */
+.just-revealed { animation: reveal-flash 1.3s var(--ease) }
+@keyframes reveal-flash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent }
+  20%, 55% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 60%, transparent) }
+}
+@media (prefers-reduced-motion: reduce) {
+  .just-revealed { animation: none; outline: 2px solid var(--ring); outline-offset: 2px }
+  .dtab { transition: none }
+}
+
+:root[data-theme='dark'] .dtab { --group-ink: hsl(var(--h) 46% 62%); --group-wash: hsl(var(--h) 26% 17%) }
+:root[data-theme='dark'] .dhead-dot { background: hsl(var(--h) 46% 62%) }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .dtab { --group-ink: hsl(var(--h) 46% 62%); --group-wash: hsl(var(--h) 26% 17%) }
+  :root:not([data-theme='light']) .dhead-dot { background: hsl(var(--h) 46% 62%) }
+}

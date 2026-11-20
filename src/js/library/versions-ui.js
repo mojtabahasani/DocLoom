@@ -15,7 +15,7 @@ import { syncActive } from '../server/sync.js';
 async function retiredVersions(docId, localIds) {
   if (!syncActive()) return [];
   try {
-    const r = await fetch('/api/retired?doc=' + encodeURIComponent(docId), { headers: { 'X-MD2Html': '1' }, cache: 'no-store' });
+    const r = await fetch('/api/retired?doc=' + encodeURIComponent(docId), { headers: { 'X-DataSave': '1' }, cache: 'no-store' });
     if (!r.ok) return [];
     return ((await r.json()).versions || [])
       .filter((v) => !localIds.has(v.id))
@@ -23,7 +23,7 @@ async function retiredVersions(docId, localIds) {
         ...v,
         remote: true,
         load: async () => {
-          const e = await fetch(`/api/retired/versions/${docId}/${v.name}`, { headers: { 'X-MD2Html': '1' }, cache: 'no-store' }).then((x) => (x.ok ? x.json() : null));
+          const e = await fetch(`/api/retired/versions/${docId}/${v.name}`, { headers: { 'X-DataSave': '1' }, cache: 'no-store' }).then((x) => (x.ok ? x.json() : null));
           if (!e?.data) throw new Error('retired version unavailable');
           return e.data;
         },

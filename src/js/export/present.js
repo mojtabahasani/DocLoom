@@ -53,5 +53,5 @@ export async function exportPresentation() {
   } catch {
     return notify('ساخت فایل ارائه ممکن نشد؛ سند دست‌نخورده است.');
   }
-  await saveAs(safeFilename((store.get('title') || 'md2html') + '-ارائه', 'html'), html, 'text/html;charset=utf-8', 'ارائهٔ HTML');
+  await saveAs(safeFilename((store.get('title') || 'datasave') + '-ارائه', 'html'), html, 'text/html;charset=utf-8', 'ارائهٔ HTML');
 }

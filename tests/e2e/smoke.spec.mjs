@@ -27,7 +27,7 @@ test('the app boots clean and makes no network request but the health probe', as
   expect(offTargetRequests(requests, baseURL), 'the offline app must not reach the network').toEqual([]);
 });
 
-test('the MD2Html Markdown dialect renders', async ({ page }) => {
+test('the DataSave Markdown dialect renders', async ({ page }) => {
   await openApp(page);
   await setSource(page, SAMPLE);
   const p = page.locator('#preview');

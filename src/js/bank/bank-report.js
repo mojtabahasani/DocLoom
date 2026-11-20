@@ -40,7 +40,7 @@ export function guessBank(...hints) {
 }
 
 /**
- * Monthly deposit/withdraw totals as a table MD2Html's chart button can turn into a bar chart
+ * Monthly deposit/withdraw totals as a table DataSave's chart button can turn into a bar chart
  * (first column labels, every other column entirely numeric — unit in the header).
  */
 export function monthlyTable(records, { unit = 'میلیون ریال', scale = 1e6, digits = 'fa' } = {}) {

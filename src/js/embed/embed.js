@@ -1,4 +1,5 @@
-// Embed mode: the API a host page uses when it embeds the single-file app (window.MD2HTML_EMBED, see CLAUDE.md).
+// Embed mode: the API a host page uses when it embeds the single-file app (window.DATASAVE_EMBED,
+// or the older window.MD2HTML_EMBED, see CLAUDE.md).
 // Only app.js calls initEmbed(), and only when the global is defined: without it nothing here runs.
 import { store, DOC_DEFAULTS } from '../core/store.js';
 import { $, $$ } from '../core/dom.js';
@@ -22,7 +23,7 @@ function fire(name, ...args) {
     try {
       fn(...args);
     } catch (e) {
-      console.error('MD2Html embed listener failed', e);
+      console.error('DataSave embed listener failed', e);
     }
   }
 }
@@ -57,7 +58,7 @@ function load({ markdown, title, subtitle, doc, html } = {}) {
   loading = true;
   try {
     const hasDoc = !!doc && typeof doc === 'object';
-    if (hasDoc) store.patch({ ...docToPatch(doc), link: null, pendingUpload: null });
+    if (hasDoc) store.patch({ ...docToPatch(doc, brands.any(doc.brandId)), link: null, pendingUpload: null });
     else {
       // Same as "new document": document fields back to defaults, then the default brand (state only).
       store.patch({ ...DOC_DEFAULTS, pendingUpload: null });
@@ -108,8 +109,8 @@ function applyBrand(input) {
 }
 
 function on(name, fn) {
-  if (!listeners[name]) throw new Error('MD2Html embed: unknown event ' + name);
-  if (typeof fn !== 'function') throw new TypeError('MD2Html embed: listener must be a function');
+  if (!listeners[name]) throw new Error('DataSave embed: unknown event ' + name);
+  if (typeof fn !== 'function') throw new TypeError('DataSave embed: listener must be a function');
   listeners[name].add(fn);
   return () => listeners[name].delete(fn);
 }
@@ -146,7 +147,7 @@ function trimChrome(cfg) {
     hide(auto);
     if (auto?.nextElementSibling?.matches('p.muted')) hide(auto.nextElementSibling); // "saved in this browser's library"
   }
-  if (!cfg.upload) hide($('#uploadImage')?.closest('details'));
+  if (!cfg.upload) hide($('#uploadImage')?.closest('.dgroup'));
 }
 
 /** Empty container at the start of the top bar's action area, for the host's own buttons. */
@@ -159,7 +160,7 @@ function makeSlot() {
   return slot;
 }
 
-/** Wire embed mode. Called by app.js after every module is initialised, only when MD2HTML_EMBED is defined. */
+/** Wire embed mode. Called by app.js after every module is initialised, only when DATASAVE_EMBED is defined. */
 export function initEmbed() {
   const cfg = embedConfig();
   trimChrome(cfg);
@@ -187,9 +188,14 @@ export function initEmbed() {
     if (TRACKED_KEYS.has(key)) touched();
   });
   store.on('embed:save', () => fire('save'));
-  window.MD2Html = Object.assign(window.MD2Html || {}, { embed: api });
+  // `window.DataSave` is the name now; `window.MD2Html` is the one host pages were written against
+  // and it points at the same object, so an existing host keeps working untouched. Same for the
+  // ready event: both are fired, and a host that listens for either hears it exactly once.
+  window.DataSave = Object.assign(window.DataSave || {}, { embed: api });
+  window.MD2Html = window.DataSave;
   markClean();
   api.ready = true;
+  window.dispatchEvent(new Event('datasave:ready'));
   window.dispatchEvent(new Event('md2html:ready'));
   return api;
 }

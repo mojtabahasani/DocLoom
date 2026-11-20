@@ -1,4 +1,4 @@
-// Library sync with the MD2Html server. Active ONLY when the page is served over http(s) and same-origin /api/health answers;
+// Library sync with the DataSave server. Active ONLY when the page is served over http(s) and same-origin /api/health answers;
 // on file:// nothing is fetched at all. IndexedDB stays the offline cache.
 import { embedConfig } from '../core/embed-config.js';
 import { db } from '../library/db.js';
@@ -8,9 +8,11 @@ import { isEmpty } from '../editor/preview.js';
 import { applyPrefs } from '../library/prefs.js';
 import { notify } from '../core/notify.js';
 import { newId } from '../library/doc-model.js';
-import { SYNC_STORES, keyOf, splitKey, isSynced, localTs, decide, conflictCopy } from './sync-core.js';
+import { brands } from '../brand/brands.js';
+import { APP_ID, LEGACY_APP_ID, readStored, writeStored } from '../core/naming.js';
+import { SYNC_STORES, keyOf, splitKey, isSynced, localTs, decide, conflictCopy, sameDocContent } from './sync-core.js';
 
-const STATE_KEY = 'md2html.sync';
+const STATE_KEY = 'datasave.sync';
 const CLIENT = Math.random().toString(36).slice(2, 12);
 const INTERVAL = 30000;
 const PUSH_DELAY = 2000;
@@ -33,23 +35,21 @@ const setStatus = (s) => {
 
 function loadState() {
   try {
-    state = { base: {}, lts: {}, tomb: {}, ...JSON.parse(localStorage.getItem(STATE_KEY) || '{}') };
+    // readStored also adopts the map the old app name wrote. Losing it is survivable now — `decide`
+    // compares content instead of inventing a conflict — but adopting it avoids the work entirely.
+    state = { base: {}, lts: {}, tomb: {}, ...JSON.parse(readStored(STATE_KEY) || '{}') };
   } catch {
     /* private mode: sync state lives in memory only */
   }
 }
 function saveState() {
-  try {
-    localStorage.setItem(STATE_KEY, JSON.stringify(state));
-  } catch {
-    /* ignore */
-  }
+  writeStored(STATE_KEY, JSON.stringify(state));
 }
 
 async function req(method, path, body) {
   const r = await fetch(path, {
     method,
-    headers: { 'X-MD2Html': '1', 'X-MD2Html-Client': CLIENT, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { 'X-DataSave': '1', 'X-DataSave-Client': CLIENT, ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });
@@ -133,7 +133,17 @@ async function sync() {
       if (!SYNC_STORES.includes(s) || !isSynced(s, id)) continue;
       const { rec, entry } = await localEntry(s, id);
       const r = remote.get(k);
-      const d = decide({ store: s, local: entry, remote: r ? { ts: r.ts, deleted: r.deleted } : null, base: state.base[k] });
+      let d = decide({ store: s, local: entry, remote: r ? { ts: r.ts, deleted: r.deleted } : null, base: state.base[k] });
+      // The base map is per-device bookkeeping and it can be gone (storage cleared, a failed quota
+      // write, a restored server, a second device's first sync). That is not an edit on both sides,
+      // so the content is fetched and compared before anything is duplicated.
+      let theirs = null;
+      if (d.act === 'compare') {
+        theirs = (await req('GET', `/api/lib/${s}/${id}`)).data;
+        d = sameDocContent(rec, theirs, brands.any(rec?.brandId || theirs?.brandId))
+          ? { act: d.winner === 'local' ? 'push' : 'pull' } // one document, two clocks: converge
+          : { act: 'conflict', winner: d.winner };
+      }
       if (d.act === 'noop') {
         if (entry && r && entry.deleted === !!r.deleted) {
           state.base[k] = r.ts;
@@ -147,8 +157,7 @@ async function sync() {
         const copyId = newId();
         const row = d.winner === 'local' ? { s, id, rec, ts: entry.ts, ifTs: r.ts } : null;
         if (d.winner === 'local') {
-          const theirs = (await req('GET', `/api/lib/${s}/${id}`)).data;
-          await putLocal(s, [conflictCopy(theirs, copyId)]);
+          await putLocal(s, [conflictCopy(theirs ?? (await req('GET', `/api/lib/${s}/${id}`)).data, copyId)]);
           pushes.push(row);
         } else {
           await putLocal(s, [conflictCopy(rec, copyId)]);
@@ -250,7 +259,7 @@ export const syncNow = () => (active ? sync() : Promise.resolve());
 
 /** Probe same-origin /api/health once. Never touches the network on file:// or other non-web origins. */
 export async function initSync() {
-  const ok = embedConfig().server ? await probe() : false; // embed host without the MD2Html server: no probe at all
+  const ok = embedConfig().server ? await probe() : false; // embed host without the DataSave server: no probe at all
   readyResolve(ok);
   return ok;
 }
@@ -260,7 +269,9 @@ async function probe() {
   try {
     const r = await fetch('/api/health', { cache: 'no-store' });
     const j = r.ok ? await r.json() : null;
-    if (!j || j.app !== 'md2html') return false;
+    // A server that still calls itself by the old name is the same server: accept both, or this
+    // client would refuse to talk to an installation that has not been updated yet.
+    if (!j || (j.app !== APP_ID && j.app !== LEGACY_APP_ID)) return false;
   } catch {
     return false;
   }

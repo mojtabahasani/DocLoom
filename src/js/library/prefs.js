@@ -2,14 +2,15 @@
 import { store } from '../core/store.js';
 import { db } from './db.js';
 import { sanitizePrefs, STORE_PREF_KEYS } from './prefs-schema.js';
+import { readStored, writeStored, removeStored } from '../core/naming.js';
 
-const LEGACY_THEME = 'md2html.appTheme';
-const MIRROR = 'md2html.prefs'; // used only when IndexedDB is unavailable
+const LEGACY_THEME = 'datasave.appTheme'; // read under the old «md2html.» spelling too — see core/naming.js
+const MIRROR = 'datasave.prefs'; // used only when IndexedDB is unavailable
 let cache = {};
 
 const readMirror = () => {
   try {
-    return JSON.parse(localStorage.getItem(MIRROR) || '{}');
+    return JSON.parse(readStored(MIRROR) || '{}');
   } catch {
     return {};
   }
@@ -27,13 +28,7 @@ export async function setPref(key, value) {
     } catch {
       /* quota: preferences are small, ignore */
     }
-  } else {
-    try {
-      localStorage.setItem(MIRROR, JSON.stringify(cache));
-    } catch {
-      /* storage blocked */
-    }
-  }
+  } else writeStored(MIRROR, JSON.stringify(cache));
 }
 
 export async function initPrefs() {
@@ -42,12 +37,12 @@ export async function initPrefs() {
   if (db.persistent) saved = Object.fromEntries((await db.all('settings')).map((r) => [r.key, r.value]));
   else saved = readMirror();
   cache = sanitizePrefs(saved);
-  // One-time migration of the pre-1B localStorage theme.
+  // One-time migration of the pre-1B localStorage theme (under either spelling of the app's name).
   try {
-    const legacy = localStorage.getItem(LEGACY_THEME);
+    const legacy = readStored(LEGACY_THEME);
     if (legacy !== null && db.persistent) {
       if (!('appTheme' in cache) && sanitizePrefs({ appTheme: legacy }).appTheme) await setPref('appTheme', legacy);
-      localStorage.removeItem(LEGACY_THEME);
+      removeStored(LEGACY_THEME);
     } else if (legacy !== null && !('appTheme' in cache) && sanitizePrefs({ appTheme: legacy }).appTheme) cache.appTheme = legacy;
   } catch {
     /* storage blocked */

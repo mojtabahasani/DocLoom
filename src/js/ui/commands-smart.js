@@ -26,7 +26,7 @@ export function registerSmartCommands() {
     { id: 'cleanup-quick', title: 'پاک‌سازی سریع با قاعده‌های پیش‌فرض', group: 'پاک‌سازی', keywords: 'cleanup quick ai فوری', run: () => applyCleanup() },
     { id: 'detect', title: 'بررسی نوع سند (خروجی AI / نامه)', group: 'پاک‌سازی', keywords: 'detect type ai letter تشخیص', run: () => checkDocument() || notify('سندی برای بررسی نیست.') },
     { id: 'toc-insert', title: 'درج فهرست مطالب در سند', group: 'درج', keywords: 'toc table of contents فهرست مطالب', run: insertToc },
-    { id: 'toc-show', title: 'نمایش فهرست مطالب در پنل کناری', group: 'نما', keywords: 'toc outline headings فهرست', run: () => (showTab('toc'), $('#tabBtnToc').focus()) },
+    { id: 'toc-show', title: 'نمایش فهرست مطالب در پنل کناری', group: 'نما', keywords: 'toc outline headings فهرست', run: () => showTab('toc', { focus: true }) },
     { id: 'reading', title: 'حالت مطالعه', group: 'نما', keywords: 'reading mode focus read مطالعه خواندن', run: openReading },
     { id: 'chart', title: 'درج نمودار از جدول', group: 'درج', keywords: 'chart graph table نمودار', run: chartForCaretTable },
     { id: 'report-prompt', title: 'کپی پرامپت گزارش (برای ChatGPT و جمینی)', group: 'پرامپت', keywords: 'prompt chatgpt gemini ai report پرامپت گزارش هوش مصنوعی چت جی پی تی جمینی', run: openReportPrompt },

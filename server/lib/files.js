@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { confine, extAllowed, hasIgnoredSegment, isProtectedName, roRootsFromEnv, IGNORED_DIRS, READ_EXT, DEFAULT_ROOTS } from './security.js';
 import { normalize } from '../../src/js/ui/fuzzy.js';
+import { envVar } from './env.js';
 
 export const MAX_READ = 5 * 1024 * 1024;
 export const KEEP_FILE_BACKUPS = 20;
@@ -21,7 +22,10 @@ export class FileError extends Error {
   }
 }
 
-export const rootsFromEnv = (env = process.env) => (env.MD2HTML_ROOTS ? env.MD2HTML_ROOTS.split(':').filter(Boolean) : DEFAULT_ROOTS());
+export const rootsFromEnv = (env = process.env) => {
+  const roots = envVar('ROOTS', env);
+  return roots ? roots.split(':').filter(Boolean) : DEFAULT_ROOTS();
+};
 export const hashOf = (buf) => crypto.createHash('sha1').update(buf).digest('hex').slice(0, 20);
 const pathKey = (p) => crypto.createHash('sha1').update(p).digest('hex').slice(0, 16);
 const isIgnoredName = (n) => IGNORED_DIRS.has(n) || n.startsWith('.');

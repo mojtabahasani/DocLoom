@@ -1,6 +1,7 @@
 // Two-way bindings between side-panel controls and the store, plus theme/zoom/margin controls.
 import { store } from '../core/store.js';
-import { $, $$ } from '../core/dom.js';
+import { $, $$, el } from '../core/dom.js';
+import { DOC_THEMES } from '../export/theme.js';
 import { faPercent } from '../content/persian.js';
 import { renderFromSource, refreshFurniture, undo, redo, plainText } from '../editor/preview.js';
 import { copyPlain } from '../export/files.js';
@@ -71,7 +72,21 @@ export function initPanels() {
     renderFromSource();
   });
 
-  // Document colour themes
+  // Document colour themes, built from the one list so adding a palette needs no markup.
+  // The swatch paints the real accent and tint, so what you pick is what the page gets.
+  const swatches = $('#themeSwatches');
+  if (swatches && !swatches.children.length) {
+    swatches.append(
+      ...DOC_THEMES.map((t) =>
+        el(
+          'button',
+          { class: 'theme', type: 'button', dataset: { theme: t.id }, title: `قالب رنگی سند: ${t.label}` },
+          el('i', { style: `background:linear-gradient(90deg,${t.accent} 0 28%,${t.tint} 28%)` + (t.rule ? `;border-bottom:2px dotted ${t.accent}` : '') }),
+          t.label,
+        ),
+      ),
+    );
+  }
   const themeBtns = $$('.theme');
   const paintThemes = (t) =>
     themeBtns.forEach((b) => {
@@ -86,6 +101,17 @@ export function initPanels() {
       store.set('dirty', true);
     }),
   );
+
+  // The mark on a side-panel group tab: a drawn icon, or an emoji for whoever reads those faster.
+  const glyphBtns = $$('[data-glyph]');
+  const paintGlyph = (v) =>
+    glyphBtns.forEach((b) => {
+      b.classList.toggle('active', b.dataset.glyph === v);
+      b.setAttribute('aria-pressed', String(b.dataset.glyph === v));
+    });
+  store.on('groupGlyph', paintGlyph);
+  paintGlyph(store.get('groupGlyph'));
+  glyphBtns.forEach((b) => b.addEventListener('click', () => store.set('groupGlyph', b.dataset.glyph)));
 
   // Font size / zoom
   const select = $('#fontSelect');

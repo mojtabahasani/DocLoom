@@ -5,7 +5,8 @@ import { createDb } from '../src/js/library/db.js';
 import { pruneVersions, pickVersionsToFree, shouldAutoVersion, isDuplicateVersion, MAX_VERSIONS } from '../src/js/library/version-rules.js';
 import { buildBackup, validateBackup, planMerge } from '../src/js/library/backup.js';
 import { queryDocs, allTags } from '../src/js/library/query.js';
-import { captureDoc, docToPatch, normalizeTags, displayTitle, isBlankDoc, LAYOUT_KEYS } from '../src/js/library/doc-model.js';
+import { captureDoc, docToPatch, normalizeTags, displayTitle, isBlankDoc, dedupeBrandImages, LAYOUT_KEYS, BRAND_IMAGE_KEYS } from '../src/js/library/doc-model.js';
+import { IMAGE_FIELDS } from '../src/js/brand/brand-model.js';
 import { sanitizePrefs } from '../src/js/library/prefs-schema.js';
 import { DEFAULTS } from '../src/js/core/store.js';
 
@@ -92,12 +93,77 @@ test('captureDoc / docToPatch restore layout, mode and furniture', () => {
   assert.equal(d.mode, 'web');
   assert.equal(d.createdAt, 5);
   assert.equal(d.updatedAt, 9);
-  assert.deepEqual(Object.keys(d.layout), LAYOUT_KEYS);
+  assert.deepEqual(Object.keys(d.layout), LAYOUT_KEYS, 'no brand → every layout key is carried');
   const p = docToPatch(d);
   assert.equal(p.webLayout, true);
   assert.equal(p.theme, 'green');
   assert.equal(p.mastheadImage, 'data:image/png;base64,AA');
   assert.equal(p.subtitle, 'S');
+});
+
+test('the brand image list matches the brand record', () => {
+  // Two modules name these fields; if they drift, documents would inherit a field no brand has.
+  assert.deepEqual([...BRAND_IMAGE_KEYS].sort(), [...IMAGE_FIELDS].sort());
+  for (const k of BRAND_IMAGE_KEYS) assert.ok(LAYOUT_KEYS.includes(k), k + ' must be a layout key');
+});
+
+test('captureDoc references the brand images instead of copying them', () => {
+  const big = 'data:image/png;base64,' + 'A'.repeat(5000);
+  const brand = { id: 'b1', mastheadImage: big, footerImage: 'data:image/png;base64,FF', signatureImage: '', stampImage: 'data:image/png;base64,SS' };
+  const state = {
+    ...DEFAULTS, title: 'نامه', brandId: 'b1',
+    mastheadImage: big, // same as the brand → referenced
+    footerImage: 'data:image/png;base64,OWN', // overridden → kept
+    stampImage: brand.stampImage, // same as the brand → referenced
+  };
+  const d = captureDoc({ id: 'x', state, html: '<p>a</p>', text: 'a', brand });
+
+  assert.equal(d.layout.mastheadImage, undefined, 'the shared letterhead is not copied');
+  assert.equal(d.layout.stampImage, undefined, 'the shared stamp is not copied');
+  assert.equal(d.layout.footerImage, 'data:image/png;base64,OWN', 'an overridden image stays with the document');
+  assert.deepEqual(d.layout.brandImages, ['mastheadImage', 'stampImage']);
+  assert.ok(JSON.stringify(d).length < 2000, 'the record no longer carries the 5 KB image: ' + JSON.stringify(d).length);
+
+  // ... and opening it puts the real images back.
+  const p = docToPatch(d, brand);
+  assert.equal(p.mastheadImage, big);
+  assert.equal(p.stampImage, brand.stampImage);
+  assert.equal(p.footerImage, 'data:image/png;base64,OWN');
+});
+
+test('a document keeps its own images when there is no brand to share them with', () => {
+  const state = { ...DEFAULTS, brandId: 'b1', mastheadImage: 'data:image/png;base64,AA' };
+  const noBrand = captureDoc({ id: 'x', state, html: '', text: '' });
+  assert.equal(noBrand.layout.mastheadImage, 'data:image/png;base64,AA');
+  assert.equal(noBrand.layout.brandImages, undefined);
+  // A brand that is not this document's brand changes nothing either.
+  const other = captureDoc({ id: 'x', state, html: '', text: '', brand: { id: 'b2', mastheadImage: 'data:image/png;base64,AA' } });
+  assert.equal(other.layout.mastheadImage, 'data:image/png;base64,AA');
+});
+
+test('docToPatch: an inherited image survives a missing brand, and never overrules an explicit one', () => {
+  const doc = { id: 'x', brandId: 'b1', mode: 'doc', layout: { theme: 'navy', brandImages: ['mastheadImage'] } };
+  assert.equal(docToPatch(doc, null).mastheadImage, '', 'no brand: empty, not undefined');
+  assert.equal(docToPatch(doc, { id: 'b1', mastheadImage: 'data:image/png;base64,BB' }).mastheadImage, 'data:image/png;base64,BB');
+  // restoreVersion merges layouts: a version that carries its own image must win over the brand.
+  const merged = { ...doc, layout: { ...doc.layout, mastheadImage: 'data:image/png;base64,OLD' } };
+  assert.equal(docToPatch(merged, { id: 'b1', mastheadImage: 'data:image/png;base64,BB' }).mastheadImage, 'data:image/png;base64,OLD');
+});
+
+test('dedupeBrandImages shrinks a document saved before images were referenced', () => {
+  const big = 'data:image/png;base64,' + 'A'.repeat(4000);
+  const brand = { id: 'b1', mastheadImage: big, footerImage: '', signatureImage: '', stampImage: '' };
+  const old = { id: 'd1', brandId: 'b1', layout: { theme: 'navy', mastheadImage: big, footerImage: 'data:image/png;base64,OWN' } };
+  const out = dedupeBrandImages(old, brand);
+  assert.equal(out.layout.mastheadImage, undefined);
+  assert.deepEqual(out.layout.brandImages, ['mastheadImage']);
+  assert.equal(out.layout.footerImage, 'data:image/png;base64,OWN', 'an image the brand does not have is left alone');
+  assert.equal(out.layout.theme, 'navy');
+  assert.equal(docToPatch(out, brand).mastheadImage, big, 'and it still opens with the letterhead');
+
+  assert.equal(dedupeBrandImages(old, { id: 'b2', mastheadImage: big }), old, 'another brand: untouched (same object)');
+  assert.equal(dedupeBrandImages(old, null), old);
+  assert.equal(dedupeBrandImages(out, brand), out, 'running twice changes nothing');
 });
 
 test('normalizeTags / displayTitle / isBlankDoc', () => {

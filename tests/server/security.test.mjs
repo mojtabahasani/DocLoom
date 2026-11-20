@@ -24,12 +24,12 @@ test('Host allowlist: localhost, loopback, LAN IPs and *.local only', () => {
   for (const h of ['evil.com', 'evil.com:7123', '192.168.1.99:7123', 'localhost.evil.com', 'x.local.evil.com', '', undefined, '10.0.0.1']) assert.ok(!hostAllowed(h, lan), String(h));
 });
 
-test('CSRF: non-GET /api needs X-MD2Html: 1 and the same Origin', () => {
-  const h = { host: 'localhost:7123', origin: 'http://localhost:7123', 'x-md2html': '1' };
+test('CSRF: non-GET /api needs X-DataSave: 1 and the same Origin', () => {
+  const h = { host: 'localhost:7123', origin: 'http://localhost:7123', 'x-datasave': '1' };
   assert.ok(csrfOk('POST', '/api/lib/documents/a', h));
   assert.ok(csrfOk('GET', '/api/health', { host: 'localhost:7123' }));
   assert.ok(csrfOk('POST', '/not-api', { host: 'x' }));
-  assert.ok(!csrfOk('POST', '/api/x', { ...h, 'x-md2html': undefined }));
+  assert.ok(!csrfOk('POST', '/api/x', { ...h, 'x-datasave': undefined }));
   assert.ok(!csrfOk('POST', '/api/x', { ...h, origin: 'http://evil.com' }));
   assert.ok(!csrfOk('POST', '/api/x', { ...h, origin: 'http://localhost:9999' }));
   assert.ok(!csrfOk('DELETE', '/api/x', { ...h, origin: undefined }));
@@ -37,7 +37,7 @@ test('CSRF: non-GET /api needs X-MD2Html: 1 and the same Origin', () => {
 });
 
 test('CSRF: the Origin check compares hosts, so https does not 403 every write', () => {
-  const h = { host: 'mac.local:7123', 'x-md2html': '1' };
+  const h = { host: 'mac.local:7123', 'x-datasave': '1' };
   assert.ok(csrfOk('POST', '/api/x', { ...h, origin: 'http://mac.local:7123' }));
   assert.ok(csrfOk('POST', '/api/x', { ...h, origin: 'https://mac.local:7123' }));
   // Anything that is not an http(s) page origin still fails.
@@ -102,11 +102,11 @@ test('Auth: PIN hash/verify, session lifecycle, expiry and PIN reset', async () 
   assert.match(newPin(), /^\d{6}$/);
 });
 
-test('clientIp honours the test override header only when MD2HTML_TEST=1', () => {
+test('clientIp honours the test override header only when DATASAVE_TEST=1', () => {
   const req = { headers: { 'x-test-remote-addr': '192.168.1.50' }, socket: { remoteAddress: '127.0.0.1' } };
-  assert.equal(clientIp(req, { MD2HTML_TEST: '1' }), '192.168.1.50');
+  assert.equal(clientIp(req, { DATASAVE_TEST: '1' }), '192.168.1.50');
   assert.equal(clientIp(req, {}), '127.0.0.1');
-  assert.equal(clientIp(req, { MD2HTML_TEST: '0' }), '127.0.0.1');
+  assert.equal(clientIp(req, { DATASAVE_TEST: '0' }), '127.0.0.1');
 });
 
 test('confine: realpath root confinement (traversal, symlink escape, ignored dirs, new files)', () => {
@@ -179,8 +179,8 @@ test('network access: env wins, then the saved choice; an upgraded install keeps
   assert.equal(lanEnabled(cfg({ sessions: [{ id: 'a' }] }), {}), true, 'an install with a signed-in device stays open');
   assert.equal(lanEnabled(cfg({ lan: false, sessions: [{ id: 'a' }] }), {}), false, 'the saved choice beats the guess');
   assert.equal(lanEnabled(cfg({ lan: true }), {}), true);
-  assert.equal(lanEnabled(cfg({ lan: true }), { MD2HTML_LAN: '0' }), false);
-  assert.equal(lanEnabled(cfg({ lan: false }), { MD2HTML_LAN: '1' }), true);
+  assert.equal(lanEnabled(cfg({ lan: true }), { DATASAVE_LAN: '0' }), false);
+  assert.equal(lanEnabled(cfg({ lan: false }), { DATASAVE_LAN: '1' }), true);
   assert.equal(listenHost(false), '127.0.0.1');
   assert.equal(listenHost(true), '0.0.0.0');
 });

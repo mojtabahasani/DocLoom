@@ -5,6 +5,6 @@ import { exportParts, EXPORT_STYLES } from './html.js';
 import { renderInteractive } from './interactive-core.js';
 
 export function buildInteractiveHTML(s = store.snapshot()) {
-  const { main, accent, tint, font } = exportParts(s);
-  return renderInteractive({ title: s.title, mainHTML: main.outerHTML, accent, tint, fontCss: font, css: EXPORT_STYLES, watermarkHTML: watermarkExportHTML(s.watermark) });
+  const { main, accent, tint, paper, rule, font } = exportParts(s);
+  return renderInteractive({ title: s.title, mainHTML: main.outerHTML, accent, tint, paper, rule, fontCss: font, css: EXPORT_STYLES, watermarkHTML: watermarkExportHTML(s.watermark) });
 }

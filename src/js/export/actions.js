@@ -33,7 +33,7 @@ export const exportEmail = guard(() => emailDialog(buildEmail()));
 export const exportPDF = guard(printDocument);
 export const exportPDFServer = guard(() => exportPDFDirect());
 export const exportInteractive = guard(() =>
-  saveAs(safeFilename((store.get('title') || 'md2html-document') + '-تعاملی', 'html'), buildInteractiveHTML(), 'text/html;charset=utf-8', 'سند HTML تعاملی'),
+  saveAs(safeFilename((store.get('title') || 'datasave-document') + '-تعاملی', 'html'), buildInteractiveHTML(), 'text/html;charset=utf-8', 'سند HTML تعاملی'),
 );
 export const exportDocx = guard(async () => {
   notify('در حال ساخت فایل Word…');

@@ -13,25 +13,37 @@ button{cursor:pointer}
 /* ---- header ---- */
 .top{position:sticky;top:0;z-index:20;height:64px;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--topbar);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;flex:none}
-.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(140deg,#1a6256,#56b394);color:#fff;display:grid;place-items:center;font:700 14px/1 Arial,sans-serif;direction:ltr;box-shadow:0 4px 12px rgba(26,98,86,.35)}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(165deg,#2b7a67,#15453b 70%);color:#eaf6f0;display:grid;place-items:center;font:700 13.5px/1 Arial,sans-serif;letter-spacing:.5px;direction:ltr;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 6px rgba(12,46,38,.28)}
 .brand h1{font-size:15px;margin:0;line-height:1.2;letter-spacing:.2px}
 .brand small{display:block;font-size:10.5px;color:var(--muted);line-height:1.3}
-.doc-title{flex:1;min-width:0;display:flex;justify-content:center}
-.doc-title input{width:min(440px,100%);height:38px;border:1px solid transparent;border-radius:var(--r-md);background:transparent;text-align:center;font-size:15px;font-weight:700;padding:0 14px;transition:background .15s,border-color .15s}
-.doc-title input::placeholder{color:var(--muted);font-weight:500}
-.doc-title input:hover{background:var(--surface-2)}
-.doc-title input:focus{background:var(--surface);border-color:var(--line-strong);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 35%,transparent)}
+/* The header no longer holds the name field — it says which document is open, and that is all. */
+.doc-crumb{flex:1;min-width:0;text-align:center;font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 12px}
+.doc-crumb.empty{color:var(--muted);font-weight:500}
+[data-move]{display:contents}
 .top-actions{display:flex;align-items:center;gap:8px;flex:none}
 .slot{display:contents}
 
 /* ---- columns ---- */
-.layout{max-width:1640px;margin:16px auto;padding:0 16px;display:grid;grid-template-columns:288px minmax(380px,1fr) 300px;gap:14px;align-items:start}
+/* The design column is the wider of the two: it carries the icon rail on its edge, and the rail's
+   58px must not come out of the controls beside it. Below 1400px the two side columns together
+   stay exactly as wide as they were before the rail existed (268+320 = 288+300), so the paper in
+   the middle keeps its width on a laptop — the statement table needs every pixel of it. */
+/* No outer cap: on a wide screen the gutters were dead space. The paper keeps its own 760px and
+   the desk around it grows, which is what a desk is for; the side panels take a little more room
+   as the screen allows. Below 1400px the two side columns together stay exactly as wide as they
+   were before the rail existed (294+294), so the paper never narrows on a laptop. */
+.layout{max-width:none;margin:16px auto;padding:0 16px;display:grid;grid-template-columns:294px minmax(360px,1fr) 294px;gap:14px;align-items:start}
+@media (min-width:1400px){.layout{grid-template-columns:318px minmax(380px,1fr) 318px}}
+@media (min-width:1800px){.layout{grid-template-columns:348px minmax(420px,1fr) 348px;gap:18px;padding:0 22px}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);min-width:0}
 .side{padding:16px}
 .center{display:flex;flex-direction:column;overflow:hidden}
-.stage{flex:1;min-height:0;overflow:auto;padding:28px 20px;background:var(--stage);background-image:radial-gradient(var(--stage-dot) .8px,transparent .8px);background-size:16px 16px}
-.centerhead{min-height:54px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.centerhead strong{font-size:var(--fs-md)}
+/* The desk: dark in both themes so the paper has an edge, with a soft lip at the top so it reads
+   as a surface rather than a hole. `color` sets the ink for anything lying directly on it. */
+.stage{flex:1;min-height:0;overflow:auto;padding:30px 20px;background:var(--stage);background-image:radial-gradient(var(--stage-dot) 1px,transparent 1px);background-size:18px 18px;color:var(--stage-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 16px 26px -18px rgba(0,0,0,.6)}
+.stage>.note{background:rgba(255,255,255,.06);color:var(--stage-ink);border:1px solid rgba(255,255,255,.08)}
+.centerhead{min-height:54px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--surface-2)}
+.centerhead strong{font-size:var(--fs-md);letter-spacing:.2px}
 .live{font-size:var(--fs-xs);color:var(--accent-ink);background:var(--accent-soft);padding:3px 9px;border-radius:99px}
 
 @media (min-width:1101px){
@@ -51,8 +63,7 @@ button{cursor:pointer}
 }
 @media (max-width:720px){
   .top{height:auto;flex-wrap:wrap;padding:8px 12px;gap:8px}
-  .doc-title{order:3;flex:1 1 100%}
-  .doc-title input{width:100%;background:var(--surface-2)}
+  .doc-crumb{order:3;flex:1 1 100%;text-align:start;padding:0}
   .top-actions{margin-inline-start:auto;gap:6px}
   /* align-items:stretch is required: the desktop grid sets align-items:start, which in a column
      flex container sizes each column to its content, so one long code line widened the whole page. */

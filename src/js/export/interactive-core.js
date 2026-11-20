@@ -1,6 +1,7 @@
 // Interactive HTML export (pure string building). The inline runtime is a real function serialised with toString(),
 // so it stays lintable. No editor code, no network: floating TOC, dark mode, font size, progress, tasks, code copy, back-to-top.
 import { escapeHTML } from '../content/markdown.js';
+import { ruleCSS } from './theme.js';
 
 /* eslint-disable */
 function runtime() {
@@ -146,12 +147,12 @@ export const INTERACTIVE_CSS =
 /**
  * parts: { title, mainHTML, accent, tint, fontCss, css, watermarkHTML }. `css` = shared export styles (base + blocks + letter + watermark).
  */
-export function renderInteractive({ title, mainHTML, accent, tint, fontCss = '', css = '', watermarkHTML = '' }) {
+export function renderInteractive({ title, mainHTML, accent, tint, paper = '#fffefa', rule = '', fontCss = '', css = '', watermarkHTML = '' }) {
   return (
     '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     `<title>${escapeHTML(title || 'سند فارسی')}</title>` +
-    `<style>${fontCss}:root{--accent:${accent};--tint:${tint}}${css}${INTERACTIVE_CSS}</style>` +
+    `<style>${fontCss}:root{--accent:${accent};--tint:${tint};--paper:${paper}}${css}${INTERACTIVE_CSS}${ruleCSS(rule) ? `main{${ruleCSS(rule)}}` : ''}</style>` +
     `</head><body>${watermarkHTML}${mainHTML}<script>${INTERACTIVE_JS}</script></body></html>`
   );
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decide, conflictCopy, localTs, isSynced, keyOf, splitKey, CONFLICT_SUFFIX } from '../../src/js/server/sync-core.js';
+import { decide, conflictCopy, sameDocContent, localTs, isSynced, keyOf, splitKey, CONFLICT_SUFFIX } from '../../src/js/server/sync-core.js';
 
 const L = (ts, deleted) => ({ ts, deleted });
 const d = (o) => decide({ store: 'documents', ...o });
@@ -25,7 +25,15 @@ test('decide: only one side changed since the last sync', () => {
 test('decide: both changed → keep both, newer keeps the id', () => {
   assert.deepEqual(d({ local: L(9), remote: L(8), base: 5 }), { act: 'conflict', winner: 'local' });
   assert.deepEqual(d({ local: L(8), remote: L(9), base: 5 }), { act: 'conflict', winner: 'remote' });
-  assert.deepEqual(d({ local: L(8), remote: L(9) }), { act: 'conflict', winner: 'remote' }, 'never synced before behaves the same');
+});
+
+test('decide: a missing base asks for a content comparison, never a blind conflict', () => {
+  // This is the bug that made 60 «(تعارض)» copies out of 80 documents: with no base the old code
+  // called both sides changed and split every document in two.
+  assert.deepEqual(d({ local: L(8), remote: L(9) }), { act: 'compare', winner: 'remote' });
+  assert.deepEqual(d({ local: L(9), remote: L(8) }), { act: 'compare', winner: 'local' });
+  // A real conflict — a base exists and both sides moved past it — still keeps both copies.
+  assert.equal(d({ local: L(9), remote: L(8), base: 5 }).act, 'conflict');
 });
 
 test('decide: edit beats delete when both changed', () => {
@@ -54,6 +62,33 @@ test('conflictCopy renames and detaches the losing side', () => {
   assert.equal(c.updatedAt, 100);
   assert.equal(c.html, '<p>x</p>');
   assert.equal(conflictCopy({ id: 'a', title: '' }, 'b').title, 'بدون عنوان (تعارض)');
+});
+
+test('sameDocContent: content decides, ids and times do not', () => {
+  const doc = { id: 'a', title: 'گزارش', subtitle: '', source: '# a', html: '<p>a</p>', text: 'a', mode: 'doc', brandId: 'b1', link: null, watermark: { preset: 'none', text: '' }, letter: null, layout: { theme: 'navy', font: 16 } };
+  assert.equal(sameDocContent(doc, { ...doc }), true);
+  assert.equal(sameDocContent(doc, { ...doc, id: 'zzz', updatedAt: 999, createdAt: 1, tags: ['x'], pinned: true }), true, 'metadata is not content');
+  assert.equal(sameDocContent(doc, { ...doc, layout: { font: 16, theme: 'navy' } }), true, 'key order is not content');
+  assert.equal(sameDocContent(doc, { ...doc, html: '<p>b</p>' }), false);
+  assert.equal(sameDocContent(doc, { ...doc, title: 'گزارش ۲' }), false);
+  assert.equal(sameDocContent(doc, { ...doc, layout: { theme: 'green', font: 16 } }), false);
+  assert.equal(sameDocContent(doc, { ...doc, letter: undefined }), true, 'absent and null are the same absence');
+  assert.equal(sameDocContent(doc, null), false);
+});
+
+test('sameDocContent: one side referencing a brand image is not a different document', () => {
+  // The state while the «no image copies» migration is half propagated: slim on the server, still
+  // fat in a browser that has not saved since. Calling that a conflict is what we are preventing.
+  const img = 'data:image/png;base64,' + 'A'.repeat(200);
+  const brand = { id: 'b1', mastheadImage: img, footerImage: '', signatureImage: '', stampImage: '' };
+  const base = { title: 'نامه', source: 'x', html: '<p>x</p>', text: 'x', mode: 'doc', brandId: 'b1' };
+  const fat = { ...base, layout: { theme: 'navy', mastheadImage: img } };
+  const slim = { ...base, layout: { theme: 'navy', brandImages: ['mastheadImage'] } };
+  assert.equal(sameDocContent(fat, slim, brand), true);
+  assert.equal(sameDocContent(slim, fat, brand), true);
+  // A genuinely different image is still a different document.
+  const other = { ...base, layout: { theme: 'navy', mastheadImage: 'data:image/png;base64,ZZ' } };
+  assert.equal(sameDocContent(other, slim, brand), false);
 });
 
 test('timestamps and key helpers', () => {

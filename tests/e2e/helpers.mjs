@@ -1,7 +1,7 @@
 // Shared helpers for the browser suite.
 import { expect } from '@playwright/test';
 
-export const APP = '/MD2Html.html';
+export const APP = '/DataSave.html';
 
 /** The app's one allowed request: the offline-mode health probe, which 404s here. */
 const EXPECTED_404 = '/api/health';
@@ -71,6 +71,29 @@ export async function newDocument(page) {
   await expect(page.locator('#title')).toHaveValue('');
   await expect(page.locator('#source')).toHaveValue('');
   await expect(page.locator('#preview')).toHaveAttribute('data-empty', 'true');
+}
+
+/**
+ * Bring a side-panel group forward, the way clicking its tab does.
+ * Most controls live in a group now, so a test has to open the group before it can use one —
+ * exactly as the person does.
+ */
+export async function openPanelGroup(page, panel, group) {
+  const tab = page.locator(`#g-${panel}-${group}`);
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+}
+
+/** The library button moved into the «پرونده‌ها» group of the content panel. */
+export async function openLibrary(page) {
+  await openPanelGroup(page, 'content', 'files');
+  await page.click('#libraryBtn');
+}
+
+/** The document's name field moved into «ورودی». */
+export async function setTitle(page, name) {
+  await openPanelGroup(page, 'content', 'input');
+  await page.fill('#title', name);
 }
 
 /** Horizontal fill direction of an element's painted part, relative to its track. */

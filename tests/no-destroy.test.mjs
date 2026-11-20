@@ -1,4 +1,4 @@
-// The archive rule (docs/superpowers/specs/2026-11-14-md2html-archive-design.md): no button destroys data.
+// The archive rule (docs/superpowers/specs/2026-11-14-datasave-archive-design.md): no button destroys data.
 // Every call that can destroy stored content is listed here with the reason it is allowed. A new one fails this
 // test until it is either routed through archive/retire or added below with its reason.
 import test from 'node:test';

@@ -1,6 +1,11 @@
 // Portable settings JSON: validation for schema v1/v2/v3 and v3 export. Pure.
-export const APP_NAME = 'MD2Html';
-const THEMES = ['navy', 'green', 'warm', 'mono'];
+import { THEME_IDS } from '../export/theme.js';
+
+// The name written into an exported settings file. The old one is still accepted on import, so a
+// settings JSON saved before the app was renamed to «دیتاسیو» keeps opening.
+export const APP_NAME = 'دیتاسیو';
+const KNOWN_APP_NAMES = [APP_NAME, 'DataSave'];
+const THEMES = THEME_IDS;
 const ALIGNS = ['stretch', 'center', 'flex-start', 'flex-end'];
 const APP_THEMES = ['light', 'dark', 'system'];
 export const MAX_SETTINGS_BYTES = 32768;
@@ -20,7 +25,7 @@ const bool = (v) => typeof v === 'boolean';
 export function validateSettings(cfg) {
   if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) return { ok: false, error: 'format' };
   const version = cfg.schemaVersion;
-  if (![1, 2, 3].includes(version) || cfg.app !== APP_NAME) return { ok: false, error: 'format' };
+  if (![1, 2, 3].includes(version) || !KNOWN_APP_NAMES.includes(cfg.app)) return { ok: false, error: 'format' };
   if (Object.keys(cfg).some((k) => !KEYS[version].includes(k))) return { ok: false, error: 'format' };
   if (
     !THEMES.includes(cfg.theme) || !int(cfg.fontSize, 11, 23) || !int(cfg.pageMarginMm, 12, 28) ||

@@ -12,7 +12,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>MD2Html: باز کن</string>
+				<string>DataSave: باز کن</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>runWorkflowAsService</string>

@@ -22,7 +22,7 @@ const LABELS = {
 async function api(method, path, body) {
   const r = await fetch(path, {
     method,
-    headers: { 'X-MD2Html': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { 'X-DataSave': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });
@@ -73,7 +73,7 @@ async function render(body) {
     !info.local
       ? el('p', { class: 'modal-note', text: 'باز و بسته کردن دسترسی شبکه فقط از روی خود مک ممکن است.' })
       : !info.lanCanChange
-        ? el('p', { class: 'modal-note', text: 'دسترسی شبکه با متغیر MD2HTML_LAN ثابت شده است.' })
+        ? el('p', { class: 'modal-note', text: 'دسترسی شبکه با متغیر DATASAVE_LAN ثابت شده است.' })
         : el('button', { type: 'button', class: on ? 'btn soft' : 'btn', text: on ? 'باز کردن دسترسی از شبکه' : 'بستن دسترسی از شبکه', onclick: () => setLan(on) });
   const phoneSec = info.lan === false
     ? section('باز کردن در گوشی',
@@ -130,7 +130,7 @@ async function render(body) {
     el('button', { type: 'button', class: 'btn soft', text: 'پشتیبان‌گیری اکنون', onclick: async () => { await api('POST', '/api/backups'); notify('پشتیبان ساخته شد.'); render(body); } }),
     bk.backups.length
       ? el('ul', { class: 'srv-list' }, ...bk.backups.slice(0, 8).map((b) => el('li', {},
-          el('span', {}, el('b', { dir: 'ltr', text: b.name.replace(/^md2html-|\.json\.gz$/g, '') }), el('small', { text: ` ${fmtDate(b.mtime)} · ${fmtSize(b.size)}${b.kind === 'pre-restore' ? ' · پیش از بازگردانی' : ''}` })),
+          el('span', {}, el('b', { dir: 'ltr', text: b.name.replace(/^datasave-|\.json\.gz$/g, '') }), el('small', { text: ` ${fmtDate(b.mtime)} · ${fmtSize(b.size)}${b.kind === 'pre-restore' ? ' · پیش از بازگردانی' : ''}` })),
           el('button', { type: 'button', class: 'btn', text: 'بازگردانی', onclick: () => restore(b) }))))
       : null);
 
@@ -141,7 +141,7 @@ async function render(body) {
 async function restore(b) {
   const ok = await confirmDialog({
     title: 'بازگردانی پشتیبان',
-    message: `کل کتابخانه با پشتیبان «${b.name.replace(/^md2html-|\.json\.gz$/g, '')}» جایگزین می‌شود و همهٔ دستگاه‌ها آن را دریافت می‌کنند. پیش از آن یک پشتیبان از وضعیت فعلی گرفته می‌شود. ادامه می‌دهید؟`,
+    message: `کل کتابخانه با پشتیبان «${b.name.replace(/^datasave-|\.json\.gz$/g, '')}» جایگزین می‌شود و همهٔ دستگاه‌ها آن را دریافت می‌کنند. پیش از آن یک پشتیبان از وضعیت فعلی گرفته می‌شود. ادامه می‌دهید؟`,
     confirmLabel: 'بازگردانی', danger: true,
   });
   if (ok) {
@@ -157,7 +157,7 @@ async function restore(b) {
 }
 
 export async function openServerPanel({ newPin } = {}) {
-  if (!syncActive()) return void notify('سرور MD2Html در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.');
+  if (!syncActive()) return void notify('سرور DataSave در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.');
   const body = el('div', { class: 'srv' }, el('p', { class: 'modal-note', text: 'در حال خواندن وضعیت سرور…' }));
   openModal({ title: 'سرور', body, wide: true });
   try {

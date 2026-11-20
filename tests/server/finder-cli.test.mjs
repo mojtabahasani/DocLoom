@@ -50,15 +50,15 @@ test('actions: the open script percent-encodes Persian paths; the PDF script pos
 test('install/uninstall dry-runs list the Quick Actions without touching HOME', () => {
   const home = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'md2h-home-'));
   const out = execFileSync('bash', [path.join(root, 'server/install.sh'), '--dry-run', path.join(home, 'x.plist')], { env: { ...process.env, HOME: home }, encoding: 'utf8' });
-  assert.match(out, /would copy:.*MD2Html Open\.workflow -> .*Library\/Services\/MD2Html Open\.workflow/);
-  assert.match(out, /would copy:.*MD2Html PDF\.workflow/);
+  assert.match(out, /would copy:.*DataSave Open\.workflow -> .*Library\/Services\/DataSave Open\.workflow/);
+  assert.match(out, /would copy:.*DataSave PDF\.workflow/);
   const un = execFileSync('bash', [path.join(root, 'server/uninstall.sh'), '--dry-run'], { env: { ...process.env, HOME: home }, encoding: 'utf8' });
-  assert.match(un, /would remove: .*Library\/Services\/MD2Html PDF\.workflow/);
+  assert.match(un, /would remove: .*Library\/Services\/DataSave PDF\.workflow/);
   assert.deepEqual(fs.readdirSync(home), ['x.plist']);
   fs.rmSync(home, { recursive: true });
 });
 
-const cli = (args, env = {}) => spawnSync('bash', [path.join(root, 'server/cli/md2html'), ...args], { encoding: 'utf8', env: { ...process.env, MD2HTML_DRY: '1', ...env }, cwd: '/private/tmp' });
+const cli = (args, env = {}) => spawnSync('bash', [path.join(root, 'server/cli/datasave'), ...args], { encoding: 'utf8', env: { ...process.env, DATASAVE_DRY: '1', ...env }, cwd: '/private/tmp' });
 
 test('CLI: pdf / html argument parsing builds the batch request', () => {
   const r = cli(['pdf', 'a b.md', '/abs/dir', '--brand', 'برند "۱"', '--out', 'outdir', '--pages']);
@@ -81,6 +81,6 @@ test('CLI: bad arguments exit 2 with a message; help lists the new commands', ()
   assert.equal(cli(['pdf', 'x.md', '--bogus']).status, 2);
   assert.equal(cli(['pdf', 'x.md', '--brand']).status, 2);
   const help = cli(['help']).stdout;
-  assert.match(help, /md2html pdf/);
-  assert.match(help, /md2html html/);
+  assert.match(help, /datasave pdf/);
+  assert.match(help, /datasave html/);
 });

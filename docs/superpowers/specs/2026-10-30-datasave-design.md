@@ -1,11 +1,11 @@
-# MD2Html Pro — طراحی نسخهٔ حرفه‌ای
+# DataSave Pro — طراحی نسخهٔ حرفه‌ای
 
 **وضعیت:** تأییدشده توسط مجتبی (۸ آبان ۱۴۰۵ / ۳۰ اکتبر ۲۰۲۶)
-**پیشینه:** نسخهٔ تک‌فایلی فعلی در `1file-old/MD2Html.html` بکاپ شده است. سندهای قبلی (`2026-09-30-md2html-design.md`، `2026-10-01-md2html-editor-upgrade-design.md`، `2026-10-01-rich-web-paste-design.md`) همچنان معتبرند، مگر جایی که این سند صریحاً خلافش را می‌گوید.
+**پیشینه:** نسخهٔ تک‌فایلی فعلی در `1file-old/DataSave.html` بکاپ شده است. سندهای قبلی (`2026-09-30-datasave-design.md`، `2026-10-01-datasave-editor-upgrade-design.md`، `2026-10-01-rich-web-paste-design.md`) همچنان معتبرند، مگر جایی که این سند صریحاً خلافش را می‌گوید.
 
 ## ۱. هدف
 
-MD2Html ابزار روزمرهٔ مجتبی برای چهار کار است:
+DataSave ابزار روزمرهٔ مجتبی برای چهار کار است:
 ۱) تبدیل خروجی هوش مصنوعی به سند فارسی تمیز
 ۲) نامه و سند رسمی با سربرگ
 ۳) گزارش برای ارسال با ایمیل یا تلگرام
@@ -17,20 +17,20 @@ MD2Html ابزار روزمرهٔ مجتبی برای چهار کار است:
 
 | موضوع | تصمیم |
 |---|---|
-| شکل اجرا | **تک‌فایل + قابل نصب.** خروجی اصلی `MD2Html.html` است که بدون سرور و اینترنت در مرورگر باز می‌شود. نسخهٔ `dist/pwa/` روی https قابل نصب است و از «Open With» پشتیبانی می‌کند. |
+| شکل اجرا | **تک‌فایل + قابل نصب.** خروجی اصلی `DataSave.html` است که بدون سرور و اینترنت در مرورگر باز می‌شود. نسخهٔ `dist/pwa/` روی https قابل نصب است و از «Open With» پشتیبانی می‌کند. |
 | کد منبع | جاوااسکریپت ساده (ES modules) و CSS در چند فایل زیر `src/`. با `esbuild` در یک فایل HTML جمع می‌شود. بدون فریم‌ورک. |
 | ذخیره | **کتابخانهٔ محلی در IndexedDB** همان مرورگر. چیزی از دستگاه خارج نمی‌شود. این تصمیم بند «ذخیره‌سازی خودکار خاموش» نسخهٔ اول را لغو می‌کند. |
 | هوش مصنوعی | فقط **ابزارهای قاعده‌محور بدون اینترنت.** هیچ API ابری استفاده نمی‌شود. |
 | فونت | **وزیرمتن** (OFL، بستهٔ npm `vazirmatn`)، وزن‌های ۴۰۰ و ۷۰۰. با `pyftsubset` به حروف فارسی و عربی، لاتین پایه، ارقام و علائم کوچک می‌شود و به‌صورت base64 در فایل جاسازی می‌شود. فونت‌های سیستم fallback هستند. |
 | کتابخانه‌های بیرونی | فقط از npm و در زمان build بسته‌بندی می‌شوند، همه با مجوز MIT یا OFL: `esbuild` (dev)، `fflate` (zip)، `qrcode-generator` (QR)، `modern-screenshot` (تصویر). هیچ درخواست شبکه‌ای در زمان اجرا مجاز نیست. |
-| سقف حجم | `dist/MD2Html.html` حداکثر **۹۰۰ کیلوبایت** با احتساب فونت. |
+| سقف حجم | `dist/DataSave.html` حداکثر **۹۰۰ کیلوبایت** با احتساب فونت. |
 
 ## ۳. ساختار پروژه
 
 ```
-MD2Html/
+DataSave/
   package.json            # اسکریپت‌ها: build، test، dev
-  build.mjs               # bundle + inline CSS/JS/font → dist/MD2Html.html و dist/pwa/
+  build.mjs               # bundle + inline CSS/JS/font → dist/DataSave.html و dist/pwa/
   src/
     index.html            # اسکلت رابط با جای‌نگه‌دار <!--CSS--> و <!--JS-->
     styles/               # tokens.css، layout.css، components.css، document.css، print.css، reading.css، present.css
@@ -48,7 +48,7 @@ MD2Html/
   pwa/                    # manifest.webmanifest، sw.js، icons/ (192 و 512 PNG + SVG)
   tests/                  # *.test.mjs با node:test برای ماژول‌های خالص
   dist/                   # خروجی build (در git ثبت می‌شود)
-  MD2Html.html            # کپی dist/MD2Html.html؛ همان فایلی که مجتبی باز می‌کند
+  DataSave.html            # کپی dist/DataSave.html؛ همان فایلی که مجتبی باز می‌کند
 ```
 
 قواعد مرز ماژول‌ها:
@@ -72,16 +72,16 @@ Brand    = { id, name, theme, colors:{primary, accent}, mastheadText, mastheadIm
 Settings = { appTheme:'light'|'dark'|'system', defaultBrandId, autosave:true, uploadEndpoint, uploadField, embedFontInExport:true }
 ```
 
-ذخیره در IndexedDB با پایگاه `md2html` و سه store به نام‌های `documents`، `versions` و `brands`. تنظیمات در store جدای `settings` نگه داشته می‌شود.
+ذخیره در IndexedDB با پایگاه `datasave` و سه store به نام‌های `documents`، `versions` و `brands`. تنظیمات در store جدای `settings` نگه داشته می‌شود.
 
 ## ۵. امکانات به تفکیک مرحله
 
-هر مرحله یک نسخهٔ کامل و قابل استفاده تحویل می‌دهد. بعد از هر مرحله، `MD2Html.html` ریشه به‌روز می‌شود.
+هر مرحله یک نسخهٔ کامل و قابل استفاده تحویل می‌دهد. بعد از هر مرحله، `DataSave.html` ریشه به‌روز می‌شود.
 
 ### مرحلهٔ ۱ — پایه
 
-1. **ساختار و build:** ساختار بالا، با `npm run build` که `dist/MD2Html.html` و کپی ریشه را می‌سازد.
-2. **انتقال کامل امکانات فعلی (بدون پسرفت):** فهرست مرجع از روی کد `1file-old/MD2Html.html` استخراج و در `docs/superpowers/plans/feature-inventory.md` ثبت می‌شود. حداقل این‌ها را شامل می‌شود:
+1. **ساختار و build:** ساختار بالا، با `npm run build` که `dist/DataSave.html` و کپی ریشه را می‌سازد.
+2. **انتقال کامل امکانات فعلی (بدون پسرفت):** فهرست مرجع از روی کد `1file-old/DataSave.html` استخراج و در `docs/superpowers/plans/feature-inventory.md` ثبت می‌شود. حداقل این‌ها را شامل می‌شود:
    - ورود فایل با انتخاب، کشیدن و رها کردن، و **Paste فایل** (ناحیهٔ چسباندن و ⌘V در جای خالی)
    - Markdown و HTML و متن ساده، و حالت وب عریض برای HTML پیست‌شده
    - ویرایش دیداری با undo/redo و قالب‌بندی انتخاب
@@ -192,7 +192,7 @@ Settings = { appTheme:'light'|'dark'|'system', defaultBrandId, autosave:true, up
 ## ۸. تست و پذیرش
 
 - **واحد** (`npm test` با `node --test`): markdown (شامل چک‌لیست، کادر و کد)، sanitize، cleanup (هر قاعده با نمونهٔ مثبت و منفی و استثنا)، persian، jalali، چارت (استخراج دادهٔ جدول)، اعتبارسنجی تنظیمات v1/v2/v3، و ساختار docx.
-- **دود (Smoke) در مرورگر** با Playwright MCP بعد از هر مرحله: باز کردن `MD2Html.html`، ورود md و html، ویرایش و undo، ذخیره در کتابخانه و بازکردن پس از تازه‌سازی، ⌘K، و خروجی‌های همان مرحله. کنسول بدون خطا و **بدون درخواست شبکه** باشد.
+- **دود (Smoke) در مرورگر** با Playwright MCP بعد از هر مرحله: باز کردن `DataSave.html`، ورود md و html، ویرایش و undo، ذخیره در کتابخانه و بازکردن پس از تازه‌سازی، ⌘K، و خروجی‌های همان مرحله. کنسول بدون خطا و **بدون درخواست شبکه** باشد.
 - **پذیرش هر مرحله:** همهٔ تست‌ها سبز، build زیر سقف حجم، فهرست امکانات مرحلهٔ ۱ بدون پسرفت، و چک‌لیست RTL («فلش بعدی راست است؟ پروگرس از چپ پر می‌شود؟»).
 
 ## ۹. خارج از محدوده

@@ -14,6 +14,7 @@ import { makeBlock, addLinkButton } from '../editor/toolbar.js';
 import { pickImage, pasteClipboardImage } from '../editor/images.js';
 import { newDocument } from '../editor/document.js';
 import { copyPlain } from '../export/files.js';
+import { DOC_THEMES as DOC_THEME_LIST } from '../export/theme.js';
 import { library } from '../library/library.js';
 import { openLibrary } from '../library/library-ui.js';
 import { openVersions } from '../library/versions-ui.js';
@@ -32,7 +33,7 @@ const toggle = (key, label, furniture = false) => () => {
   notify(`${label}: ${on ? 'روشن' : 'خاموش'}`);
 };
 
-const DOC_THEMES = [['navy', 'رسمی'], ['green', 'سبز'], ['warm', 'گرم'], ['mono', 'ساده']];
+const DOC_THEMES = DOC_THEME_LIST.map((t) => [t.id, t.label]);
 const APP_THEMES = [['light', 'روشن', 'light'], ['dark', 'تیره', 'dark'], ['system', 'مطابق سیستم', 'system auto']];
 
 function showShortcuts() {
@@ -112,7 +113,7 @@ export function registerCommands() {
 
   // Shortcuts (⌘ on macOS, Ctrl elsewhere; also matched by key position so a Persian keyboard layout works).
   defineShortcut({ id: 'palette', keys: 'Mod+K', title: 'پالت فرمان', run: () => palette.open() });
-  // Embed mode: ⌘S only tells the host (MD2Html.embed.on('save')); the host decides where the document goes.
+  // Embed mode: ⌘S only tells the host (DataSave.embed.on('save')); the host decides where the document goes.
   if (embedConfig().active) defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره', run: () => store.emit('embed:save') });
   else defineShortcut({ id: 'save-version', keys: 'Mod+S', title: 'ذخیره (روی فایل متصل، وگرنه نسخه)', run: () => saveCommand() });
   defineShortcut({ id: 'undo', keys: 'Mod+Z', title: 'واگرد (در سند)', scope: 'preview', run: undo });

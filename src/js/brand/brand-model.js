@@ -1,7 +1,8 @@
 // Brand record: defaults, validation, helpers (pure).
 import { normalizeQr } from './qr.js';
+import { DOC_THEMES } from '../export/theme.js';
 
-export const BRAND_THEMES = [['navy', 'رسمی'], ['green', 'سبز'], ['warm', 'گرم'], ['mono', 'ساده']];
+export const BRAND_THEMES = DOC_THEMES.map((t) => [t.id, t.label]);
 export const IMAGE_FIELDS = ['mastheadImage', 'footerImage', 'signatureImage', 'stampImage'];
 export const SEED_NAME = 'مجتمع کامپیوتر یک دو سه';
 const DATA_IMG = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]*$/;

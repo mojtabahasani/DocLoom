@@ -3,6 +3,7 @@ import { store } from '../core/store.js';
 import { $ } from '../core/dom.js';
 import { notify } from '../core/notify.js';
 import { palette } from '../ui/palette.js';
+import { reveal } from '../ui/drawer.js';
 import { preview, refreshFurniture, markChanged } from '../editor/preview.js';
 import { normalizeLetter, issueNumber } from './letter.js';
 import { formatJalali, parseJalali, todayJalali } from './jalali.js';
@@ -127,7 +128,7 @@ export function initLetterUI() {
   initDrag();
   $('#letterMode').addEventListener('change', (e) => {
     setLetterMode(e.target.checked);
-    if (e.target.checked) $('#letterAcc').open = true;
+    if (e.target.checked) reveal('#letterMode');
   });
   for (const [id, make] of TEXT_FIELDS) $('#' + id).addEventListener('input', (e) => setLetter(make(e.target.value)));
   $('#letterDate').addEventListener('blur', (e) => {
@@ -141,7 +142,7 @@ export function initLetterUI() {
   for (const k of ['mode', 'letter', 'docId']) store.on(k, syncPanel);
   syncPanel();
   store.on('mode', (m) => {
-    if (m === 'letter') $('#letterAcc').open = true;
+    if (m === 'letter') reveal('#letterMode');
   });
   palette.register({ id: 'letter-mode', title: 'حالت نامه', group: 'سند', keywords: 'letter نامه اداری باسمه تعالی روشن خاموش', run: toggleLetterMode });
   palette.register({ id: 'letter-number', title: 'شماره بگیر', group: 'سند', keywords: 'letter number نامه شماره شمارنده ثبت', run: takeNumber });

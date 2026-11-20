@@ -10,6 +10,7 @@ import { versions } from './versions.js';
 import { getPref, setPref } from './prefs.js';
 import { captureDoc, docToPatch, newId, normalizeTags, isBlankDoc, TRACKED_KEYS } from './doc-model.js';
 import { shouldAutoVersion, pickVersionsToFree } from './version-rules.js';
+import { brands } from '../brand/brands.js';
 
 const AUTOSAVE_MS = 1500;
 const QUOTA_MSG = 'فضای ذخیره‌سازی مرورگر پر شده است؛ سندها یا نسخه‌های قدیمی را حذف کنید یا از کتابخانه پشتیبان بگیرید.';
@@ -34,7 +35,11 @@ function ensureId() {
 
 /** Synchronous capture of the open document (so callers can snapshot BEFORE mutating the editor). */
 function capture(now = Date.now()) {
-  return captureDoc({ id: ensureId(), state: store.snapshot(), html: preview.innerHTML, text: plainText(), meta, now });
+  const state = store.snapshot();
+  // The brand lets captureDoc reference the letterhead, stamp, footer and signature instead of
+  // copying ~5 MB of base64 into this document and every version of it.
+  const brand = brands.any(state.brandId || meta.brandId);
+  return captureDoc({ id: ensureId(), state, html: preview.innerHTML, text: plainText(), meta, now, brand });
 }
 
 async function putDoc(rec) {
@@ -103,7 +108,7 @@ function applyDoc(doc) {
   loading = true;
   store.emit('doc:loading');
   try {
-    store.patch({ ...docToPatch(doc), pendingUpload: null });
+    store.patch({ ...docToPatch(doc, brands.any(doc.brandId)), pendingUpload: null });
     preview.replaceChildren(sanitizeToFragment(doc.html || ''));
     applyLook();
     resetHistory();

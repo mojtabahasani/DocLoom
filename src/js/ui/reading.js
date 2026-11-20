@@ -6,20 +6,18 @@ import { readingMinutes } from '../content/toc.js';
 import { sanitizeChildren } from '../content/sanitize.js';
 import { preview, plainText, isEmpty } from '../editor/preview.js';
 import { store } from '../core/store.js';
+import { readStored, writeStored } from '../core/naming.js';
 
+const READER_KEY = 'datasave.reader';
 const SIZES = [15, 17, 19, 21, 24, 28];
 const BGS = [['light', 'روشن'], ['sepia', 'کرم'], ['dark', 'تیره']];
 let root = null;
 let opener = null;
 const pref = { size: 19, bg: 'light' };
 try {
-  Object.assign(pref, JSON.parse(localStorage.getItem('md2html.reader') || '{}'));
+  Object.assign(pref, JSON.parse(readStored(READER_KEY) || '{}'));
 } catch { /* storage unavailable: defaults */ }
-const save = () => {
-  try {
-    localStorage.setItem('md2html.reader', JSON.stringify(pref));
-  } catch { /* ignore */ }
-};
+const save = () => writeStored(READER_KEY, JSON.stringify(pref));
 
 export const isReading = () => !!root;
 

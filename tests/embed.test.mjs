@@ -20,7 +20,7 @@ const withEn = (fn) => {
 };
 
 test('embed config: no global (or junk) means normal mode with every capability on', () => {
-  assert.equal(embedConfig(), NORMAL); // node has no window.MD2HTML_EMBED
+  assert.equal(embedConfig(), NORMAL); // node has no window.DATASAVE_EMBED
   for (const raw of [undefined, null, 0, 'claria', [], true]) assert.deepEqual(parseEmbedConfig(raw), NORMAL);
   assert.equal(NORMAL.active, false);
   assert.deepEqual([NORMAL.digits, NORMAL.upload, NORMAL.library, NORMAL.server], ['fa', true, true, true]);

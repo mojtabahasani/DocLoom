@@ -6,6 +6,7 @@ import { buildToc, tocHTML } from '../content/toc.js';
 import { assignHeadingIds, collectHeadings } from '../content/toc-dom.js';
 import { sanitizeToFragment } from '../content/sanitize.js';
 import { preview, insertNode, markChanged } from '../editor/preview.js';
+import { openGroup, activeGroup } from './drawer.js';
 
 let items = []; // [{ el, level, text, id }]
 let observer;
@@ -79,23 +80,15 @@ export function insertToc() {
   notify(old ? 'فهرست مطالب به‌روز شد.' : 'فهرست مطالب در سند درج شد.');
 }
 
-export function showTab(name) {
-  const toc = name === 'toc';
-  $('#tabInput').hidden = toc;
-  $('#tabToc').hidden = !toc;
-  for (const [id, on] of [['tabBtnInput', !toc], ['tabBtnToc', toc]]) {
-    const b = $('#' + id);
-    b.setAttribute('aria-selected', String(on));
-    b.tabIndex = on ? 0 : -1;
-  }
-  if (toc) refreshToc();
+/** Show one group of the content panel. The drawer owns the tabs; this keeps the old call sites. */
+export function showTab(name, opts) {
+  openGroup('content', name, opts);
+  if (name === 'toc') refreshToc();
 }
 
 export function initToc() {
-  $('#tabBtnInput').addEventListener('click', () => showTab('input'));
-  $('#tabBtnToc').addEventListener('click', () => showTab('toc'));
   $('#tocInsert').addEventListener('click', insertToc);
-  const update = debounce(() => !$('#tabToc').hidden && refreshToc(), 300);
+  const update = debounce(() => activeGroup('content') === 'toc' && refreshToc(), 300);
   store.on('content', update);
   // In-preview TOC links scroll instead of navigating.
   preview.addEventListener('click', (e) => {

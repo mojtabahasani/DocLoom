@@ -1,5 +1,5 @@
 // Browser suite. `npm test` stays the fast node:test run; this is `npm run test:e2e`.
-// It drives dist output (MD2Html.html), so run `npm run build` first — the webServer command does.
+// It drives dist output (DataSave.html), so run `npm run build` first — the webServer command does.
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.E2E_PORT) || 8732;
@@ -31,7 +31,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && node tests/e2e/static-server.mjs',
     env: { ...process.env, E2E_PORT: String(PORT) }, // not `E2E_PORT=… node`: cmd.exe (Windows) has no inline env
-    url: `${baseURL}/MD2Html.html`,
+    url: `${baseURL}/DataSave.html`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     stdout: 'ignore',

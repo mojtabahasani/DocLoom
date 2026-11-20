@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// MD2Html server: static app + library sync + backups + PIN login. Pure Node, no npm dependencies.
+// DataSave server: static app + library sync + backups + PIN login. Pure Node, no npm dependencies.
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -14,22 +14,25 @@ import { FileService, rootsFromEnv } from './lib/files.js';
 import { RenderService, findChrome } from './lib/pdf.js';
 import { BatchManager } from './lib/batch.js';
 import { Shares } from './lib/shares.js';
+// Imported, not just re-exported: `export { x } from …` does not bind the name in this module's
+// own scope, and createServer()'s default parameter calls it.
+import { envVar, defaultDataDir } from './lib/env.js';
 
 export const PORT = 7123;
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-export const defaultDataDir = () => process.env.MD2HTML_DATA || path.join(os.homedir(), 'Documents', 'MD2Html');
+export { defaultDataDir };
 
 /**
  * Is the server reachable from the network, or from this Mac only?
- * `MD2HTML_LAN=1|0` wins; otherwise the saved choice (`lan` in config.json, set from the server panel
- * or `md2html lan on|off`). A data folder from before the setting existed keeps the network open only
+ * `DATASAVE_LAN=1|0` (or the old `DATASAVE_LAN`) wins; otherwise the saved choice (`lan` in config.json, set from the server panel
+ * or `datasave lan on|off`). A data folder from before the setting existed keeps the network open only
  * if a device is already signed in — an upgrade must not cut a phone off without a word — and a fresh
  * one starts closed.
  */
 export function lanEnabled(auth, env = process.env) {
-  if (env.MD2HTML_LAN === '1') return true;
-  if (env.MD2HTML_LAN === '0') return false;
+  if (envVar('LAN', env) === '1') return true;
+  if (envVar('LAN', env) === '0') return false;
   const saved = auth.get('lan');
   if (typeof saved === 'boolean') return saved;
   return (auth.get('sessions') || []).length > 0;
@@ -57,7 +60,7 @@ export async function createServer({ dataDir = defaultDataDir(), port = PORT, ro
   const lan = {
     enabled: () => lanEnabled(auth),
     /** False when the environment pins the choice: the panel must not pretend it changed anything. */
-    canChange: () => process.env.MD2HTML_LAN !== '1' && process.env.MD2HTML_LAN !== '0',
+    canChange: () => envVar('LAN') !== '1' && envVar('LAN') !== '0',
     set(on) {
       auth.set('lan', !!on);
       log.info(`network access turned ${on ? 'ON' : 'OFF'}`);
@@ -76,12 +79,12 @@ export async function createServer({ dataDir = defaultDataDir(), port = PORT, ro
 }
 
 async function main() {
-  const port = Number(process.env.MD2HTML_PORT) || PORT;
+  const port = Number(envVar('PORT')) || PORT;
   let s;
   const listen = (then) => {
     const host = listenHost(lanEnabled(s.auth));
     s.server.listen(port, host, () => {
-      s.log.info(`MD2Html server listening on ${host}:${port} (data: ${s.dataDir})${host === '127.0.0.1' ? ' - this Mac only; open the network with: md2html lan on' : ''}`);
+      s.log.info(`DataSave server listening on ${host}:${port} (data: ${s.dataDir})${host === '127.0.0.1' ? ' - this Mac only; open the network with: datasave lan on' : ''}`);
       then?.();
     });
   };
@@ -98,10 +101,10 @@ async function main() {
     process.exit(1);
   });
   listen(() => {
-    if (s.firstPin) s.log.info(`FIRST-RUN PIN: ${s.firstPin}  (shown once; change it with: md2html pin)`);
+    if (s.firstPin) s.log.info(`FIRST-RUN PIN: ${s.firstPin}  (shown once; change it with: datasave pin)`);
     s.backups.start();
     s.shares.start();
-    s.log.info(s.render.available() ? `PDF: Chrome found (${s.render.chrome})` : 'PDF: Chrome not found - direct PDF is off (set MD2HTML_CHROME)');
+    s.log.info(s.render.available() ? `PDF: Chrome found (${s.render.chrome})` : 'PDF: Chrome not found - direct PDF is off (set DATASAVE_CHROME)');
   });
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => s.server.close(() => process.exit(0)) && setTimeout(() => process.exit(0), 500).unref());
 }

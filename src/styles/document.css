@@ -1,11 +1,25 @@
 /* The document surface (preview). Always light "paper"; app dark mode only changes the stage around it. */
-.paper{--accent-doc:#1c5263;--tint:#edf3f2;max-width:760px;min-height:800px;margin:auto;background:#fffefa;border:1px solid #e7e6df;border-radius:4px;box-shadow:0 1px 2px rgba(20,40,32,.08),0 14px 40px rgba(20,40,32,.14);padding:58px 62px 76px;color:#24383b;font-family:var(--font);font-size:15px;line-height:2;direction:rtl;text-align:justify;overflow-wrap:anywhere;position:relative}
+.paper{--accent-doc:#1c5263;--tint:#edf3f2;max-width:760px;min-height:800px;margin:auto;background:#fffefa;border:1px solid #e7e6df;border-radius:4px;box-shadow:0 1px 2px rgba(6,18,14,.35),0 26px 58px -14px rgba(6,18,14,.55);padding:58px 62px 76px;color:#24383b;font-family:var(--font);font-size:15px;line-height:2;direction:rtl;text-align:justify;overflow-wrap:anywhere;position:relative}
 .paper:focus{outline:none}
 .paper[data-empty=true]::before{content:attr(data-placeholder);position:absolute;inset:0;display:grid;place-items:center;padding:60px;text-align:center;color:#8d9b96;font-size:14px;line-height:2;pointer-events:none}
-.paper[data-doc-theme=navy]{--accent-doc:#1c5263;--tint:#edf3f2}
-.paper[data-doc-theme=green]{--accent-doc:#286b57;--tint:#edf5ee}
+/* Document colour themes. These values are the same table as DOC_THEMES in js/export/theme.js —
+   the preview is styled by CSS and an export is built by script, so both need them; the unit test
+   tests/doc-themes.test.mjs compares the two so they cannot drift apart. */
+.paper[data-doc-theme=navy]{--accent-doc:#1c5263;--tint:#edf3f2;background:#fffefa}
+.paper[data-doc-theme=green]{--accent-doc:#286b57;--tint:#edf5ee;background:#fffefa}
 .paper[data-doc-theme=warm]{--accent-doc:#925f37;--tint:#f8efdf;background:#fffaf1}
-.paper[data-doc-theme=mono]{--accent-doc:#353b40;--tint:#f0f1f1}
+.paper[data-doc-theme=mono]{--accent-doc:#353b40;--tint:#f0f1f1;background:#fffefa}
+.paper[data-doc-theme=daftar]{--accent-doc:#24486f;--tint:#e9eef6;background:#ffffff}
+.paper[data-doc-theme=naghsheh]{--accent-doc:#1737c6;--tint:#e4eaf9;background:#fbfcff}
+.paper[data-doc-theme=shabkar]{--accent-doc:#8a6314;--tint:#f4ecdc;background:#faf9f6}
+.paper[data-doc-theme=sonar]{--accent-doc:#0e6e77;--tint:#e2f0ef;background:#ffffff}
+/* The notebook: ruled lines across the sheet, one every two ems — which is this document's line
+   height, so body text sits on them and a heading rides over them, the way writing does on real
+   ruled paper. Borrowed from Darwin's «کاغذ» style (darwinapp/apps/style-lab/src/styles/styles.css). */
+.paper[data-doc-theme=daftarche]{
+  --accent-doc:#2e4a7d;--tint:#eaeff7;--rule:#d7deea;background-color:#fdfcf8;
+  background-image:repeating-linear-gradient(180deg,transparent 0 calc(2em - 1px),var(--rule) calc(2em - 1px),var(--rule) 2em);
+}
 .paper.web-layout{display:block;width:100%;max-width:100%;min-width:0;min-height:calc(100vh - 240px);margin:0;padding:28px 34px;text-align:initial;background:#fff;border-color:transparent;box-shadow:none;border-radius:0;overflow-x:hidden}
 .paper.web-layout *{box-sizing:border-box;min-width:0!important;max-width:100%!important;overflow-wrap:anywhere}
 .paper.web-layout img,.paper.web-layout video{width:auto;height:auto;max-width:100%!important;object-fit:contain}

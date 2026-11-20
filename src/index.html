@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>MD2Html | استودیوی سند فارسی</title>
+<title>دیتاسیو | استودیوی سند فارسی</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a6256'/%3E%3Cstop offset='1' stop-color='%2351aa8b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M14 44V20h6l6 10 6-10h6v24h-5V29l-7 11-7-11v15z' fill='%23fff'/%3E%3C/svg%3E">
 <!--FONT-->
 <!--CSS-->
@@ -28,6 +28,8 @@
     <symbol id="i-library" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
     <symbol id="i-brand" viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.3 4.7 1.6 7L12 17.600 5.700 21.300l1.600-7L2 9.600 9 9z"/></symbol>
     <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.1A3.9 3.9 0 0 0 21 10.6C21 6.4 16.97 3 12 3z"/><circle cx="7.5" cy="11" r="1.1"/><circle cx="10.5" cy="7" r="1.1"/><circle cx="15" cy="8" r="1.1"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M8 17V11M13 17V7M18 17v-4"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
     <symbol id="i-heading" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
     <symbol id="i-quote" viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21zM15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></symbol>
@@ -56,33 +58,36 @@
 
 <header class="top">
   <div class="brand">
-    <div class="logo" aria-hidden="true">MD</div>
-    <div class="brand-text"><h1>MD2Html</h1><small>استودیوی سند فارسی</small></div>
+    <div class="logo" aria-hidden="true">DS</div>
+    <div class="brand-text"><h1>دیتاسیو</h1><small dir="ltr">datasave.ir</small></div>
   </div>
-  <div class="doc-title">
-    <input id="title" type="text" placeholder="عنوان سند را بنویسید…" aria-label="عنوان سند" autocomplete="off" spellcheck="false">
-  </div>
+  <div class="doc-crumb" id="docCrumb" aria-hidden="true"></div>
   <div class="top-actions">
-    <div class="slot" data-slot="brand">
-      <div class="menu-wrap" id="brandWrap">
-        <button class="btn ghost" id="brandBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="brandMenu" title="برند سند"><svg class="ic"><use href="#i-brand"/></svg><span class="lbl" id="brandName">برند</span></button>
-        <div class="menu" id="brandMenu" role="menu" hidden></div>
-      </div>
-    </div>
-    <button class="btn ghost" id="libraryBtn" type="button" aria-haspopup="dialog" aria-expanded="false" title="کتابخانهٔ سندها"><svg class="ic"><use href="#i-library"/></svg><span class="lbl">کتابخانه</span></button>
-    <button class="btn ghost" id="filesBtn" type="button" aria-haspopup="dialog" aria-expanded="false" hidden title="فایل‌های سرور (‎⌘O‎)"><svg class="ic"><use href="#i-folder"/></svg><span class="lbl">فایل‌ها</span></button>
-    <button class="btn ghost" id="serverBtn" type="button" aria-haspopup="dialog" hidden title="سرور"><svg class="ic"><use href="#i-server"/></svg><span class="lbl">سرور</span><span class="srv-dot" id="syncDot" role="img"></span></button>
     <!-- No aria-label: the visible text names it, which is what WCAG 2.5.3 asks for. -->
     <button class="chip" id="paletteHint" type="button" title="پالت فرمان"><kbd>⌘K</kbd><span class="lbl">فرمان‌ها</span></button>
-    <div class="seg" role="group" aria-label="پوستهٔ برنامه">
+    <button class="btn primary quick" id="quickHtml" type="button"><svg class="ic"><use href="#i-download"/></svg><span class="lbl">دریافت HTML</span></button>
+  </div>
+</header>
+
+<!-- Everything that used to crowd the toolbar now lives in a panel group. The nodes keep their ids,
+     so every handler that binds by id still finds them. -->
+<template id="movedFromToolbar">
+    <div class="menu-wrap" id="brandWrap">
+      <button class="btn ghost block" id="brandBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="brandMenu" title="برند سند"><svg class="ic"><use href="#i-brand"/></svg><span class="lbl" id="brandName">برند</span></button>
+      <div class="menu" id="brandMenu" role="menu" hidden></div>
+    </div>
+    <button class="btn ghost block" id="libraryBtn" type="button" aria-haspopup="dialog" aria-expanded="false" title="کتابخانهٔ سندها"><svg class="ic"><use href="#i-library"/></svg><span class="lbl">کتابخانه</span></button>
+    <button class="btn ghost block" id="filesBtn" type="button" aria-haspopup="dialog" aria-expanded="false" hidden title="فایل‌های سرور (‎⌘O‎)"><svg class="ic"><use href="#i-folder"/></svg><span class="lbl">فایل‌ها</span></button>
+    <button class="btn ghost block" id="serverBtn" type="button" aria-haspopup="dialog" hidden title="سرور"><svg class="ic"><use href="#i-server"/></svg><span class="lbl">سرور</span><span class="srv-dot" id="syncDot" role="img"></span></button>
+    <div class="seg" id="appTheme" role="group" aria-label="پوستهٔ برنامه">
       <button type="button" data-app-theme="light" aria-label="روشن" title="روشن"><svg class="ic"><use href="#i-sun"/></svg></button>
       <button type="button" data-app-theme="system" aria-label="خودکار" title="مطابق سیستم"><svg class="ic"><use href="#i-monitor"/></svg></button>
       <button type="button" data-app-theme="dark" aria-label="تیره" title="تیره"><svg class="ic"><use href="#i-moon"/></svg></button>
     </div>
-    <button class="btn" id="clear" type="button"><svg class="ic"><use href="#i-file-plus"/></svg><span class="lbl">سند تازه</span></button>
-    <button class="btn primary quick" id="quickHtml" type="button"><svg class="ic"><use href="#i-download"/></svg><span class="lbl">دریافت HTML</span></button>
-    <div class="menu-wrap">
-      <button class="btn" id="exportMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu"><span>خروجی</span><svg class="ic sm"><use href="#i-chevron"/></svg></button>
+    <button class="btn block" id="clear" type="button"><svg class="ic"><use href="#i-file-plus"/></svg><span class="lbl">سند تازه</span></button>
+    <input id="title" type="text" placeholder="عنوان سند را بنویسید…" aria-label="عنوان سند" autocomplete="off" spellcheck="false">
+    <div class="menu-wrap" id="exportWrap">
+      <button class="btn block" id="exportMenuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu"><svg class="ic"><use href="#i-download"/></svg><span>خروجی‌های دیگر</span><svg class="ic sm"><use href="#i-chevron"/></svg></button>
       <div class="menu" id="exportMenu" role="menu" hidden>
         <div id="destGroup" hidden>
           <p class="menu-label">محل ذخیرهٔ خروجی</p>
@@ -108,33 +113,37 @@
         <button type="button" role="menuitem" data-export="email"><svg class="ic"><use href="#i-mail"/></svg><span>ساخت ایمیل فارسی</span><em>کپی</em></button>
       </div>
     </div>
-  </div>
-</header>
+</template>
 
 <main class="layout">
-  <aside class="panel side left" aria-label="محتوا">
+  <aside class="panel side left has-drawer" aria-label="محتوا">
     <div class="heading"><h2>محتوا</h2><span class="step">۰۱ · ورود</span></div>
-    <div class="tabs" role="tablist" aria-label="بخش‌های پنل محتوا">
-      <button type="button" role="tab" id="tabBtnInput" aria-selected="true" aria-controls="tabInput">ورود</button>
-      <button type="button" role="tab" id="tabBtnToc" aria-selected="false" aria-controls="tabToc" tabindex="-1">فهرست</button>
+    <div class="drawer" data-drawer="content" data-shape="rail" data-nav-label="بخش‌های پنل محتوا">
+
+    <section class="dgroup" id="dg-input" data-group="input" data-name="ورودی سند" data-short="ورودی" data-icon="file-plus" data-emoji="📥" data-hue="190">
+    <!-- The document starts here: a new sheet, its name and its brand, before anything is typed. -->
+    <div data-move="clear" data-tool="سند تازه"></div>
+    <div class="field" data-tool="عنوان سند">
+      <label for="title">عنوان سند</label>
+      <div data-move="title"></div>
     </div>
-    <div id="tabToc" role="tabpanel" aria-labelledby="tabBtnToc" hidden>
-      <nav id="tocList" aria-label="فهرست مطالب سند"></nav>
-      <button class="btn block" id="tocInsert" type="button"><svg class="ic"><use href="#i-list"/></svg>درج فهرست مطالب در سند</button>
+    <div class="field" data-tool="برند سند">
+      <p class="label">برند سند</p>
+      <div data-move="brandWrap"></div>
     </div>
-    <div id="tabInput" role="tabpanel" aria-labelledby="tabBtnInput">
-    <div class="upload" id="drop">
+    <div class="sep"></div>
+    <div class="upload" id="drop" data-tool="فایل سند">
       <input type="file" id="file" accept=".md,.markdown,.txt,.html,.htm,.xlsx,.xlsm,.xls,.csv,.fp3,text/html" aria-label="انتخاب فایل سند یا اکسل بانکی">
       <svg class="ic lg"><use href="#i-upload"/></svg>
       <b>فایل را اینجا رها کنید</b>
       <small>یا کلیک کنید · MD، TXT، HTML</small>
     </div>
-    <div class="paste-zone" id="pasteZone" contenteditable="true" spellcheck="false" inputmode="none" role="button" tabindex="0">
+    <div class="paste-zone" id="pasteZone" contenteditable="true" spellcheck="false" inputmode="none" role="button" tabindex="0" data-tool="چسباندن فایل">
       <b><svg class="ic"><use href="#i-clipboard"/></svg> فایل کپی‌شده را اینجا بچسبانید</b>
       <small>کلیک راست و <bdi>Paste</bdi> · یا <bdi>⌘V</bdi></small>
     </div>
     <div class="or">یا متن را وارد کنید</div>
-    <div class="field">
+    <div class="field" data-tool="متن Markdown">
       <label for="source">متن Markdown یا متن ساده</label>
       <textarea id="source" placeholder="# عنوان سند
 
@@ -142,21 +151,55 @@
 
 **تأکید**، فهرست، جدول و نقل‌قول هم پشتیبانی می‌شوند."></textarea>
     </div>
-    <button class="btn block" id="cleanupBtn" type="button"><svg class="ic"><use href="#i-sparkle"/></svg>پاک‌سازی خروجی هوش مصنوعی</button>
-    <div class="field">
+    <button class="btn block" id="cleanupBtn" type="button" data-tool="پاک‌سازی متن هوش مصنوعی"><svg class="ic"><use href="#i-sparkle"/></svg>پاک‌سازی خروجی هوش مصنوعی</button>
+    <div class="field" data-tool="زیرعنوان">
       <label for="subtitle">زیرعنوان (اختیاری)</label>
       <input id="subtitle" type="text" placeholder="توضیح یا نام گیرنده" autocomplete="off">
     </div>
-    <div class="sep"></div>
-    <p class="label">تنظیمات قابل‌انتقال</p>
-    <div class="btn-row">
-      <button class="btn" id="exportSettings" type="button"><svg class="ic"><use href="#i-download"/></svg>ذخیرهٔ JSON</button>
-      <button class="btn" id="importSettings" type="button"><svg class="ic"><use href="#i-upload"/></svg>بارگذاری JSON</button>
+    </section>
+
+    <section class="dgroup" id="dg-toc" data-group="toc" data-name="فهرست مطالب" data-short="فهرست" data-icon="list" data-emoji="🗂" data-hue="212">
+      <nav id="tocList" aria-label="فهرست مطالب سند" data-tool="فهرست مطالب سند"></nav>
+      <button class="btn block" id="tocInsert" type="button"><svg class="ic"><use href="#i-list"/></svg>درج فهرست مطالب در سند</button>
+    </section>
+
+    <section class="dgroup" id="dg-files" data-group="files" data-name="پرونده‌ها" data-short="پرونده" data-icon="library" data-emoji="📚" data-hue="275">
+      <div data-move="libraryBtn" data-tool="کتابخانهٔ سندها"></div>
+      <div data-move="filesBtn" data-tool="فایل‌های سرور"></div>
+      <div data-move="serverBtn" data-tool="سرور"></div>
+      <p class="muted">کتابخانه روی همین مرورگر است. فایل‌ها و سرور وقتی پیدا می‌شوند که برنامه را از نشانی سرور باز کرده باشید.</p>
+    </section>
+
+    <section class="dgroup" id="dg-out" data-group="out" data-name="خروجی سند" data-short="خروجی" data-icon="download" data-emoji="📤" data-hue="20">
+      <div data-move="exportWrap" data-tool="خروجی‌های دیگر"></div>
+      <p class="muted">دکمهٔ «دریافت HTML» بالای صفحه همیشه در دسترس است؛ بقیهٔ خروجی‌ها — Word، PDF، تصویر، ارائه، ایمیل و اشتراک — از همین فهرست می‌آیند.</p>
+    </section>
+
+    <section class="dgroup" id="dg-prefs" data-group="prefs" data-name="تنظیمات برنامه" data-short="تنظیمات" data-icon="settings" data-emoji="⚙️" data-hue="265">
+    <div class="field" data-tool="پوستهٔ برنامه">
+      <p class="label">پوستهٔ برنامه</p>
+      <div data-move="appTheme"></div>
     </div>
-    <input id="settingsFile" type="file" accept="application/json,.json" hidden>
-    <label class="check"><input id="embedFont" type="checkbox"> جاسازی فونت وزیرمتن در خروجی HTML</label>
-    <label class="check"><input id="autosave" type="checkbox"> ذخیرهٔ خودکار در کتابخانه</label>
+    <div class="field" data-tool="تنظیمات قابل‌انتقال">
+      <p class="label">تنظیمات قابل‌انتقال</p>
+      <div class="btn-row">
+        <button class="btn" id="exportSettings" type="button"><svg class="ic"><use href="#i-download"/></svg>ذخیرهٔ JSON</button>
+        <button class="btn" id="importSettings" type="button"><svg class="ic"><use href="#i-upload"/></svg>بارگذاری JSON</button>
+      </div>
+      <input id="settingsFile" type="file" accept="application/json,.json" hidden>
+    </div>
+    <div class="field" data-tool="نشان گروه‌ها">
+      <p class="label" id="glyphLabel">نشان گروه‌ها</p>
+      <div class="seg text" role="group" aria-labelledby="glyphLabel">
+        <button type="button" data-glyph="icon" aria-pressed="true">آیکون</button>
+        <button type="button" data-glyph="emoji" aria-pressed="false">ایموجی</button>
+      </div>
+    </div>
+    <label class="check" data-tool="جاسازی فونت در خروجی"><input id="embedFont" type="checkbox"> جاسازی فونت وزیرمتن در خروجی HTML</label>
+    <label class="check" data-tool="ذخیرهٔ خودکار"><input id="autosave" type="checkbox"> ذخیرهٔ خودکار در کتابخانه</label>
     <p class="muted">سند در کتابخانهٔ همین مرورگر ذخیره می‌شود؛ متن و تصویر به سرور فرستاده نمی‌شوند. برای انتقال به دستگاه دیگر از پشتیبان کامل استفاده کنید.</p>
+    </section>
+
     </div>
   </aside>
 
@@ -218,17 +261,17 @@
     </div>
   </section>
 
-  <aside class="panel side right" aria-label="طراحی">
+  <aside class="panel side right has-drawer" aria-label="طراحی">
     <div class="heading"><h2>طراحی</h2><span class="step">۰۲ · پرداخت</span></div>
+    <div class="drawer" data-drawer="design" data-shape="rail" data-nav-label="گروه‌های طراحی">
 
-    <p class="label">قالب رنگی</p>
-    <div class="themes">
-      <button class="theme active" type="button" data-theme="navy"><i></i>رسمی</button>
-      <button class="theme" type="button" data-theme="green"><i></i>سبز</button>
-      <button class="theme" type="button" data-theme="warm"><i></i>گرم</button>
-      <button class="theme" type="button" data-theme="mono"><i></i>ساده</button>
+    <section class="dgroup" id="dg-look" data-group="look" data-name="ظاهر و چاپ" data-short="ظاهر" data-icon="palette" data-emoji="🎨" data-hue="168">
+    <div class="field" data-tool="قالب رنگی">
+      <p class="label">قالب رنگی</p>
+      <!-- Swatches are built from DOC_THEMES in js/export/theme.js, so a new theme is one line there. -->
+      <div class="themes" id="themeSwatches"></div>
     </div>
-    <div class="field">
+    <div class="field" data-tool="اندازهٔ متن">
       <label for="fontSelect">اندازهٔ متن</label>
       <select id="fontSelect">
         <option value="14">کوچک</option>
@@ -237,27 +280,29 @@
         <option value="19">خیلی بزرگ</option>
       </select>
     </div>
-    <div class="field">
+    <div class="field" data-tool="حاشیهٔ چاپ A4">
       <label for="margin">حاشیهٔ چاپ A4</label>
       <input class="range" id="margin" type="range" min="12" max="28" value="18">
     </div>
-    <div class="sep"></div>
+    </section>
 
+    <section class="dgroup" id="dg-blocks" data-group="blocks" data-name="بلوک‌های متن" data-short="بلوک" data-icon="card" data-emoji="🧩" data-hue="205">
     <p class="label">افزودن به سند</p>
     <div class="toolgrid">
-      <button class="tool" type="button" data-block="heading"><svg class="ic"><use href="#i-heading"/></svg>تیتر جدید</button>
-      <button class="tool" type="button" data-block="card"><svg class="ic"><use href="#i-card"/></svg>کارت برجسته</button>
-      <button class="tool" type="button" data-block="quote"><svg class="ic"><use href="#i-quote"/></svg>نقل‌قول</button>
-      <button class="tool" type="button" data-block="hr"><svg class="ic"><use href="#i-minus"/></svg>جداکننده</button>
-      <button class="tool" type="button" id="addImage"><svg class="ic"><use href="#i-image"/></svg>تصویر</button>
-      <button class="tool" type="button" id="addLink"><svg class="ic"><use href="#i-link"/></svg>دکمهٔ لینک</button>
+      <button class="tool" type="button" data-block="heading" data-tool="تیتر جدید"><svg class="ic"><use href="#i-heading"/></svg>تیتر جدید</button>
+      <button class="tool" type="button" data-block="card" data-tool="کارت برجسته"><svg class="ic"><use href="#i-card"/></svg>کارت برجسته</button>
+      <button class="tool" type="button" data-block="quote" data-tool="نقل‌قول"><svg class="ic"><use href="#i-quote"/></svg>نقل‌قول</button>
+      <button class="tool" type="button" data-block="hr" data-tool="جداکننده"><svg class="ic"><use href="#i-minus"/></svg>جداکننده</button>
+      <button class="tool" type="button" id="addImage" data-tool="تصویر"><svg class="ic"><use href="#i-image"/></svg>تصویر</button>
+      <button class="tool" type="button" id="addLink" data-tool="دکمهٔ لینک"><svg class="ic"><use href="#i-link"/></svg>دکمهٔ لینک</button>
     </div>
     <label class="check"><input id="newTab" type="checkbox"> بازشدن پیوند در برگهٔ جدید</label>
     <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
-    <div class="sep"></div>
+    </section>
 
-    <details class="acc">
-      <summary>سربرگ و پاورقی</summary>
+    <section class="dgroup" id="dg-letter" data-group="letter" data-name="سند اداری" data-short="اداری" data-icon="mail" data-emoji="✉️" data-hue="255">
+    <div class="drawer" data-drawer="office" data-shape="tabs" data-head="off" data-nav-label="بخش‌های سند اداری">
+    <section class="dgroup" id="dg-office-mast" data-group="mast" data-tool="سربرگ و پاورقی" data-name="سربرگ و پاورقی" data-short="سربرگ" data-icon="file" data-emoji="📄" data-hue="255">
       <label class="check"><input type="checkbox" id="showTitle"> نمایش عنوان و زیرعنوان</label>
       <label class="check"><input type="checkbox" id="showHeader"> نمایش سربرگ</label>
       <div class="field"><label for="masthead">متن سربرگ</label><input id="masthead" type="text" placeholder="نام مجموعه یا فرستنده"></div>
@@ -288,10 +333,9 @@
         <div class="field"><label for="footerHeight">ارتفاع (px)</label><input id="footerHeight" type="number" min="20" max="240"></div>
       </div>
       <label class="check"><input type="checkbox" id="repeatFooter"> تکرار در صفحه‌های چاپ</label>
-    </details>
+    </section>
 
-    <details class="acc" id="letterAcc">
-      <summary>نامهٔ اداری</summary>
+    <section class="dgroup" id="dg-office-letter" data-group="letter" data-tool="نامهٔ اداری" data-name="نامهٔ اداری" data-short="نامه" data-icon="mail" data-emoji="✉️" data-hue="268">
       <label class="check"><input type="checkbox" id="letterMode"> حالت نامهٔ اداری</label>
       <div id="letterFields" hidden>
         <div class="field"><label for="letterDate">تاریخ (شمسی)</label>
@@ -309,10 +353,13 @@
         <button class="btn block" id="letterResetSign" type="button">بازنشانی جای امضا و مهر</button>
         <p class="muted">امضا و مهر را در پیش‌نمایش با موس بکشید تا جایشان ذخیره شود. تصویر امضا و مهر از «مدیریت برندها» می‌آید.</p>
       </div>
-    </details>
+    </section>
+    </div>
+    </section>
 
-    <details class="acc" id="layersAcc">
-      <summary>واترمارک و QR</summary>
+    <section class="dgroup" id="dg-marks" data-group="marks" data-name="نشان و لایه" data-short="نشان" data-icon="tag" data-emoji="🔖" data-hue="32">
+    <div class="drawer" data-drawer="layers" data-shape="tabs" data-head="off" data-nav-label="بخش‌های نشان و لایه">
+    <section class="dgroup" id="dg-layers-wm" data-group="wm" data-tool="واترمارک و QR" data-name="واترمارک و QR" data-short="واترمارک" data-icon="tag" data-emoji="🔖" data-hue="32">
       <div class="field"><label for="wmPreset">واترمارک</label><select id="wmPreset"></select></div>
       <div class="field" id="wmTextField" hidden><label for="wmText">متن واترمارک</label><input id="wmText" type="text" maxlength="40" autocomplete="off"></div>
       <p class="muted" id="wmNote"></p>
@@ -325,16 +372,21 @@
         <div class="field"><label for="qrSize">اندازه</label><input class="range" id="qrSize" type="range" min="56" max="180" step="4"></div>
         <p class="muted" id="qrNote"></p>
       </div>
-    </details>
+    </section>
 
-    <details class="acc">
-      <summary>آپلود تصویر (zi2.ir)</summary>
+    <section class="dgroup" id="dg-layers-upload" data-group="upload" data-tool="آپلود تصویر" data-name="آپلود تصویر (zi2.ir)" data-short="آپلود" data-icon="upload" data-emoji="☁️" data-hue="12">
       <div class="field"><label for="uploadEndpoint">نشانی API آپلود</label><input id="uploadEndpoint" type="url" dir="ltr"></div>
       <button class="btn block" id="uploadImage" type="button"><svg class="ic"><use href="#i-upload"/></svg>آپلود تصویر انتخاب‌شده</button>
       <p class="muted">درج معمولی تصویر را داخل سند نگه می‌دارد. آپلود، تصویر را عمومی می‌کند.</p>
-    </details>
+    </section>
+    </div>
+    </section>
 
-    <div class="analytics"><h3>تحلیل محتوا</h3><div class="metric-grid" id="metrics"></div></div>
+    <section class="dgroup" id="dg-insight" data-group="insight" data-name="تحلیل محتوا" data-short="تحلیل" data-icon="chart" data-emoji="📊" data-hue="330">
+    <div class="analytics" data-tool="تحلیل محتوا"><h3>تحلیل محتوا</h3><div class="metric-grid" id="metrics"></div></div>
+    </section>
+
+    </div>
   </aside>
 </main>
 

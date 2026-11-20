@@ -1,4 +1,6 @@
 // Fuzzy matching for the command palette and library search. Pure; works for Persian and English.
+// guardian-ignore MD-DIGITS — these two tables go the OTHER way: Persian and Arabic digits are
+// folded into Latin so a search for «۱۴۰۵» finds "1405". Nothing here is ever displayed.
 const DIGITS_FA = '۰۱۲۳۴۵۶۷۸۹';
 const DIGITS_AR = '٠١٢٣٤٥٦٧٨٩';
 

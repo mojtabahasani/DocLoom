@@ -2,12 +2,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { envVar } from './env.js';
 
-/** Non-GET /api/* need `X-MD2Html: 1` and an Origin equal to this server's own origin. */
+/**
+ * Non-GET /api/* need `X-DataSave: 1` and an Origin equal to this server's own origin.
+ * `X-MD2Html: 1` is the header older clients, the CLI and the Finder workflows send; both are
+ * accepted, because the header proves the request came from our own code, not which name it used.
+ */
 export function csrfOk(method, urlPath, headers) {
   if (!urlPath.startsWith('/api/')) return true;
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return true;
-  if (headers['x-md2html'] !== '1') return false;
+  if (headers['x-datasave'] !== '1' && headers['x-md2html'] !== '1') return false;
   const origin = headers.origin;
   if (!origin || !headers.host) return false;
   try {
@@ -105,8 +110,11 @@ export const WRITE_EXT = new Set([...READ_EXT, '.pdf', '.docx', '.png']);
  */
 export const PROTECTED_NAMES = new Set(['claude.md', 'claude.local.md', 'agents.md', 'gemini.md', 'memory.md', 'skill.md']);
 export const isProtectedName = (file) => PROTECTED_NAMES.has(path.basename(file).toLowerCase());
-/** Roots that are browse-and-read only (`MD2HTML_RO_ROOTS`, colon-separated). None by default. */
-export const roRootsFromEnv = (env = process.env) => (env.MD2HTML_RO_ROOTS ? env.MD2HTML_RO_ROOTS.split(':').filter(Boolean) : []);
+/** Roots that are browse-and-read only (`DATASAVE_RO_ROOTS`, colon-separated). None by default. */
+export const roRootsFromEnv = (env = process.env) => {
+  const roots = envVar('RO_ROOTS', env);
+  return roots ? roots.split(':').filter(Boolean) : [];
+};
 
 const inside = (root, p) => p === root || p.startsWith(root.endsWith(path.sep) ? root : root + path.sep);
 
