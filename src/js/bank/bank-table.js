@@ -8,30 +8,33 @@ import { cleanText, parseAmount, parseBankDate, parseTime, isBlankRow } from './
 
 /** Canonical fields, most specific pattern first — «شناسه واریز» must not match «واریز». */
 const FIELDS = [
-  ['payId', /^شناسه/],
-  ['track', /پیگیری/],
-  ['doc', /شماره\s*(سند|سریال)|^سند$/],
-  ['sheba', /شبا/],
-  ['srcAccount', /(مبدا|مبدأ)/],
-  ['dstAccount', /مقصد/],
-  ['account', /شماره\s*(حساب|کارت)|^حساب$/],
-  ['cheque', /چک|فیش/],
-  ['branch', /شعبه/],
-  ['kind', /نوع\s*تراکنش/],
-  ['channel', /کانال/],
-  ['note', /یادداشت/],
+  ['payId', /^شناسه|^transaction\s*id$/i],
+  ['track', /پیگیری|^(trace|reference|ref\.?)$/i],
+  ['doc', /شماره\s*(سند|سریال)|^سند$|^doc(ument)?(\s*(no|number))?$/i],
+  ['sheba', /شبا|^iban$/i],
+  ['srcAccount', /(مبدا|مبدأ)|(from|source)\s*account/i],
+  ['dstAccount', /مقصد|(to|dest(ination)?)\s*account/i],
+  ['account', /شماره\s*(حساب|کارت)|^حساب$|^account(\s*(no\.?|number))?$/i],
+  ['cheque', /چک|فیش|^cheque$/i],
+  ['branch', /شعبه|^branch$/i],
+  ['kind', /نوع\s*تراکنش|^(transaction\s*)?(type|category)$/i],
+  ['channel', /کانال|^channel$/i],
+  ['note', /یادداشت|^note$/i],
   ['desc2', /^شرح\s*[۲2]$/],
-  ['deposit', /^واریز$|بستانکار|^وار$/],
-  ['withdraw', /^برداشت$|بدهکار|^بر$/],
-  ['balance', /مانده|موجودی/],
-  ['date', /تاریخ/],
-  ['time', /^زمان$|^ساعت$/],
-  ['desc', /^شرح$|^توضیحات$|^شرح\s*تراکنش$|^بابت$/],
-  ['n', /^ردیف$|^#$|^شماره$/],
+  ['deposit', /^واریز$|بستانکار|^وار$|^(credit|deposit|amount\s*in)$/i],
+  ['withdraw', /^برداشت$|بدهکار|^بر$|^(debit|withdrawal|amount\s*out)$/i],
+  ['balance', /مانده|موجودی|^(running\s*)?balance$/i],
+  ['date', /تاریخ|^(transaction\s*|value\s*)?date$/i],
+  ['time', /^زمان$|^ساعت$|^time$/i],
+  ['desc', /^شرح$|^توضیحات$|^شرح\s*تراکنش$|^بابت$|^(description|memo|details|narrative)$/i],
+  ['n', /^ردیف$|^#$|^شماره$|^(row|no\.?)$/i],
 ];
 
 /** Columns that make a sheet look like a bank statement at all. */
-const SIGNALS = ['تاریخ', 'واریز', 'برداشت', 'مانده', 'موجودی', 'شرح', 'توضیحات', 'بدهکار', 'بستانکار'];
+const SIGNALS = [
+  'تاریخ', 'واریز', 'برداشت', 'مانده', 'موجودی', 'شرح', 'توضیحات', 'بدهکار', 'بستانکار',
+  'date', 'credit', 'deposit', 'debit', 'withdrawal', 'balance', 'description', 'memo', 'details',
+];
 
 const key = (v) => cleanText(v).replace(/‌/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -53,7 +56,8 @@ export function findHeaderRow(rows, { scan = 30 } = {}) {
   for (let i = 0; i < limit; i++) {
     const cells = (rows[i] || []).map(key).filter(Boolean);
     if (cells.length < 3) continue;
-    const score = SIGNALS.filter((s) => cells.some((c) => c.includes(s))).length;
+    const lower = cells.map((c) => c.toLowerCase());
+    const score = SIGNALS.filter((s) => lower.some((c) => c.includes(s))).length;
     // A later row only wins on a strictly better score, so the topmost real header is kept.
     if (score > best.score) best = { index: i, score };
   }
@@ -75,14 +79,14 @@ export function mapColumns(headerRow) {
 }
 
 const META = [
-  ['holder', /نام\s*مشتر[یي]|^نام$/],
-  ['account', /شماره\s*حساب/],
-  ['accountType', /نوع\s*حساب/],
-  ['branch', /شعبه/],
-  ['currency', /نوع\s*ارز/],
-  ['from', /از\s*تار[یي]خ/],
-  ['to', /تا\s*تار[یي]خ/],
-  ['alias', /نام\s*مستعار/],
+  ['holder', /نام\s*مشتر[یي]|^نام$|account\s*holder|customer(\s*name)?/i],
+  ['account', /شماره\s*حساب|account\s*(no\.?|number)/i],
+  ['accountType', /نوع\s*حساب|account\s*type/i],
+  ['branch', /شعبه|branch/i],
+  ['currency', /نوع\s*ارز|currency/i],
+  ['from', /از\s*تار[یي]خ|from\s*date/i],
+  ['to', /تا\s*تار[یي]خ|to\s*date/i],
+  ['alias', /نام\s*مستعار|alias/i],
 ];
 
 /**
@@ -108,7 +112,7 @@ export function readMeta(rows, headerIndex) {
       if (!text || seen.has(text)) continue;
       seen.add(text);
       // One cell can carry several "label : value" pairs in a row.
-      const re = /(نام\s*مشتر[یي]|نام\s*مستعار|شماره\s*حساب|نوع\s*حساب|نوع\s*ارز|از\s*تار[یي]خ|تا\s*تار[یي]خ|شعبه|نام)\s*:?\s*/g;
+      const re = /(نام\s*مشتر[یي]|نام\s*مستعار|شماره\s*حساب|نوع\s*حساب|نوع\s*ارز|از\s*تار[یي]خ|تا\s*تار[یي]خ|شعبه|نام|account\s*holder|customer(?:\s*name)?|account\s*(?:no\.?|number)|account\s*type|currency|from\s*date|to\s*date|branch|alias)\s*:?\s*/gi;
       const hits = [...text.matchAll(re)];
       if (!hits.length) continue;
       hits.forEach((h, k) => {

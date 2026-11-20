@@ -79,8 +79,17 @@ export function parseBankDate(v) {
   const m = /^(\d{2,4})[/\-.](\d{1,2})[/\-.](\d{1,2})$/.exec(s);
   if (!m) return null;
   let y = +m[1];
+  const month = +m[2];
+  const day = +m[3];
   if (m[1].length <= 2) y += 1400;
-  const j = { y, m: +m[2], d: +m[3] };
+  if (y >= 1900 && y <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+    const dt = new Date(Date.UTC(y, month - 1, day));
+    if (dt.getUTCFullYear() === y && dt.getUTCMonth() === month - 1 && dt.getUTCDate() === day) {
+      return withKey({ y, m: month, d: day });
+    }
+    return null;
+  }
+  const j = { y, m: month, d: day };
   return isValidJalali(j) ? withKey(j) : null;
 }
 

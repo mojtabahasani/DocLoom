@@ -467,3 +467,34 @@ test('fees stay a rounding error next to everything else that moved', () => {
   assert.ok((fee.in + fee.out) / moved < 0.02, 'fees must be a rounding error, not a category');
   assert.equal(totals.get('paya-out').out, 8000000);
 });
+
+test('parseBankDate accepts international ISO Gregorian dates alongside Jalali dates', () => {
+  assert.deepEqual(parseBankDate('2026-11-20'), { y: 2026, m: 11, d: 20, key: 20261120, text: '2026/11/20' });
+  assert.equal(parseBankDate('2026-02-30'), null);
+});
+
+test('international English ledger headers and ISO dates parse cleanly', () => {
+  assert.equal(matchField('Transaction Date'), 'date');
+  assert.equal(matchField('Amount In'), 'deposit');
+  assert.equal(matchField('Amount Out'), 'withdraw');
+  assert.equal(matchField('Running Balance'), 'balance');
+  assert.equal(matchField('Narrative'), 'desc');
+
+  const st = parseStatement(
+    sheet(
+      ['Account Holder : Jane Doe', 'Account Number : 99887766', 'Currency : USD'],
+      ['No.', 'Transaction Date', 'Time', 'Type', 'Description', 'Credit', 'Debit', 'Balance'],
+      ['1', '2026-11-18', '09:30', 'Wire', 'Client invoice payment', '2,500.00', '0', '12,500.00'],
+      ['2', '2026-11-19', '14:15', 'Fee', 'Bank wire fee', '0', '25.00', '12,475.00'],
+    ),
+  );
+  assert.equal(st.ok, true);
+  assert.equal(st.meta.holder, 'Jane Doe');
+  assert.equal(st.meta.account, '99887766');
+  assert.equal(st.meta.currency, 'USD');
+  assert.equal(st.records.length, 2);
+  assert.equal(st.records[0].date.text, '2026/11/18');
+  assert.equal(st.records[0].deposit, 2500);
+  assert.equal(st.records[1].withdraw, 25);
+  assert.equal(st.records[1].balance, 12475);
+});
