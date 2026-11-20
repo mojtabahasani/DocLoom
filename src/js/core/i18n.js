@@ -484,3 +484,152 @@ export function localizeCommand(cmd, lang = 'en') {
   const keywords = [cmd.keywords, cmd.title, cmd.group].filter(Boolean).join(' ');
   return { ...cmd, title, group, keywords };
 }
+
+const FA_DIGITS_MAP = '۰۱۲۳۴۵۶۷۸۹';
+const toLatinDigits = (s) => String(s || '').replace(/[۰-۹]/g, (c) => String(FA_DIGITS_MAP.indexOf(c)));
+
+export const ACTION_I18N = {
+  برگردان: 'Undo',
+  'باز کردن': 'Open',
+};
+
+const TOGGLE_LABEL_I18N = {
+  سربرگ: 'Masthead',
+  پاورقی: 'Footer',
+  عنوان: 'Title',
+  'پیوند در برگهٔ جدید': 'Open links in new tab',
+  'جاسازی فونت': 'Embed fonts',
+};
+
+export const TOAST_I18N = {
+  'ابتدا متن یا فایل خود را وارد کنید.': 'Enter text or open a file first.',
+  'ساخت خروجی ناموفق بود؛ سند دست‌نخورده است.': 'Export failed; document unchanged.',
+  'در حال ساخت فایل Word…': 'Building Word (.docx) document...',
+  'فایل ذخیره شد.': 'File saved.',
+  'پنجرهٔ انتخاب مسیر در دسترس نبود؛ نام فایل را وارد کنید.': 'Save picker unavailable; download started instead.',
+  'دانلود آغاز شد؛ محل نهایی ذخیره را مرورگر تعیین می‌کند.': 'Download started; check your browser downloads folder.',
+  'در کلیپ‌بورد کپی شد.': 'Copied to clipboard.',
+  'Clipboard در دسترس نیست؛ متن را انتخاب کنید و دستی کپی کنید.': 'Clipboard unavailable; select text and copy manually.',
+  'ساخت ارائه ممکن نشد؛ سند دست‌نخورده است.': 'Could not start presentation; document unchanged.',
+  'ساخت فایل ارائه ممکن نشد؛ سند دست‌نخورده است.': 'Could not export presentation HTML; document unchanged.',
+  'پنجرهٔ چاپ مسدود شد؛ اجازهٔ بازشدن پنجره را بدهید.': 'Print popup blocked; please allow popups.',
+  'محتوا انتخاب شد؛ آن را کپی کنید.': 'Email HTML selected; copy to clipboard.',
+  'ساخت تصویر ممکن نشد؛ سند دست‌نخورده است.': 'Could not render PNG snapshot; document unchanged.',
+  'کپی تصویر در این مرورگر پشتیبانی نمی‌شود؛ به‌جای آن فایل را ذخیره کنید.': 'Image copy unsupported in this browser; save the file instead.',
+  'تصویر در کلیپ‌بورد کپی شد.': 'Image copied to clipboard.',
+  'کپی تصویر در کلیپ‌بورد انجام نشد؛ اجازهٔ مرورگر را بررسی کنید یا فایل را ذخیره کنید.': 'Could not copy image; check browser permissions or save the file.',
+  'ساخت تصویر ناموفق بود؛ سند دست‌نخورده است. فایل بسیار بزرگ یا کمبود حافظه ممکن است علت باشد.': 'PNG snapshot failed; document unchanged (file may be too large).',
+  'سند تازه آماده است.': 'New document ready.',
+  'ساختار فایل HTML قابل خواندن نیست.': 'Could not parse HTML file.',
+  'محتوای HTML بارگذاری و پاک‌سازی شد.': 'HTML content loaded and sanitized.',
+  'فایل نامعتبر است یا بزرگ‌تر از ۵ مگابایت.': 'Invalid file or size exceeds 5 MB.',
+  'فایل روی همین دستگاه خوانده شد.': 'File loaded locally.',
+  'فقط فایل MD، TXT، HTML، اکسل یا گزارش fp3 انتخاب کنید.': 'Choose an MD, TXT, HTML, spreadsheet, or .fp3 file.',
+  'خواندن فایل ممکن نشد.': 'Could not read file.',
+  'قالب تصویر پشتیبانی نمی‌شود؛ PNG، JPG، WebP یا GIF انتخاب کنید.': 'Unsupported image format; choose PNG, JPG, WebP, or GIF.',
+  'حجم تصویر باید کمتر از ۸ مگابایت باشد.': 'Image size must be under 8 MB.',
+  'خواندن تصویر ممکن نشد.': 'Could not read image.',
+  'تصویر برای ارسال آماده شد.': 'Image ready to upload.',
+  'تصویر به سند اضافه شد.': 'Image added to document.',
+  'تصویری در کلیپ‌بورد پیدا نشد.': 'No image found in clipboard.',
+  'برای چسباندن تصویر، داخل پیش‌نمایش کلیک کنید و ⌘V یا Ctrl+V بزنید.': 'Click inside the preview and press Cmd+V or Ctrl+V to paste.',
+  'آپلود تصویر در این صفحه خاموش است؛ تصویر داخل خود سند می‌ماند.': 'Cloud upload is disabled; image remains embedded.',
+  'نشانی API آپلود را در تنظیمات وارد کنید.': 'Enter an upload API URL in settings.',
+  'نشانی API باید HTTPS معتبر باشد.': 'Upload API URL must use valid HTTPS.',
+  'این قالب تصویر قابل تبدیل به PNG نبود؛ JPG، PNG یا GIF انتخاب کنید.': 'Could not convert image to PNG; choose JPG, PNG, or GIF.',
+  'تصویر آپلود شد و لینک در سند قرار گرفت.': 'Image uploaded and link inserted.',
+  'مرورگر فقط نام فایل را داد، نه خودِ فایل؛ فایل را بکشید و رها کنید یا کلیک کنید و انتخاب کنید.': 'Browser provided only the filename; drag and drop the file instead.',
+  'فایلی در حافظه نیست؛ اول در Finder روی فایل MD یا HTML بزنید ⌘C، بعد اینجا بچسبانید.': 'No file in clipboard; copy a file in Finder/Explorer first.',
+  'جدولی با ستون عددی در سند پیدا نشد.': 'No table with numeric columns found.',
+  'سندی برای بررسی نیست.': 'Document is empty; nothing to detect.',
+  'این جدول ستون عددی ندارد؛ ستون اول باید برچسب باشد و دست‌کم یک ستون فقط عدد داشته باشد.': 'Table needs a label column and at least one numeric column.',
+  'نمودار بعد از جدول درج شد.': 'Chart inserted below the table.',
+  'چیزی برای پاک‌سازی با قاعده‌های انتخاب‌شده پیدا نشد.': 'No matches found for the selected cleanup rules.',
+  'تنظیمات ذخیره شد؛ متن سند، تصویرها و توکن‌ها داخل JSON نیستند.': 'Settings exported (documents, images, and tokens excluded).',
+  'فایل تنظیمات بزرگ‌تر از حد مجاز است.': 'Settings file exceeds size limit.',
+  'تنظیمات JSON بارگذاری و اعمال شد.': 'JSON settings imported and applied.',
+  'فایل تنظیمات معتبرِ DocLoom نیست یا مقدارهای آن خارج از محدوده‌اند.': 'Invalid DocLoom settings file.',
+  'حالت نامه فعال شد؛ تاریخ، شماره، گیرنده و موضوع را در پنل «طراحی ← نامهٔ اداری» بنویسید.': 'Official letter mode enabled; edit metadata in Design -> Official Document.',
+  'فضای ذخیره‌سازی مرورگر پر شده است؛ سندها یا نسخه‌های قدیمی را حذف کنید یا از کتابخانه پشتیبان بگیرید.': 'Browser storage is full; remove old items or export a backup.',
+  'ذخیره در کتابخانه انجام نشد.': 'Could not save to library.',
+  'این سند در کتابخانه پیدا نشد.': 'Document not found in library.',
+  'نسخهٔ تکراری ساخته شد.': 'Document duplicated.',
+  'سند بایگانی شد.': 'Document archived.',
+  'محتوا از آخرین نسخه تغییری نکرده است.': 'No changes since last saved version.',
+  'نسخه ذخیره شد.': 'Version saved.',
+  'نسخه بازگردانی شد.': 'Version restored.',
+  'ذخیره‌سازی مرورگر در دسترس نیست؛ کتابخانه فقط تا بستن صفحه کار می‌کند.': 'Persistent storage unavailable; library lasts only for this session.',
+  'سند به کتابخانه برگشت.': 'Document restored to library.',
+  'این نسخه از سرور خوانده نشد.': 'Could not load version from server.',
+  'ابتدا چیزی در سند بنویسید.': 'Write something in the document first.',
+  'فایل پشتیبان قابل خواندن نیست.': 'Could not read backup file.',
+  'فضای ذخیره‌سازی مرورگر برای این پشتیبان کافی نیست.': 'Not enough storage space for this backup.',
+  'ورود پشتیبان انجام نشد.': 'Backup import failed.',
+  'فایل پشتیبان بزرگ‌تر از حد مجاز است.': 'Backup file exceeds size limit.',
+  'برند بایگانی شد.': 'Brand archived.',
+  'برای شماره گرفتن، ابتدا در «مدیریت برندها» یک برند بسازید.': 'Create a brand in Brand Manager first to generate numbers.',
+  'واترمارک حذف شد.': 'Watermark removed.',
+  'فایل اکسل بزرگ‌تر از ۱۲ مگابایت است.': 'Spreadsheet file exceeds 12 MB.',
+  'خواندن فایل اکسل ممکن نشد.': 'Could not read spreadsheet file.',
+  'در این فایل جدول گردش حساب پیدا نشد؛ ستون‌های تاریخ، واریز و برداشت لازم است.': 'No ledger table found (Date and Debit/Credit columns required).',
+  'تراکنشی برای درج نیست.': 'No transactions to insert.',
+  'فایل گزارش بزرگ‌تر از ۲۰ مگابایت است.': 'Report file exceeds 20 MB.',
+  'خواندن فایل گزارش ممکن نشد.': 'Could not read FastReport file.',
+  'در این گزارش هیچ ردیف داده‌ای پیدا نشد.': 'No table rows found in FastReport file.',
+  'ردیفی برای درج نیست.': 'No rows to insert.',
+  'اشتراک لینک به سرور DocLoom نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.': 'Link sharing requires the DocLoom server (http://localhost:7123).',
+  'تبدیل گروهی به سرور DocLoom نیاز دارد؛ برنامه را از http://localhost:7123 باز کنید.': 'Batch conversion requires the DocLoom server (http://localhost:7123).',
+  'سندی هم در این دستگاه و هم در سرور تغییر کرده بود؛ هر دو نگه داشته شد (نسخهٔ «تعارض»).': 'Conflict detected across devices; both copies were preserved.',
+  'در حال ساخت PDF…': 'Generating PDF...',
+  'سرور DocLoom در دسترس نیست؛ برنامه را از نشانی http://localhost:7123 باز کنید.': 'DocLoom server unavailable; open from http://localhost:7123.',
+  'سرور DocLoom در دسترس نیست.': 'DocLoom server unavailable.',
+  'سرور در دسترس نیست.': 'Server unavailable.',
+  'از روی دیسک بارگذاری شد.': 'Reloaded from disk.',
+  'پیوند سند با فایل برداشته شد؛ سند در کتابخانه می‌ماند.': 'Unlinked file; document stays in library.',
+  'این نوع خروجی را نمی‌شود روی سرور ذخیره کرد؛ دانلود می‌شود.': 'This export cannot save to server; downloading instead.',
+  'سند به فایلی وصل نیست؛ خروجی دانلود می‌شود.': 'Document is not linked to a file; downloading instead.',
+  'دسترسی از شبکه باز شد.': 'Local network access enabled.',
+  'دسترسی از شبکه بسته شد؛ فقط همین مک.': 'Local network access disabled (localhost only).',
+  'تغییر دسترسی شبکه انجام نشد.': 'Failed to update network access.',
+  'تعویض رمز انجام نشد.': 'Failed to update PIN.',
+  'پشتیبان ساخته شد.': 'Server backup created.',
+  'پشتیبان بازگردانده شد.': 'Server backup restored.',
+  'بازگردانی انجام نشد.': 'Backup restore failed.',
+};
+
+const TOAST_PATTERNS = [
+  [/^پاک‌سازی انجام شد؛ (.+) تغییر\.$/, (m) => `Cleanup complete: ${toLatinDigits(m[1])} changes.`],
+  [/^برند «(.+)» ذخیره شد\.$/, (m) => `Brand "${m[1]}" saved.`],
+  [/^برند «(.+)» روی سند اعمال شد\.$/, (m) => `Brand "${m[1]}" applied to document.`],
+  [/^شمارهٔ (.+) گرفته شد\.$/, (m) => `Reference ${toLatinDigits(m[1])} generated.`],
+  [/^واترمارک «(.+)» روی سند قرار گرفت\.$/, (m) => `Watermark "${m[1]}" applied.`],
+  [/^گزارش با (.+) تراکنش ساخته شد\.$/, (m) => `Statement built with ${toLatinDigits(m[1])} transactions.`],
+  [/^گزارش با (.+) ردیف ساخته شد\.$/, (m) => `Report built with ${toLatinDigits(m[1])} rows.`],
+  [/^پشتیبان ساخته شد: (.+) سند، (.+) نسخه\.$/, (m) => `Backup created: ${toLatinDigits(m[1])} docs, ${toLatinDigits(m[2])} versions.`],
+  [/^پشتیبان وارد شد: (.+) سند، (.+) نسخه\.$/, (m) => `Backup imported: ${toLatinDigits(m[1])} docs, ${toLatinDigits(m[2])} versions.`],
+  [/^QR کد: (روشن|خاموش)$/, (m) => `QR code: ${m[1] === 'روشن' ? 'On' : 'Off'}`],
+  [/^دنبال کردن انتها: (روشن|خاموش)$/, (m) => `Follow tail: ${m[1] === 'روشن' ? 'On' : 'Off'}`],
+  [/^روی فایل ذخیره شد: (.+)$/, (m) => `Saved to file: ${m[1]}`],
+  [/^ذخیره شد: (.+)$/, (m) => `Saved: ${m[1]}`],
+  [/^آپلود انجام نشد: (.+)$/, (m) => `Upload failed: ${m[1]}`],
+  [/^(.+): (روشن|خاموش)$/, (m) => `${TOGGLE_LABEL_I18N[m[1]] || m[1]}: ${m[2] === 'روشن' ? 'On' : 'Off'}`],
+];
+
+/** Localize a status toast message into the active UI language. */
+export function localizeToast(text, lang = 'en') {
+  const s = String(text ?? '');
+  if (!s || normalizeLang(lang) === 'fa') return s;
+  if (TOAST_I18N[s]) return TOAST_I18N[s];
+  for (const [re, fmt] of TOAST_PATTERNS) {
+    const m = s.match(re);
+    if (m) return fmt(m);
+  }
+  return toLatinDigits(s);
+}
+
+/** Localize a status toast action button label. */
+export function localizeToastAction(label, lang = 'en') {
+  const s = String(label ?? '');
+  if (!s || normalizeLang(lang) === 'fa') return s;
+  return ACTION_I18N[s] || s;
+}

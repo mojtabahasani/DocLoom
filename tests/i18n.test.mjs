@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SUPPORTED_LANGS, normalizeLang, dirForLang, t, GROUP_I18N, TOOL_I18N, localizeCommand } from '../src/js/core/i18n.js';
+import { SUPPORTED_LANGS, normalizeLang, dirForLang, t, GROUP_I18N, TOOL_I18N, localizeCommand, localizeToast, localizeToastAction } from '../src/js/core/i18n.js';
 import { sanitizePrefs } from '../src/js/library/prefs-schema.js';
 import { analyze } from '../src/js/content/analytics.js';
 import { DOC_THEMES } from '../src/js/export/theme.js';
@@ -63,4 +63,16 @@ test('every theme in DOC_THEMES defines both Persian label and English labelEn',
     assert.ok(th.label?.trim(), `${th.id} needs label`);
     assert.ok(th.labelEn?.trim(), `${th.id} needs labelEn`);
   }
+});
+
+test('localizeToast and localizeToastAction translate static and parameterized notices into English', () => {
+  assert.equal(localizeToast('در کلیپ‌بورد کپی شد.', 'en'), 'Copied to clipboard.');
+  assert.equal(localizeToast('در کلیپ‌بورد کپی شد.', 'fa'), 'در کلیپ‌بورد کپی شد.');
+  assert.equal(localizeToast('پاک‌سازی انجام شد؛ ۱۲ تغییر.', 'en'), 'Cleanup complete: 12 changes.');
+  assert.equal(localizeToast('برند «Acme» روی سند اعمال شد.', 'en'), 'Brand "Acme" applied to document.');
+  assert.equal(localizeToast('پشتیبان ساخته شد: ۴ سند، ۱۵ نسخه.', 'en'), 'Backup created: 4 docs, 15 versions.');
+  assert.equal(localizeToast('QR کد: روشن', 'en'), 'QR code: On');
+  assert.equal(localizeToastAction('برگردان', 'en'), 'Undo');
+  assert.equal(localizeToastAction('باز کردن', 'en'), 'Open');
+  assert.equal(localizeToastAction('برگردان', 'fa'), 'برگردان');
 });

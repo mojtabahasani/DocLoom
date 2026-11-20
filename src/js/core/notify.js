@@ -1,5 +1,7 @@
-// Toast notifications, optionally with an action button (e.g. "برگردان" / undo).
+// Toast notifications, optionally with an action button (e.g. "Undo" / "برگردان").
 import { el } from './dom.js';
+import { store } from './store.js';
+import { localizeToast, localizeToastAction } from './i18n.js';
 
 let host;
 let timer;
@@ -13,18 +15,20 @@ function ensureHost() {
   return host;
 }
 
-/** notify('متن') or notify('متن', { action: { label, run }, duration }) */
+/** notify('message') or notify('message', { action: { label, run }, duration }) */
 export function notify(text, opts = {}) {
   const h = ensureHost();
+  const lang = store.get?.('lang') || 'en';
+  h.dir = lang === 'fa' ? 'rtl' : 'ltr';
   const { action, duration = action ? 8000 : 3000 } = opts;
-  h.replaceChildren(el('span', { class: 'status-text', text }));
+  h.replaceChildren(el('span', { class: 'status-text', text: localizeToast(text, lang) }));
   h.classList.toggle('has-action', !!action);
   if (action) {
     h.append(
       el('button', {
         type: 'button',
         class: 'status-action',
-        text: action.label,
+        text: localizeToastAction(action.label, lang),
         onclick: () => {
           hide();
           action.run();
