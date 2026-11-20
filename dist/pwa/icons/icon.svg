@@ -1,11 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1a6256"/>
-      <stop offset="1" stop-color="#56b394"/>
+    <linearGradient id="doc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e1e54"/>
+      <stop offset="1" stop-color="#312b78"/>
+    </linearGradient>
+    <linearGradient id="weave" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#4e32c7"/>
+      <stop offset="1" stop-color="#a26bfa"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#g)"/>
-  <path fill="#fff" d="M9 44V20h6l5.5 9.5L26 20h6v24h-5V30l-6.5 10h-1L13.9 30v14z"/>
-  <path fill="#fff" fill-rule="evenodd" d="M37 20h7.5a12 12 0 0 1 0 24H37zm5 5v14h2.5a7 7 0 0 0 0-14z"/>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="#f5f4fb" stroke="#e2def4" stroke-width="1.5"/>
+  <path d="M29 29c7 0 8 18 16 18" fill="none" stroke="#854de8" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M29 32h16" fill="none" stroke="#2c6fe6" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M29 41c8 0 8-24 16-24" fill="none" stroke="url(#weave)" stroke-width="4.8" stroke-linecap="round"/>
+  <rect x="8" y="13" width="23" height="38" rx="4.5" fill="url(#doc)"/>
+  <path fill="#fff" d="M12 29v-9h2.6l2.5 4.4L19.6 20h2.6v9h-2.3v-5l-2.8 4.7-2.8-4.7v5z"/>
+  <path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M26 20.5v7M24 25.5l2 2.2 2-2.2"/>
+  <rect x="12" y="34" width="13" height="2.4" rx="1.2" fill="#b4a7f5" opacity=".8"/>
+  <rect x="12" y="39" width="11" height="2.4" rx="1.2" fill="#b4a7f5" opacity=".7"/>
+  <rect x="12" y="44" width="8" height="2.4" rx="1.2" fill="#b4a7f5" opacity=".6"/>
+  <rect x="44" y="11" width="12" height="12" rx="2.5" fill="#fdecef" stroke="#d92d47" stroke-width="2"/>
+  <rect x="44" y="26" width="12" height="12" rx="2.5" fill="#eaf2ff" stroke="#1668d9" stroke-width="2"/>
+  <rect x="44" y="41" width="12" height="12" rx="2.5" fill="#fff1e6" stroke="#eb6b21" stroke-width="2"/>
 </svg>
