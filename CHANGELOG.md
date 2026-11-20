@@ -10,6 +10,10 @@ All notable changes to **DocLoom** are documented in this file. Format follows [
 - **Bilingual AI Report & Official Letter Prompt Generator (`src/js/content/report-prompt.js`, `src/js/ui/prompt-sheet.js`, `src/js/ui/about.js`)**: Added English report/letter Markdown prompts (`REPORT_PROMPT_EN`, `LETTER_ADDON_EN`) and localized About & Prompt modals (`tests/report-prompt.test.mjs`).
 - **GitHub Actions CI & Brand Banner (`.github/workflows/ci.yml`, `docs/assets/docloom-banner.png`)**: Automated `npm ci`, single-file build, unit/integration suite, and static guardrails on every push and pull request.
 
+### Fixed
+- **Automatic Per-Block Bidirectional (`LTR`/`RTL`) Typography (`src/js/content/bidi.js`, `src/js/editor/preview.js`, `src/styles/document.css`, `src/styles/blocks.css`, `src/js/export/html.js`)**: Automatically detects Latin vs. Persian script per heading, paragraph, list, callout, cover header, TOC, and table (`tests/bidi.test.mjs`) so Latin titles and lists render left-aligned with `LTR` punctuation/numbering while Persian blocks stay `RTL`.
+- **Cross-Platform CLI Integration Test (`tests/server/finder-cli.test.mjs`)**: Resolved temp working directory dynamically via `os.tmpdir()` so CI passes on Linux as well as macOS.
+
 ## [1.3.0] — 2026-11-20
 
 ### Added

@@ -57,6 +57,15 @@
 .paper .masthead img{max-height:58px;max-width:220px;object-fit:contain}
 .paper .page-footer{margin-top:28px;padding-top:8px;border-top:1px solid #dce4de;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#64736d;font-size:.85em}
 .paper .page-footer img{max-width:220px;max-height:55px;object-fit:contain}
+.paper[dir="ltr"]{direction:ltr;text-align:left}
+.paper :is(h1,h2,h3,h4,h5,h6,p,li,blockquote,.cover,.card)[dir="ltr"]{direction:ltr;text-align:left}
+.paper :is(h1,h2,h3,h4,h5,h6,li,blockquote,.cover,.card)[dir="rtl"]{direction:rtl;text-align:right}
+.paper p[dir="rtl"]{direction:rtl;text-align:justify}
+.paper :is(ul,ol):not(.task-list)[dir="ltr"],.paper[dir="ltr"] :is(ul,ol):not(.task-list):not([dir="rtl"]){direction:ltr;text-align:left;padding-left:25px;padding-right:0}
+.paper :is(ul,ol):not(.task-list)[dir="rtl"]{direction:rtl;text-align:right;padding-right:25px;padding-left:0}
+.paper :is(blockquote,.cover,.card)[dir="ltr"]{border-right:0;border-left:4px solid var(--accent-doc);border-radius:6px 0 0 6px}
+.paper table[dir="ltr"]{direction:ltr}
+.paper table[dir="ltr"] :is(th,td):not([style*="text-align"]){text-align:left}
 @media (max-width:720px){
   .paper{padding:30px 20px 48px;min-height:600px;font-size:14px}
   .paper.web-layout{min-height:0;padding:18px 12px}

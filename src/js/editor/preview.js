@@ -5,6 +5,7 @@ import { createHistory } from '../core/history.js';
 import { markdownToHTML } from '../content/markdown.js';
 import { sanitizeToFragment } from '../content/sanitize.js';
 import { headerHTML, footerHTML } from '../content/furniture.js';
+import { applyBidi } from '../content/bidi.js';
 
 export const preview = $('#preview');
 
@@ -17,6 +18,8 @@ export const history = createHistory({
 });
 
 const furnitureState = () => store.snapshot();
+const fallbackDir = () => (store.get?.('lang') === 'en' ? 'ltr' : 'rtl');
+export const syncBidi = () => applyBidi(preview, fallbackDir());
 
 export function isEmpty() {
   return !preview.textContent.trim() && !preview.querySelector('img,hr,table');
@@ -28,6 +31,7 @@ export function plainText() {
 
 /** Call after any content change (typing, insert, render, undo...). */
 export function markChanged() {
+  syncBidi();
   history.record();
   preview.dataset.empty = String(isEmpty());
   store.set('dirty', true);
@@ -35,6 +39,7 @@ export function markChanged() {
 }
 
 function afterRestore() {
+  syncBidi();
   preview.dataset.empty = String(isEmpty());
   store.set('dirty', true);
   store.emit('content');
@@ -80,6 +85,7 @@ export function previewInSync() {
   const s = furnitureState();
   const box = document.createElement('div');
   box.append(sanitizeToFragment(headerHTML(s) + markdownToHTML(s.source) + footerHTML(s)));
+  applyBidi(box, fallbackDir());
   const norm = (h) => h.replace(/ id="s-[^"]*"/g, '');
   return !!s.source.trim() && norm(box.innerHTML) === norm(preview.innerHTML);
 }
@@ -100,6 +106,7 @@ export function setContent(fragment, { reset = false } = {}) {
   preview.replaceChildren(fragment);
   applyLook();
   if (reset) {
+    syncBidi();
     history.reset();
     preview.dataset.empty = String(isEmpty());
     store.set('dirty', true);
@@ -111,6 +118,7 @@ export function clearContent() {
   preview.innerHTML = '';
   store.set('webLayout', false);
   applyLook();
+  syncBidi();
   history.reset();
   preview.dataset.empty = 'true';
   store.emit('content');
@@ -177,6 +185,8 @@ export function initPreview() {
   });
   preview.addEventListener('drop', (e) => e.preventDefault());
   for (const k of ['theme', 'font', 'webLayout', 'brandColors']) store.on(k, applyLook);
+  store.on('lang', syncBidi);
   applyLook();
+  syncBidi();
   preview.dataset.empty = 'true';
 }

@@ -21,7 +21,7 @@ Most browser-based document studios break down when dealing with three real-worl
 2. **Legacy Binary & Coordinate-Based Reports:** Importing older binary `.xls` (OLE2 Compound File / BIFF8 records), messy SpreadsheetML exports, or FastReport `.fp3` prepared XML reports (which encode no explicit `<table>` structure—only raw `Left`/`Top`/`Width` memo coordinates) normally requires heavy server runtimes or proprietary desktop suites.
 3. **Zero-Telemetry, Non-Destructive Local Workflows:** Sensitive financial, technical, and administrative documents require a deterministic, archive-first local studio that runs 100% offline from `file://` or `127.0.0.1` and **never silently destroys user history**.
 
-DocLoom unifies all three into a compact, dependency-minimal codebase backed by 397 Node unit & integration tests, 59 Playwright browser/WCAG 2.1 AA accessibility checks, and 48 XSS sanitizer vectors.
+DocLoom unifies all three into a compact, dependency-minimal codebase backed by 400 Node unit & integration tests, 59 Playwright browser/WCAG 2.1 AA accessibility checks, and 48 XSS sanitizer vectors.
 
 ---
 
@@ -80,7 +80,7 @@ Starts the pure-Node companion server on `http://127.0.0.1:7123`.
 
 ### Run Tests & Static Guards
 ```bash
-# Run all 397 unit and server integration tests
+# Run all 400 unit and server integration tests
 npm test
 
 # Run static code quality and guardrail checks
@@ -103,7 +103,7 @@ DocLoom/
 │   ├── fonts/                # Subset Vazirmatn WOFF2 fonts (OFL)
 │   └── js/
 │       ├── core/             # Versioning, storage compatibility, digits, XML, runtime guard
-│       ├── content/          # Markdown parser, typography normalization, SVG charts, TOC, sanitizer
+│       ├── content/          # Markdown parser, bidi detector, typography normalization, SVG charts, TOC, sanitizer
 │       ├── bank/             # Zero-dep OLE2/CFB, BIFF8 .xls, XLSX, CSV, tabular formatter
 │       ├── saba/             # FastReport .fp3 XML geometric table reconstructor
 │       ├── brand/            # Document mastheads, footers, QR blocks, watermarks, signatures
@@ -116,7 +116,7 @@ DocLoom/
 ├── pwa/                      # Service worker & manifest templates
 ├── scripts/guardian/         # Static rule scanner & baseline ratchet
 ├── tools/                    # Ledger reconciliation verifier & library deduplication tool
-└── tests/                    # 397 unit/server tests + Playwright E2E, XSS & axe-core suites
+└── tests/                    # 400 unit/server tests + Playwright E2E, XSS & axe-core suites
 ```
 
 ---

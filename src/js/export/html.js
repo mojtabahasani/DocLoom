@@ -27,6 +27,13 @@ const BASE_CSS =
   '.page-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:28px;padding-top:8px;border-top:1px solid #dce4de;color:#64736d;font-size:.85em}' +
   '.page-footer img{max-width:220px;max-height:55px;object-fit:contain}' +
   '.cover h1{border:0;margin:0}.subtitle{color:#718087}' +
+  'main[dir="ltr"]{direction:ltr;text-align:left}' +
+  'main :is(h1,h2,h3,h4,h5,h6,p,li,blockquote,.cover,.card)[dir="ltr"]{direction:ltr;text-align:left}' +
+  'main :is(h1,h2,h3,h4,h5,h6,p,li,blockquote,.cover,.card)[dir="rtl"]{direction:rtl;text-align:right}' +
+  'main :is(ul,ol):not(.task-list)[dir="ltr"],main[dir="ltr"] :is(ul,ol):not(.task-list):not([dir="rtl"]){direction:ltr;text-align:left;padding-left:25px;padding-right:0}' +
+  'main :is(ul,ol):not(.task-list)[dir="rtl"]{direction:rtl;text-align:right;padding-right:25px;padding-left:0}' +
+  'main :is(blockquote,.cover,.card)[dir="ltr"]{border-right:0;border-left:4px solid var(--accent)}' +
+  'main table[dir="ltr"]{direction:ltr}main table[dir="ltr"] :is(th,td):not([style*="text-align"]){text-align:left}' +
   '@media print{body{padding:0;background:white}main{max-width:none;padding:0;background:var(--paper,#fffefa)}h1,h2,h3{break-after:avoid-page}blockquote,.card,.doc-image{break-inside:avoid}thead{display:table-header-group}tr{break-inside:avoid}}';
 
 export function embeddedFontCSS() {
@@ -38,6 +45,8 @@ export function exportParts(s = store.snapshot(), root = preview) {
   const main = document.createElement('main');
   main.className = 'md-export';
   main.style.fontSize = s.font + 'px';
+  const dir = root?.getAttribute?.('dir');
+  if (dir) main.setAttribute('dir', dir);
   main.append(sanitizeChildren(root));
   if (main.querySelector('nav.toc')) assignHeadingIds(main); // in-page TOC links need heading ids
   const [accent, tint] = themeColors(s);

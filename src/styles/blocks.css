@@ -57,6 +57,18 @@
 :where(.paper, main.md-export) nav.toc a { text-decoration: none; }
 :where(.paper, main.md-export) nav.toc a:hover { text-decoration: underline; }
 
+:where(.paper, main.md-export, .slide) :is(.callout, nav.toc)[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+  border-right: 0;
+  border-left: 4px solid var(--cc, var(--accent-doc, var(--accent)));
+  border-radius: 8px 0 0 8px;
+}
+:where(.paper, main.md-export, .slide) :is(.callout, nav.toc)[dir="rtl"] { direction: rtl; text-align: right; }
+:where(.paper, main.md-export, .slide) nav.toc[dir="ltr"] ul ul { padding-left: 18px; padding-right: 0; }
+:where(.paper, main.md-export, .slide) ul.task-list[dir="ltr"] { direction: ltr; text-align: left; padding-left: 4px; padding-right: 0; }
+:where(.paper, main.md-export, .slide) ul.task-list[dir="rtl"] { direction: rtl; text-align: right; padding-left: 0; padding-right: 0; }
+
 @media print {
   :where(.paper, main.md-export) pre.code { white-space: pre-wrap; }
   :where(.paper, main.md-export) .callout, :where(.paper, main.md-export) pre.code { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

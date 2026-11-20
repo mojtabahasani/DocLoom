@@ -58,17 +58,18 @@ test('install/uninstall dry-runs list the Quick Actions without touching HOME', 
   fs.rmSync(home, { recursive: true });
 });
 
-const cli = (args, env = {}) => spawnSync('bash', [path.join(root, 'server/cli/docloom'), ...args], { encoding: 'utf8', env: { ...process.env, DOCLOOM_DRY: '1', ...env }, cwd: '/private/tmp' });
+const tmpDir = fs.realpathSync(os.tmpdir());
+const cli = (args, env = {}) => spawnSync('bash', [path.join(root, 'server/cli/docloom'), ...args], { encoding: 'utf8', env: { ...process.env, DOCLOOM_DRY: '1', ...env }, cwd: tmpDir });
 
 test('CLI: pdf / html argument parsing builds the batch request', () => {
   const r = cli(['pdf', 'a b.md', '/abs/dir', '--brand', 'برند "۱"', '--out', 'outdir', '--pages']);
   assert.equal(r.status, 0, r.stderr);
   const body = JSON.parse(r.stdout);
-  assert.deepEqual(body.paths, ['/private/tmp/a b.md', '/abs/dir']);
+  assert.deepEqual(body.paths, [path.join(tmpDir, 'a b.md'), '/abs/dir']);
   assert.deepEqual(body.formats, ['pdf']);
   assert.equal(body.brand, 'برند "۱"');
   assert.equal(body.pageNumbers, true);
-  assert.deepEqual(body.dest, { mode: 'folder', dir: '/private/tmp/outdir' });
+  assert.deepEqual(body.dest, { mode: 'folder', dir: path.join(tmpDir, 'outdir') });
   const h = JSON.parse(cli(['html', '/x/y.md', '--cleanup']).stdout);
   assert.deepEqual(h.formats, ['html']);
   assert.deepEqual(h.dest, { mode: 'beside' });
